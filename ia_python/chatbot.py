@@ -13,14 +13,22 @@ def conectar_db():
         database="pizzaria"
     )
 
-# Buscar sabores do banco
+# Buscar sabores do banco (pizzas + esfihas)
 def obter_sabores_db():
     conn = conectar_db()
     cursor = conn.cursor()
+
+    # Pegar sabores de pizzas
     cursor.execute("SELECT sabor FROM pizzas")
-    sabores = [linha[0].lower() for linha in cursor.fetchall()]
+    sabores_pizzas = [linha[0].lower() for linha in cursor.fetchall()]
+
+    # Pegar sabores de esfihas
+    cursor.execute("SELECT sabor FROM esfihas")
+    sabores_esfihas = [linha[0].lower() for linha in cursor.fetchall()]
+
     conn.close()
-    return sabores
+    return sabores_pizzas + sabores_esfihas
+
 
 # Intenções
 def detectar_intencao(frase):
@@ -51,12 +59,12 @@ def extrair_entidades(frase):
     frase_normalizada = frase.lower().replace("-", " ").replace(" e ", " e ")
     entidades = {"tamanho": None, "sabores": [], "borda": None}
 
-    # Sabores
+    # Sabores (pizzas ou esfihas)
     for sabor in sabores_disponiveis:
         if sabor in frase_normalizada and sabor not in entidades["sabores"]:
             entidades["sabores"].append(sabor)
 
-    # Tamanhos e bordas
+    # Tamanho e borda
     for token in doc:
         t = token.text.lower()
         if t in tamanhos:
@@ -66,10 +74,19 @@ def extrair_entidades(frase):
 
     return entidades
 
-# Chatbot principal
+
+# Nova função para identificar tipo do pedido
+def identificar_tipo_pedido(frase):
+    if "esfiha" in frase.lower():
+        return "esfiha"
+    elif "pizza" in frase.lower():
+        return "pizza"
+    return "indefinido"
+
+# Função principal
 def iniciar_chat():
     print("Chatbot Pizzaria 🍕 - Digite 'sair' para encerrar")
-    pedido_atual = {"tamanho": None, "sabores": [], "borda": None}
+    pedido_atual = {"tipo": None, "tamanho": None, "sabores": [], "borda": None}
     coletando_pedido = False
     aguardando_confirmacao = False
 
@@ -81,6 +98,11 @@ def iniciar_chat():
 
         intencao = detectar_intencao(entrada)
         entidades = extrair_entidades(entrada)
+        tipo = identificar_tipo_pedido(entrada)
+
+        # Atualiza tipo do pedido se identificado
+        if tipo != "indefinido":
+            pedido_atual["tipo"] = tipo
 
         if entidades["tamanho"]:
             pedido_atual["tamanho"] = entidades["tamanho"]
@@ -97,13 +119,12 @@ def iniciar_chat():
                 continue
 
         if intencao == "ver_cardapio":
-            sabores = obter_sabores_db()
             print("Bot: Enviaremos o cardápio em PDF. Aguarde um instante...")
             print(">>> (Simulação) Enviando PDF do cardápio...")
             continue
 
         if intencao == "cancelar_pedido":
-            pedido_atual = {"tamanho": None, "sabores": [], "borda": None}
+            pedido_atual = {"tipo": None, "tamanho": None, "sabores": [], "borda": None}
             coletando_pedido = False
             aguardando_confirmacao = False
             print("Bot: Pedido cancelado. Deseja recomeçar?")
@@ -117,8 +138,8 @@ def iniciar_chat():
             pedido_atual["borda"] = "sem borda"
 
         if intencao == "confirmar_pedido" and aguardando_confirmacao:
-            print("Bot: Pedido confirmado! Sua pizza está sendo preparada 🍕")
-            pedido_atual = {"tamanho": None, "sabores": [], "borda": None}
+            print(f"Bot: Pedido confirmado! Sua {pedido_atual['tipo']} está sendo preparada 🍽️")
+            pedido_atual = {"tipo": None, "tamanho": None, "sabores": [], "borda": None}
             coletando_pedido = False
             aguardando_confirmacao = False
             continue
@@ -126,17 +147,28 @@ def iniciar_chat():
         if intencao == "pedir_pizza" or coletando_pedido:
             coletando_pedido = True
 
+            if not pedido_atual["tipo"]:
+                print("Bot: Você gostaria de uma pizza ou uma esfiha?")
+                continue
+
             faltando = []
-            if not pedido_atual["tamanho"]:
-                faltando.append("tamanho")
-            if not pedido_atual["sabores"]:
-                faltando.append("sabor")
-            if not pedido_atual["borda"]:
-                faltando.append("borda")
+            if pedido_atual["tipo"] == "pizza":
+                if not pedido_atual["tamanho"]:
+                    faltando.append("tamanho")
+                if not pedido_atual["sabores"]:
+                    faltando.append("sabor")
+                if not pedido_atual["borda"]:
+                    faltando.append("borda")
+            elif pedido_atual["tipo"] == "esfiha":
+                if not pedido_atual["sabores"]:
+                    faltando.append("sabor")
 
             if not faltando:
                 sabores = ", ".join(pedido_atual["sabores"])
-                print(f"Bot: Pedido completo! Uma pizza {pedido_atual['tamanho']} de {sabores} com borda {pedido_atual['borda']}. Confirmar?")
+                if pedido_atual["tipo"] == "pizza":
+                    print(f"Bot: Pedido completo! Uma pizza {pedido_atual['tamanho']} de {sabores} com borda {pedido_atual['borda']}. Confirmar?")
+                elif pedido_atual["tipo"] == "esfiha":
+                    print(f"Bot: Pedido completo! Uma esfiha de {sabores}. Confirmar?")
                 aguardando_confirmacao = True
             else:
                 partes = []
@@ -147,13 +179,18 @@ def iniciar_chat():
                 if pedido_atual["borda"]:
                     partes.append("borda anotada")
 
+                faltando_texto = ', '.join(faltando)
                 if partes:
-                    print(f"Bot: {', '.join(partes)}. Agora me diga: " + ', '.join(faltando) + ".")
+                    print(f"Bot: {', '.join(partes)}. Agora me diga: {faltando_texto}.")
                 else:
-                    print("Bot: Qual o tamanho (25cm ou 35cm), sabor e borda da pizza?")
+                    if pedido_atual["tipo"] == "pizza":
+                        print("Bot: Qual o tamanho (25cm ou 35cm), sabor e borda da pizza?")
+                    else:
+                        print("Bot: Qual sabor da esfiha você deseja?")
 
         else:
             print("Bot: Desculpe, não entendi. Pode repetir de outra forma?")
+
 
 if __name__ == "__main__":
     iniciar_chat()
