@@ -1,6 +1,7 @@
 import spacy
 import re
 import mysql.connector
+from datetime import datetime
 
 nlp = spacy.load("pt_core_news_sm")
 
@@ -12,6 +13,15 @@ def conectar_db():
         password="1234",
         database="pizzaria"
     )
+
+def saudacao_por_horario():
+    hora_atual = datetime.now().hour
+    if 5 <= hora_atual < 12:
+        return "Bom dia"
+    elif 12 <= hora_atual < 18:
+        return "Boa tarde"
+    else:
+        return "Boa noite"
 
 # Buscar sabores do banco (pizzas + esfihas)
 def obter_sabores_db():
@@ -45,7 +55,7 @@ def detectar_intencao(frase):
         return "cancelar_pedido"
     elif any(p in frase for p in ["status", "rastrear", "acompanhar", "onde está"]):
         return "rastrear_pedido"
-    elif any(p in frase for p in ["oi", "olá", "opa", "bom dia", "boa tarde", "boa noite", "eae", "e aí", "fala"]):
+    elif any(p in frase for p in ["oi", "olá", "ola", "opa", "bom dia", "boa tarde", "boa noite", "eae", "eai", "eaí", "e aí", "fala"]):
         return "saudacao"
     return "intencao_indefinida"
 
@@ -83,18 +93,65 @@ def identificar_tipo_pedido(frase):
         return "pizza"
     return "indefinido"
 
-# Função principal
+# ... [códigos anteriores mantidos] ...
+
+# Buscar variações de um sabor genérico
+def buscar_variacoes_sabor(sabor_base):
+    conn = conectar_db()
+    cursor = conn.cursor()
+
+    consulta = """
+        SELECT sabor FROM pizzas WHERE LOWER(sabor) LIKE %s
+        UNION
+        SELECT sabor FROM esfihas WHERE LOWER(sabor) LIKE %s
+    """
+    like_param = f"%{sabor_base.lower()}%"
+    cursor.execute(consulta, (like_param, like_param))
+    variacoes = [linha[0] for linha in cursor.fetchall()]
+    conn.close()
+    return variacoes
+
+
+# Lista de sabores genéricos que possuem múltiplas versões
+sabores_com_variacoes = ["atum", "três queijos", "palmito", "lombo", "frango", "carne seca", "calabresa", "baiana"]
+
 def iniciar_chat():
     print("Chatbot Pizzaria 🍕 - Digite 'sair' para encerrar")
     pedido_atual = {"tipo": None, "tamanho": None, "sabores": [], "borda": None}
     coletando_pedido = False
     aguardando_confirmacao = False
+    aguardando_variacao = None  # ← Novo estado
 
     while True:
         entrada = input("Você: ")
         if entrada.lower() in ["sair", "exit", "quit"]:
             print("Bot: Até a próxima!")
             break
+
+        # Se estamos aguardando variação de sabor
+        if aguardando_variacao:
+            variacoes = buscar_variacoes_sabor(aguardando_variacao)
+            escolha = entrada.strip().lower()
+
+            # Verifica se a resposta do cliente corresponde a alguma variação
+            encontrada = None
+            for v in variacoes:
+                if escolha in v.lower():
+                    encontrada = v
+                    break
+
+            if encontrada:
+                if encontrada.lower() not in pedido_atual["sabores"]:
+                    pedido_atual["sabores"].append(encontrada.lower())
+                print(f"Bot: Sabor registrado: {encontrada}.")
+            else:
+                print("Bot: Não encontrei essa variação. Por favor, escolha uma das seguintes:")
+                for v in variacoes:
+                    print(f"- {v}")
+                continue  # Ainda aguardando variação
+
+            aguardando_variacao = None  # Reset
+            continue  # Volta ao loop principal
 
         intencao = detectar_intencao(entrada)
         entidades = extrair_entidades(entrada)
@@ -106,16 +163,44 @@ def iniciar_chat():
 
         if entidades["tamanho"]:
             pedido_atual["tamanho"] = entidades["tamanho"]
-        if entidades["sabores"]:
-            pedido_atual["sabores"].extend([s for s in entidades["sabores"] if s not in pedido_atual["sabores"]])
         if entidades["borda"]:
             pedido_atual["borda"] = entidades["borda"]
+
+        # Verifica sabores com variações
+        for sabor in entidades["sabores"]:
+            if pedido_atual["tipo"] is None:
+                print("Bot: Você gostaria de uma pizza ou uma esfiha?")
+                pedido_atual["sabores"] = []  # limpa sabores até saber tipo
+                break
+
+            if any(sabor_base in sabor for sabor_base in sabores_com_variacoes):
+                variacoes = buscar_variacoes_sabor(sabor)
+
+        # Filtrar variações pelo tipo correto (pizza ou esfiha)
+            if pedido_atual["tipo"] == "pizza":
+                variacoes = [v for v in variacoes if v.lower() in obter_sabores_db()[:len(obter_sabores_db())//2]]  # pizzas
+            elif pedido_atual["tipo"] == "esfiha":
+                variacoes = [v for v in variacoes if v.lower() in obter_sabores_db()[len(obter_sabores_db())//2:]]  # esfihas
+
+            if len(variacoes) > 1:
+                aguardando_variacao = sabor
+                print(f"Bot: Existem várias opções para '{sabor}'. Qual delas você deseja?")
+                for v in variacoes:
+                    print(f"- {v}")
+                print("Bot: Você gostaria de ver os ingredientes de cada uma?")
+                break  # aguarda resposta antes de continuar
+            else:
+                if sabor not in pedido_atual["sabores"]:
+                    pedido_atual["sabores"].append(sabor)
+
+                
+
 
         if intencao == "saudacao":
             if any(p in entrada.lower() for p in ["pizza", "quero", "me vê", "gostaria"]):
                 intencao = "pedir_pizza"
             else:
-                print("Bot: Olá! Seja bem-vindo ao Cantinho das Pizzas e do Açaí. Posso ajudar com seu pedido?")
+                print(f"Bot: {saudacao_por_horario()}! Posso ajudar com seu pedido?")
                 continue
 
         if intencao == "ver_cardapio":
@@ -187,9 +272,9 @@ def iniciar_chat():
                         print("Bot: Qual o tamanho (25cm ou 35cm), sabor e borda da pizza?")
                     else:
                         print("Bot: Qual sabor da esfiha você deseja?")
-
         else:
             print("Bot: Desculpe, não entendi. Pode repetir de outra forma?")
+
 
 
 if __name__ == "__main__":
