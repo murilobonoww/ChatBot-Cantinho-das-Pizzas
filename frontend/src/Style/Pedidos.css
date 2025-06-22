@@ -1,0 +1,145 @@
+.page-pedidos {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  max-width: 60px;
+}
+
+ul {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  list-style: none;
+  user-select: none;
+  margin: 10px 0;
+}
+
+#icon {
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+#icon:hover {
+  width: 70px;
+  height: 70px;
+}
+
+#icon:active {
+  transform: scale(0.9);
+  transition: transform 0.1s;
+}
+
+/* 💡 Card do pedido */
+.pedidos {
+  padding: 40px;
+  flex-grow: 1;
+}
+
+.pedido-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  font-family: Arial, sans-serif;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.pedido-card:hover {
+  transform: translateY(-4px);
+}
+
+.pedido-titulo {
+  margin-top: 0;
+  color: #e63946;
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+}
+
+.pedido-itens {
+  margin-top: 16px;
+  background-color: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.pedido-item {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+.pedido-observacao {
+  font-style: italic;
+  color: #666;
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+
+/* ➕ Adição para expandir/recolher */
+.pedido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+
+.pedido-detalhes {
+  margin-top: 12px;
+  animation: expand 0.3s ease;
+}
+
+@keyframes expand {
+  from {
+    opacity: 0;
+    transform: scaleY(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+.status-botao {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 1rem;
+  color: white;
+  cursor: pointer;
+  text-transform: lowercase;
+  transition: background-color 0.3s ease;
+}
+
+.status-botao.pendente {
+  background-color: #e63946;
+}
+
+/* 🟡 Em andamento */
+.status-botao.andamento {
+  background-color: #ffc400;
+}
+
+.status-botao.concluído {
+  background-color: #02c232;
+}

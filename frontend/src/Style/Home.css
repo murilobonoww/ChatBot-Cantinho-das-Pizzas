@@ -1,0 +1,81 @@
+.page-home{
+    display: flex;
+    height: 100vh;
+}
+
+
+.textHome{
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 0;
+    text-align: center;
+    user-select: none;
+    text-align: center;
+}
+
+#title{
+    font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+#subtitle1{
+    font-size: 1.4rem;
+  color: #444;
+  margin-bottom: 0.5rem;
+}
+#subtitle2{
+      font-size: 1rem;
+    color: #666;
+  font-weight: 500;
+}
+.sidebar{
+    width: 60px;
+    padding-right: 30px;
+    background-color: #000000;
+}
+
+ul {
+  margin-left: 10px;
+  margin-right: 100px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+
+  
+}
+
+li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+
+#icon{
+    width: 60px;
+    height: 60px;
+    user-select: none;
+    transition: all .7s;
+    min-width: 50px;
+    min-height: 50px;
+}
+
+#icon:hover{
+    width: 70px;
+    height: 70px;
+    user-select: none;
+    transition: all .7s;
+}
+
+#icon:active {
+  transform: scale(0.1); /* Dá aquela leve “afundada” */
+}
+
+ul:hover #icon:not(:hover) {
+  filter: blur(2px);
+  opacity: 1;
+}
