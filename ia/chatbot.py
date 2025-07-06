@@ -3,6 +3,15 @@ from openai import OpenAI
 import mysql.connector
 from datetime import datetime
 import pytz
+from dotenv import load_dotenv
+import os
+
+
+load_dotenv()
+maps_api_key = os.getenv("MAPS_API_KEY")
+gpt_api_key = os.getenv("GPT_API_KEY")
+db_pass = os.getenv("DB_PASS")
+db_name = os.getenv("DB_NAME")
 
 def calcular_distancia_km(endereco_destino):
     origem = "R. Copacabana, 111 - Jardim Maria Helena, Barueri - SP, 06445-060"
@@ -10,7 +19,7 @@ def calcular_distancia_km(endereco_destino):
 
     headers = {
         "Content-Type": "application/json",
-        "X-Goog-Api-Key": "AIzaSyA5eCJxAEAJ35CdZ2zeFhE60wBKww8bsoE",
+        "X-Goog-Api-Key": maps_api_key,
         "X-Goog-FieldMask": "routes.duration,routes.distanceMeters"
     }
 
@@ -57,11 +66,11 @@ def conectar_banco():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="1234",
-        database="pizzaria"
+        password=db_pass,
+        database=db_name
     )
 client = OpenAI(
-  api_key="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"
+  api_key=gpt_api_key
 )
 def enviar_msg(msg, lista_msgs=[]):
     lista_msgs.append({"role": "user", "content": msg})
