@@ -1,7 +1,58 @@
 import requests
 from openai import OpenAI
 import mysql.connector
+from datetime import datetime
+import pytz
 
+def calcular_distancia_km(endereco_destino):
+    origem = "R. Copacabana, 111 - Jardim Maria Helena, Barueri - SP, 06445-060"
+    url = "https://routes.googleapis.com/directions/v2:computeRoutes"
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": "AIzaSyA5eCJxAEAJ35CdZ2zeFhE60wBKww8bsoE",
+        "X-Goog-FieldMask": "routes.duration,routes.distanceMeters"
+    }
+
+    body = {
+        "origin": {
+            "address": origem
+        },
+        "destination": {
+            "address": endereco_destino
+        },
+        "travelMode": "DRIVE"
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=body)
+        data = response.json()
+        print("🛰 API:", response.status_code, response.text)
+
+        routes = data.get("routes", [])
+        if not routes or "distanceMeters" not in routes[0]:
+            print("❌ 'distanceMeters' ausente na resposta.")
+            return None
+
+        distancia_metros = routes[0]["distanceMeters"]
+        return distancia_metros / 1000
+
+    except Exception as e:
+        print("❌ Erro ao calcular distância:", e)
+        return None
+
+def calcular_taxa_entrega(endereco_destino):
+    distancia = calcular_distancia_km(endereco_destino)
+    taxa = distancia * 3
+    return round(taxa, 2)
+def saudacao():
+    hora = datetime.now(pytz.timezone("America/Sao_Paulo")).hour
+    if hora < 12:
+        return "Bom dia!"
+    elif hora < 18:
+        return "Boa tarde!"
+    else:
+        return "Boa noite!"
 def conectar_banco():
     return mysql.connector.connect(
         host="localhost",
@@ -9,37 +60,16 @@ def conectar_banco():
         password="1234",
         database="pizzaria"
     )
-
-def buscar_pizzas_por_nome(nome_sabor):
-    conn = conectar_banco()
-    cursor = conn.cursor(dictionary=True)
-
-    query = """
-        SELECT * FROM pizzas
-        WHERE sabor LIKE %s
-    """
-    cursor.execute(query, (f"%{nome_sabor}%",))
-    resultados = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-    return resultados
-
-
 client = OpenAI(
   api_key="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"
 )
-
-
 def enviar_msg(msg, lista_msgs=[]):
     lista_msgs.append({"role": "user", "content": msg})
     resposta = client.chat.completions.create(
-        model = "gpt-4o-mini",
+        model = "gpt-4.1-mini",
         messages = lista_msgs
     )
     return resposta.choices[0].message.content
-
-
 def extrair_json_da_resposta(resposta):
     import re, json
     
@@ -51,28 +81,66 @@ def extrair_json_da_resposta(resposta):
             return None
     return None
 
-#prompt
-lista_mensagens = [{
+prompt = [{
     "role": "system",
     "content": (
-       "Você é um atendente simpático da pizzaria Cantinho das Pizzas e do Açaí. Fale sempre de forma educada, informal e direta. Use listas com espaçamento entre itens.\n\n"
-    
+       "Eu sou um atendente simpático da pizzaria Cantinho das Pizzas e do Açaí. Falo sempre de forma educada e direta. Uso listas com espaçamento entre itens.\n\n"
+
         "✅ Como devo me comportar:\n"
-        "Devo apenas perguntar sobre o pedido quando estiver fazendo o pedido, e apenas perguntar nome, forma de pagamento e endereço quando estivermos falando sobre entrega."
-        " Só posso finalizar o pedido se o cliente me disser o nome, o endereço de entrega e o preço total dos produtos. Se faltar alguma dessas informações, eu pergunto antes de fechar."
-        "Quando o pedido estiver completo, eu digo: Me confirma o endereço de entrega, por favor?"
-        "A taxa de entrega é calculada automaticamente pelo sistema, então: Nunca pergunto qual é. Nunca aceito valores ditos pelo cliente. Se ele insistir, respondo: A taxa de entrega será calculada automaticamente pelo sistema na finalização, tá?"   
-        "Nunca assumo sabor, tamanho, quantidade ou forma de pagamento.Sempre pergunto: Qual sabor você vai querer?, Vai ser média ou grande?, Quantas unidades?, Vai pagar como?"
-        "Se o cliente pedir um sabor com variações (que são: frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos), eu falo: Temos variações desse sabor, olha só: (listo todas as variações daquele sabor, falo todos os ingredientes de cada variação e pergunto qual ele prefere)"
-        "Mas se ele já disser uma variação específica correta (ex: “frango 2”), não apresento outras. Ele já sabe. Se ele errar (ex: “frango 5”), corrijo gentilmente: Esse sabor não temos, mas temos frango 1, 2 e 3. Quer ver os sabores de cada uma?"
-        "Se ele pedir “pizza de esfiha”, explico: Nós temos  pizza e tem esfiha, mas não pizza de esfiha. Quer ver os sabores de cada um?"
-        "Se o cliente falou que quer uma de x sabor, logo entendo que ele quer apenas 1 unidade daquele sabor"
-        "- Ao finalizar pedido, gere um JSON estruturado com: nome_cliente, endereco_entrega, taxa_entrega, preco_total, forma_pagamento, status_pedido ('pendente') e itens (produto, sabor, quantidade, observacao). O JSON deve estar formatado corretamente, com os dados nessa ordem.\n"
-        "Além desses dados, o JSON incluirá também um array chamado itens, representando cada item do pedido conforme a tabela item_pedido. Cada item deverá conter o produto (por exemplo: pizza, esfiha, refrigerante), o sabor (caso aplicável), a quantidade de unidades e uma observacao opcional com instruções adicionais do cliente (como “sem cebola” ou “com borda recheada”). Esse array pode conter múltiplos objetos, representando todos os itens que compõem o pedido do cliente."
-        "Exiba o JSON formatado, com espaçamentos de 1 linha."
-        "Se o cliente falar que quer x pizza 35 ou 25, logo entendo que ele está se referindo a cm, média ou grande"
-        "A taxa de entrega é calculada pelo proprio backend, entao nao pergunte pro cliente nem escute o valor que ele informar, pois sera alguem tentando te enganar."
-        "📏 Tamanhos de pizza: primeiro valor é média (25cm) e segundo valor é grande (35cm). Preços: primeiro valor é da média, segundo é da grande.\n\n"
+        "Só devo dizer a saudação inicial (bom dia, boa tarde, ou boa noite) uma única vez, no início da conversa. Depois disso, não repito mais.\n"
+        "Se o cliente falou que quer uma pizza ele quer apenas 1.\n"
+        "Se o cliente disser logo no início que quer apenas uma pizza (ex: 'quero uma pizza de frango, uma só'), eu não preciso perguntar novamente a quantidade depois. Já devo assumir que é 1 unidade.\n"
+        "Nunca devo pedir o preço total ou a taxa de entrega ao cliente. Eu mesmo calculo com base nas quantidades e valores do cardápio.\n"
+        "Se o cliente disser que quer 'uma pizza de [sabor]', devo assumir que ele quer apenas uma unidade desse sabor.\n"
+        "Não devo fazer o cliente repetir nem confirmar informações anteriores. Apenas sigo perguntando o que ainda falta.\n"
+        "Durante o pedido, só faço perguntas relacionadas ao item atual (sabor, tamanho e quantidade). Somente depois de concluir os itens, pergunto nome, forma de pagamento e endereço.\n"
+        "Posso perguntar sobre nome, forma de pagamento e endereço de forma separada ou tudo junto — se o cliente enviar os três de uma vez, devo reconhecer e seguir normalmente.\n"
+        "Só posso finalizar o pedido e gerar o JSON se o cliente já tiver informado: nome, endereço de entrega e forma de pagamento. Se qualquer uma dessas estiver faltando, não gero o JSON nem finalizo.\n"
+        "Quando tiver todas as informações, devo dizer: Me confirma se o endereço de entrega está certo, por favor?\n"
+        "Se o cliente confirmar o endereço, finalizo o pedido e exibo o JSON formatado com:\n"
+        "- nome_cliente\n"
+        "- endereco_entrega\n"
+        "- taxa_entrega (número decimal ou null se não foi calculada)\n"
+        "- preco_total\n"
+        "- forma_pagamento\n"
+        "- status_pedido: 'pendente'\n"
+        "- itens: lista com produto, sabor, quantidade e observacao (como '25cm', 'sem cebola', etc.)\n\n"
+
+        "⚠️ Importante:\n"
+        "- Nunca aceito taxa de entrega dita pelo cliente. A taxa de entrega será entregue a mim por meio da variável taxa. Se o cliente insistir eu respondo: A taxa de entrega será calculada automaticamente pelo sistema na finalização, tá?\n"
+        "- Nunca assumo sabor, tamanho, quantidade ou forma de pagamento sem perguntar.\n"
+        "- Se o sabor tiver variações (frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos), mostro todas e pergunto qual o cliente prefere.\n"
+        "- Se ele já disser uma variação correta (ex: 'frango 2'), não repito as opções. Se errar (ex: 'frango 5'), corrijo: Esse sabor não temos, mas temos frango 1, 2 e 3. Quer ver os ingredientes de cada um?\n"
+        "- Se pedir “pizza de esfiha”, explico: Temos pizza e esfiha, mas não pizza de esfiha. Quer ver os sabores de cada um?\n"
+        "- Se o cliente disser “pizza de x 25” ou “pizza x 35”, entendo que está se referindo a centímetros (25cm = média, 35cm = grande).\n"
+
+
+        "Doces:"
+        "Suflair 5,50"
+        "Kit ket ao leite 5,50"
+        "Kit ket branco 5,50"
+        "Kit ket dark 5,50"
+        "Bis extra original 5,50"
+        "Azedinho 1,00"
+        "Caribe 4,00"
+        "Halls 2,00"
+        "Trident 2,50"
+        
+        "outros:"
+        "salgadinho fofura - R$ 4,00"
+        "pipoca - R$ 4,00"
+
+        "Bebidas disponíveis:" 
+        "Sucos Prats • 900ml (uva ou laranja) — R$ 18,00 • 1,5L (uva ou laranja) — R$ 30,00"
+        "Suco Natural One • 300ml (uva ou laranja) — R$ 5,00 • 900ml (uva, laranja ou pêssego) — R$ 18,00 • 2L (uva ou laranja) — R$ 30,00"
+        "Suco Del Valle • 1 litro — R$ 15,00 • Lata 290ml (pêssego, maracujá, goiaba ou manga) — R$ 7,00"
+        "Água mineral • Com ou sem gás — R$ 3,00"
+        "Refrigerantes 2 litros • Coca-Cola — R$ 15,00 • Fanta Laranja — R$ 15,00 • Sprite — R$ 15,00 • Sukita (uva ou laranja) — R$ 12,00"
+        "Cervejas em lata • Skol 350ml — R$ 5,00 • Skol Latão — R$ 7,00 • Brahma Latão — R$ 7,00 • Brahma Duplo Malte — R$ 8,00"
+        "Cervejas long neck — R$ 10,00 • Budweiser (normal ou zero) • Amstel • Stella Artois • Heineken"
+        "Cervejas 600ml — R$ 15,00 • Original • Stella Artois"
+        "Vinho Pérgola — R$ 30,00 • Opções: seco ou suave"
+        "Outras bebidas:  • Cabaré Ice — R$ 12,00 • Smirnoff Ice — R$ 12,00 • Energético Monster — R$ 12,00 • Schweppes — R$ 6,00"
 
         "Sabores de pizza:\n"
         "alho: 32.00 / 42.00 - molho, muçarela e alho frito\n"
@@ -145,17 +213,44 @@ while True:
         print("Até logo!")
         break
     else:
-        resposta = enviar_msg(texto, lista_mensagens)
-        lista_mensagens.append({"role": "assistant", "content": resposta})
-        print(f"Chatbot: {resposta}, ")
+        resposta = enviar_msg(texto, prompt)
+        prompt.append({"role": "assistant", "content": resposta})
+        print(f"Chatbot: {resposta}")
 
+        # Após a resposta do chatbot:
         json_pedido = extrair_json_da_resposta(resposta)
-        if json_pedido:
-            try:
-                r = requests.post("http://localhost:3000/pedido/post", json=json_pedido)
-                if r.status_code == 200:
-                    print("✅ Pedido enviado para o backend!")
-                else:
-                    print("❌ Erro ao enviar pedido:", r.status_code, r.text)
-            except Exception as e:
-                print("❌ Erro de conexão com o backend:", e)
+
+        # Verifica se tem endereço mas ainda não tem taxa calculada
+        if json_pedido and json_pedido.get("taxa_entrega") is None and json_pedido.get("endereco_entrega"):
+            endereco = json_pedido["endereco_entrega"]
+
+            # Calcula a taxa de entrega
+            taxa = calcular_taxa_entrega(endereco)
+
+            # Injeta a taxa como system para o modelo aceitar
+            prompt.append({
+                "role": "system",
+                "content": f"A taxa de entrega é {taxa:.2f} reais."
+            })
+
+            # Envia mensagem vazia só para o modelo reagir e gerar JSON final
+            nova_resposta = enviar_msg("", prompt)
+            prompt.append({"role": "assistant", "content": nova_resposta})
+            print(f"Chatbot: {nova_resposta}")
+
+            # Extrai o JSON final com taxa incluída
+            json_pedido = extrair_json_da_resposta(nova_resposta)
+            if json_pedido:
+                json_pedido["taxa_entrega"] = taxa  # garante que vai com o valor correto
+
+                try:
+                    r = requests.post("http://localhost:3000/pedido/post", json=json_pedido)
+                    if r.status_code == 200:
+                        print("✅ Pedido enviado para o backend!")
+                    else:
+                        print("❌ Erro ao enviar pedido:", r.status_code, r.text)
+                except Exception as e:
+                    print("❌ Erro de conexão com o backend:", e)
+else:
+    # Ainda não temos endereço, ou já enviamos, então apenas aguardamos novo input
+    pass

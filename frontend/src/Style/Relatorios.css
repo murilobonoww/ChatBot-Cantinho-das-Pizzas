@@ -1,0 +1,86 @@
+.page-relatorios {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  max-width: 60px;
+  position: fixed;
+  min-height: 100vh;  
+}
+
+ul {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  list-style: none;
+  user-select: none;
+  margin: 10px 0;
+}
+
+#icon {
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-left: 10px;
+}
+
+#icon:hover {
+  width: 70px;
+  height: 70px;
+}
+
+#icon:active {
+  transform: scale(0.9);
+  transition: transform 0.1s;
+}
+
+/* 💡 Card do pedido */
+.relatorios {
+  flex-grow: 1;
+  padding-left: 120px;
+  margin-top: -20px;
+}
+
+
+
+.filtros-data, .filtros-rapidos {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filtros-rapidos button,
+.filtros-data button {
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 8px;
+  background-color: #eee;
+  border: none;
+  transition: 0.2s;
+}
+
+.filtros-rapidos button:hover,
+.filtros-data button:hover {
+  background-color: #ddd;
+}
+
+
+.tabela-pedidos tbody td{
+  padding-right: 40px;
+}
+
+.tabela-pedidos thead th{
+  text-align: start;
+}
+
+#table_pagamento{
+  padding-right: 70px;
+}

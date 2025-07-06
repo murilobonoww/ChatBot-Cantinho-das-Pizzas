@@ -11,11 +11,11 @@ const Home = () => {
         <div className="page-home">
             <div className="sidebar">
                 <ul>
-                    <li><img id="icon" src={entregadores_img} /></li>
+                    <li><Link to={"/entregadores"}><img id="icon" src={entregadores_img} /></Link></li>
 
                     <li><Link to={"/pedidos"}><img id="icon" src={pedido_img} /></Link></li>
 
-                    <li><img id="icon" src={relatorios_img} /></li>
+                    <li><Link to={"/relatorios"}><img id="icon" src={relatorios_img} /></Link></li>
                 </ul>
             </div>
             <div className="textHome">

@@ -1,0 +1,51 @@
+.page-motoboys {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  max-width: 60px;
+}
+
+ul {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  list-style: none;
+  user-select: none;
+  margin: 10px 0;
+}
+
+#icon {
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+#icon:hover {
+  width: 70px;
+  height: 70px;
+}
+
+#icon:active {
+  transform: scale(0.9);
+  transition: transform 0.1s;
+}
+
+/* 💡 Card do pedido */
+.motoboys {
+  padding: 40px;
+  flex-grow: 1;
+}
+
+.list_motoboys{
+    list-style:disc;
+    font-size: 30px;
+    margin-left: 30px;
+    text-decoration: underline;
+}

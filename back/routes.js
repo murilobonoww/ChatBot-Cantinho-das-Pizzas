@@ -66,22 +66,41 @@ router.post('/pedido/post', (req, res) => {
 
 
 router.get('/pedido/getAll', (req, res) => {
-  const sql = `
+  const { inicio, fim, cliente } = req.query;
+
+  let sql = `
     SELECT 
-      p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, p.preco_total, p.forma_pagamento, p.status_pedido,
-      i.id, i.produto, i.sabor, i.quantidade, i.observacao
+      p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, p.preco_total, 
+      p.forma_pagamento, p.status_pedido, p.data_pedido,
+      i.id AS id_item, i.produto, i.sabor, i.quantidade, i.observacao
     FROM pedido p
     LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk
-    ORDER BY p.id_pedido DESC
   `;
 
-    db.query(sql, (err, resultados) => {
+  const conditions = [];
+  const params = [];
+
+  if (inicio && fim) {
+    conditions.push(`p.data_pedido BETWEEN ? AND ?`);
+    params.push(`${inicio} 00:00:00`, `${fim} 23:59:59`);
+  }
+
+  if (cliente) {
+    conditions.push(`p.nome_cliente LIKE ?`);
+    params.push(`%${cliente}%`);
+  }
+
+  if (conditions.length > 0) {
+    sql += ` WHERE ` + conditions.join(' AND ');
+  }
+
+  sql += ` ORDER BY p.id_pedido DESC`;
+
+  db.query(sql, params, (err, resultados) => {
     if (err) {
       console.error('❌ Erro ao buscar pedidos:', err);
       return res.status(500).json({ mensagem: 'Erro ao buscar pedidos' });
     }
-
-    console.log(resultados); // 👈 Veja se os itens realmente aparecem
 
     const pedidosMap = {};
 
@@ -96,11 +115,11 @@ router.get('/pedido/getAll', (req, res) => {
           preco_total: row.preco_total,
           forma_pagamento: row.forma_pagamento,
           status_pedido: row.status_pedido,
+          data_pedido: row.data_pedido,
           itens: []
         };
       }
 
-      // Só adiciona item se realmente vier um ID de item (evita campos nulos no LEFT JOIN)
       if (row.id_item !== null) {
         pedidosMap[id].itens.push({
           id_item: row.id_item,
@@ -115,17 +134,15 @@ router.get('/pedido/getAll', (req, res) => {
     const pedidos = Object.values(pedidosMap);
     res.status(200).json(pedidos);
   });
-
 });
-
 
 router.get('/pedido/:id', (req, res) => {
   const idPedido = req.params.id;
 
   const sql = `
-    SELECT 
+    SELECT
       p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, 
-      p.preco_total, p.forma_pagamento, p.status_pedido,
+      p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido,
       i.id, i.produto, i.sabor, i.quantidade, i.observacao
     FROM pedido p
     LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk
@@ -150,6 +167,7 @@ router.get('/pedido/:id', (req, res) => {
       preco_total: resultados[0].preco_total,
       forma_pagamento: resultados[0].forma_pagamento,
       status_pedido: resultados[0].status_pedido,
+      data_pedido: resultados[0].data_pedido,
       itens: []
     };
 
@@ -223,9 +241,68 @@ router.put('/pedido/:id/status', (req, res) => {
 });
 
 
+router.get('/relatorios/financeiro', (req, res) => {
+  const { inicio, fim } = req.query;
 
+  let sql = `
+    SELECT 
+      p.data_pedido,
+      p.nome_cliente,
+      p.forma_pagamento,
+      p.preco_total,
+      e.nome AS entregador
+    FROM pedido p
+    LEFT JOIN entregador e ON p.id_pedido = e.pedido_id_fk
+  `;
 
+  const valores = [];
 
+  if (inicio && fim) {
+    sql += ` WHERE p.data_pedido BETWEEN ? AND ? `;
+    valores.push(inicio + ' 00:00:00', fim + ' 23:59:59');
+  }
+
+  sql += ` ORDER BY p.data_pedido DESC LIMIT 100`;
+
+  db.query(sql, valores, (err, resultados) => {
+    if (err) {
+      console.error("❌ Erro ao buscar dados financeiros:", err);
+      return res.status(500).json({ mensagem: "Erro ao buscar relatório financeiro" });
+    }
+
+    let total_vendas = 0;
+    let total_pedidos = resultados.length;
+    let pagamentos = { pix: 0, dinheiro: 0, cartao: 0 };
+
+    const pedidosFormatados = resultados.map(r => {
+      total_vendas += parseFloat(r.preco_total);
+
+      const pg = r.forma_pagamento.toLowerCase();
+      if (pg.includes("pix")) pagamentos.pix += parseFloat(r.preco_total);
+      else if (pg.includes("dinheiro")) pagamentos.dinheiro += parseFloat(r.preco_total);
+      else pagamentos.cartao += parseFloat(r.preco_total);
+
+      return {
+        data: new Date(r.data_pedido).toLocaleDateString('pt-BR'),
+        cliente: r.nome_cliente,
+        valor: parseFloat(r.preco_total),
+        pagamento: r.forma_pagamento,
+        entregador: r.entregador || "-"
+      };
+    });
+
+    const ticket_medio = total_pedidos > 0 ? total_vendas / total_pedidos : 0;
+
+    res.status(200).json({
+      total_vendas,
+      total_pedidos,
+      ticket_medio,
+      mais_vendido: "-",
+      pagamentos,
+      pedidos: pedidosFormatados
+    });
+  });
+});
 
 
 module.exports = router;
