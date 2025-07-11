@@ -4,15 +4,24 @@ import Pedidos from "./Pages/Pedidos";
 import Entregadores from "./Pages/Motoboys";
 import Relatorios from "./Pages/Relatorios";
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import Cardapio from "./Pages/Cardapio";
+import AlterarPedidos from "./Pages/Alterar-pedidos";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
+    
     <Router>
+      <ToastContainer />
       <Routes>
-        <Route path="/" element={<Home/>}/>
-        <Route path="/pedidos" element={<Pedidos/>}/>
-        <Route path="/entregadores" element={<Entregadores/>}/>
-        <Route path="/relatorios" element={<Relatorios/>}/>
+        <Route path="/" element={<Home />} />
+        <Route path="/pedidos" element={<Pedidos />} />
+        <Route path="/entregadores" element={<Entregadores />} />
+        <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/cardapio" element={<Cardapio />} />
+        <Route path="/alterar-pedidos/:id" element={<AlterarPedidos />} />
+
       </Routes>
     </Router>
   )

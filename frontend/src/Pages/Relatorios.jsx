@@ -51,14 +51,9 @@ const Relatorios = () => {
 
   return (
     <div className="page-relatorios">
-      <div className="sidebar">
-        <ul>
-          <li><Link to="/entregadores"><img id="icon" src={entregadores_img} /></Link></li>
-          <li><Link to="/pedidos"><img id="icon" src={pedido_img} /></Link></li>
-          <li><Link to="/relatorios"><img id="icon" src={relatorios_img} /></Link></li>
-        </ul>
-      </div>
-
+      <Link to="/" className="btn-fechar">
+        ❌
+      </Link>
       <div className="relatorios">
         <h1>Relatórios</h1>
 
@@ -89,24 +84,24 @@ const Relatorios = () => {
         </div>
 
         <h2>Vendas por forma de pagamento</h2>
-          <PieChart width={400} height={350}>
-            <Pie
-              data={pagamentosData}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={80}
-              fill="#8884d8"
-              label={({ percent, value }) => `${(percent * 100).toFixed(0)}% (${value.toFixed(2)})`}
-            >
-              {pagamentosData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
+        <PieChart width={400} height={350}>
+          <Pie
+            data={pagamentosData}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius={80}
+            fill="#8884d8"
+            label={({ percent, value }) => `${(percent * 100).toFixed(0)}% (${value.toFixed(2)})`}
+          >
+            {pagamentosData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip />
+          <Legend />
+        </PieChart>
 
         {/* Tabela de Pedidos */}
         <h2>Últimos pedidos</h2>

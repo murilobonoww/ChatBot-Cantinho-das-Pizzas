@@ -1,0 +1,61 @@
+.alterar-pedidos-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 32px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+}
+
+.alterar-pedidos-container h1 {
+  font-size: 26px;
+  margin-bottom: 24px;
+  color: #333;
+  text-align: center;
+}
+
+.alterar-pedidos-container label {
+  display: block;
+  margin-bottom: 16px;
+  font-weight: bold;
+  color: #444;
+}
+
+.alterar-pedidos-container input,
+.alterar-pedidos-container select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-size: 16px;
+  background-color: #f9f9f9;
+  transition: border 0.2s ease;
+}
+
+.alterar-pedidos-container input:focus,
+.alterar-pedidos-container select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.btn-salvar {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background-color: #28a745;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 24px;
+}
+
+.btn-salvar:hover {
+  background-color: #218838;
+}

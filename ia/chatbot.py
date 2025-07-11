@@ -6,12 +6,18 @@ import pytz
 from dotenv import load_dotenv
 import os
 
-
 load_dotenv()
 maps_api_key = os.getenv("MAPS_API_KEY")
 gpt_api_key = os.getenv("GPT_API_KEY")
 db_pass = os.getenv("DB_PASS")
 db_name = os.getenv("DB_NAME")
+app_id = os.getenv("APP_ID")
+access_token = os.getenv('WHATSAPP_ACCESS_TOKEN')
+fone_id = os.getenv('FONE_ID')
+client_secret = os.getenv('CLIENT_SECRET')
+
+url = f"https://graph.facebook.com/v22.0/{fone_id}/messages"
+
 
 def calcular_distancia_km(endereco_destino):
     origem = "R. Copacabana, 111 - Jardim Maria Helena, Barueri - SP, 06445-060"
@@ -226,32 +232,55 @@ while True:
         prompt.append({"role": "assistant", "content": resposta})
         print(f"Chatbot: {resposta}")
 
+        payload = {
+            "messaging_product": "whatsapp",
+            "to": "554888484304",
+            "type": "text",
+            "text": {
+                "body": resposta
+            }
+        }
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+
+        response = requests.post(url, json=payload, headers=headers)
+        if response.status_code == 200:
+            print("✅ Mensagem enviada!")
+        else:
+            print(f"❌ Erro ao enviar mensagem: {response.status_code} {response.text}")
+
         # Após a resposta do chatbot:
         json_pedido = extrair_json_da_resposta(resposta)
 
-        # Verifica se tem endereço mas ainda não tem taxa calculada
         if json_pedido and json_pedido.get("taxa_entrega") is None and json_pedido.get("endereco_entrega"):
             endereco = json_pedido["endereco_entrega"]
 
-            # Calcula a taxa de entrega
             taxa = calcular_taxa_entrega(endereco)
 
-            # Injeta a taxa como system para o modelo aceitar
             prompt.append({
                 "role": "system",
                 "content": f"A taxa de entrega é {taxa:.2f} reais."
             })
 
-            # Envia mensagem vazia só para o modelo reagir e gerar JSON final
             nova_resposta = enviar_msg("", prompt)
             prompt.append({"role": "assistant", "content": nova_resposta})
             print(f"Chatbot: {nova_resposta}")
 
-            # Extrai o JSON final com taxa incluída
-            json_pedido = extrair_json_da_resposta(nova_resposta)
-            if json_pedido:
-                json_pedido["taxa_entrega"] = taxa  # garante que vai com o valor correto
+            payload = {
+                "messaging_product": "whatsapp",
+                "to": "554888484304",
+                "type": "text",
+                "text": {
+                    "body": nova_resposta
+                }
+            }
+            requests.post(url, json=payload, headers=headers)
 
+            json_pedido = extrair_json_da_resposta(nova_resposta)
+            if json_pedido and json_pedido.get("taxa_entrega") is not None:
+                json_pedido["taxa_entrega"] = taxa
                 try:
                     r = requests.post("http://localhost:3000/pedido/post", json=json_pedido)
                     if r.status_code == 200:
@@ -260,6 +289,7 @@ while True:
                         print("❌ Erro ao enviar pedido:", r.status_code, r.text)
                 except Exception as e:
                     print("❌ Erro de conexão com o backend:", e)
+
 else:
     # Ainda não temos endereço, ou já enviamos, então apenas aguardamos novo input
     pass

@@ -5,8 +5,10 @@ import pedido_img from "../assets/pedido.png";
 import entregadores_img from "../assets/entregadores.png";
 import expandir_img from "../assets/expandir_.png";
 import recolher_img from "../assets/recolher.png";
-
-import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import { Link, useLocation } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 const Pedidos = () => {
   const [pedidos, setPedidos] = useState([]);
@@ -46,6 +48,15 @@ const Pedidos = () => {
     setPedidos((prevPedidos) => [...prevPedidos]);
   }, [itensSelecionados]);
 
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.toastMessage) {
+      toast.success(location.state.toastMessage);
+      // Limpa o estado para evitar retoast em outras navegações
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
 
   const alternarStatus = (id) => {
@@ -111,24 +122,17 @@ const Pedidos = () => {
     setItensSelecionados(prev => prev.filter(i => i !== item));
   };
 
-
-
-
-
-
   return (
     <div className="page-pedidos">
-      <div className="sidebar">
-        <ul>
-          <li><Link to={"/entregadores"}><img id="icon" src={entregadores_img} /></Link></li>
-          <li><Link to={"/pedidos"}><img id="icon" src={pedido_img} /></Link></li>
-          <li><Link to={"/relatorios"}><img id="icon" src={relatorios_img} /></Link></li>
-        </ul>
-      </div>
+      <ToastContainer position="top-right" autoClose={3000} />
+
 
       <div className="pedidos">
         <h1>Histórico de pedidos</h1>
 
+        <Link to="/" className="btn-fechar">
+          ❌
+        </Link>
         <h2>Filtros</h2>
 
         <div className="filtro-datas">
@@ -209,12 +213,17 @@ const Pedidos = () => {
                   Pedido #{pedido.id_pedido} {abertos[pedido.id_pedido] ? <img className="e_and_r_icons" src={recolher_img} /> : <img className="e_and_r_icons" src={expandir_img} />}
                 </h2>
 
-                <button
-                  className={`status-botao ${pedido.status_pedido.replace(" ", "-")}`}
-                  onClick={() => alternarStatus(pedido.id_pedido)}
-                >
-                  {pedido.status_pedido}
-                </button>
+                <Link to={`/alterar-pedidos/${pedido.id_pedido}`}><button className="btn_alterar">Alterar</button></Link>
+
+                {pedido.status_pedido && (
+                  <button
+                    className={`status-botao ${pedido.status_pedido.replace(" ", "-")}`}
+                    onClick={() => alternarStatus(pedido.id_pedido)}
+                  >
+                    {pedido.status_pedido}
+                  </button>
+                )}
+
               </div>
 
               {abertos[pedido.id_pedido] && (

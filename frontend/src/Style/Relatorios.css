@@ -3,41 +3,29 @@
   min-height: 100vh;
 }
 
-.sidebar {
-  max-width: 60px;
-  position: fixed;
-  min-height: 100vh;  
-}
-
-ul {
+.btn-fechar {
+  position: fixed; /* flutua mesmo com rolagem */
+  top: 20px;
+  right: 200px; /* 👈 fica à direita agora */
+  font-size: 28px;
+  text-decoration: none;
+  color: #333;
+  background-color: #fff;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
   display: flex;
-  flex-direction: column;
-  padding: 0;
-  margin: 0;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  z-index: 999;
 }
 
-li {
-  list-style: none;
-  user-select: none;
-  margin: 10px 0;
-}
-
-#icon {
-  width: 60px;
-  height: 60px;
-  cursor: pointer;
-  transition: all 0.3s;
-  margin-left: 10px;
-}
-
-#icon:hover {
-  width: 70px;
-  height: 70px;
-}
-
-#icon:active {
-  transform: scale(0.9);
-  transition: transform 0.1s;
+.btn-fechar:hover {
+  background-color: #f5f5f5;
+  transform: scale(1.1);
 }
 
 /* 💡 Card do pedido */
@@ -46,8 +34,6 @@ li {
   padding-left: 120px;
   margin-top: -20px;
 }
-
-
 
 .filtros-data, .filtros-rapidos {
   margin-bottom: 20px;

@@ -304,5 +304,46 @@ router.get('/relatorios/financeiro', (req, res) => {
   });
 });
 
+router.put('/pedido/:id', (req, res) => {
+  const id = req.params.id;
+  const {
+    nome_cliente,
+    endereco_entrega,
+    forma_pagamento,
+    status_pedido,
+    taxa_entrega,
+    preco_total
+  } = req.body;
+
+  const sql = `
+    UPDATE pedido
+    SET nome_cliente = ?, endereco_entrega = ?, forma_pagamento = ?, status_pedido = ?, taxa_entrega = ?, preco_total = ?
+    WHERE id_pedido = ?
+  `;
+
+  db.query(sql, [
+    nome_cliente,
+    endereco_entrega,
+    forma_pagamento,
+    status_pedido,
+    taxa_entrega,
+    preco_total,
+    id
+  ], (err, resultado) => {
+    if (err) {
+      console.error("❌ Erro ao atualizar pedido:", err);
+      return res.status(500).json({ mensagem: "Erro ao atualizar pedido" });
+    }
+
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({ mensagem: "Pedido não encontrado" });
+    }
+
+    console.log(`✅ Pedido #${id} atualizado com sucesso`);
+    res.status(200).json({ mensagem: "Pedido atualizado com sucesso!" });
+  });
+});
+
+
 
 module.exports = router;
