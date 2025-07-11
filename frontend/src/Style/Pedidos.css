@@ -6,8 +6,8 @@
 
 .btn-fechar {
   position: fixed; /* flutua mesmo com rolagem */
-  top: 20px;
-  right: 200px; /* 👈 fica à direita agora */
+  margin-top: 20px;
+  left: 40px;
   font-size: 28px;
   text-decoration: none;
   color: #333;
@@ -29,7 +29,9 @@
   transform: scale(1.1);
 }
 
-
+#voltar_icone{
+  max-width: 50px;
+}
 
 /* 💡 Card do pedido */
 .pedidos {
@@ -46,7 +48,7 @@
   max-width: 600px;
   font-family: Arial, sans-serif;
   transition: transform 0.3s ease;
-  cursor: pointer;
+  
 }
 
 .pedido-card:hover {
@@ -83,9 +85,13 @@
 /* ➕ Adição para expandir/recolher */
 .pedido-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   user-select: none;
+}
+
+.pedido_info{
+  cursor: pointer;
+  margin-right: 200px;
 }
 
 .pedido-detalhes {
@@ -107,7 +113,7 @@
 .status-botao {
   padding: 10px 20px;
   border: none;
-  border-radius: 1px;
+  border-radius: 5px;
   font-weight: bold;
   font-size: 1rem;
   color: white;
@@ -155,6 +161,7 @@
   color: white;
   border: none;
   cursor: pointer;
+  border-radius: 5px;
 }
 .filtro-datas button:hover {
   background-color: #575757;
@@ -175,7 +182,7 @@
 .tag-item {
   background-color: #eee;
   color: #333;
-  border-radius: 16px;
+  border-radius: 5px;
   padding: 5px 10px;
   margin: 4px;
   display: flex;
@@ -190,9 +197,20 @@
   color: #888;
   font-weight: bold;
   cursor: pointer;
+  border-radius: 3px;
 }
 
+.btn_alterar{
+  margin-right: 20px;
+  border-radius: 5px;
+  background-color: #c1c1c1;
+  transition: all 0.3s ease-in-out;
+}
 
+.btn_alterar:hover{
+  background-color: #000000;
+  color: #fff;
+}
 
 
 

@@ -5,6 +5,7 @@ import pedido_img from "../assets/pedido.png";
 import entregadores_img from "../assets/entregadores.png";
 import "../Style/Relatorios.css";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
+import voltar from "../assets/voltar.png";
 
 const Relatorios = () => {
   const [relatorio, setRelatorio] = useState({});
@@ -52,7 +53,7 @@ const Relatorios = () => {
   return (
     <div className="page-relatorios">
       <Link to="/" className="btn-fechar">
-        ❌
+        <img id="voltar_icone" src={voltar} alt="Pedidos" />
       </Link>
       <div className="relatorios">
         <h1>Relatórios</h1>

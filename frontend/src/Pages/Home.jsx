@@ -13,7 +13,7 @@ const cards = [
 export default function Home() {
   return (
     <div className="dashboard-container">
-      <h1>Dashboard</h1>
+      <h1>Cantinho das Pizzas - Sistema</h1>
       <div className="dashboard-grid">
         {cards.map((card, index) => (
           <Link to={card.to} key={index} className="dashboard-card">

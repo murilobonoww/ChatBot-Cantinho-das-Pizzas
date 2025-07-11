@@ -5,6 +5,7 @@ import pedido_img from "../assets/pedido.png";
 import entregadores_img from "../assets/entregadores.png";
 import expandir_img from "../assets/expandir_.png";
 import recolher_img from "../assets/recolher.png";
+import voltar from "../assets/voltar.png";
 import { toast } from "react-toastify";
 import { Link, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -124,15 +125,15 @@ const Pedidos = () => {
 
   return (
     <div className="page-pedidos">
-      <ToastContainer position="top-right" autoClose={3000} />
-
+      <ToastContainer position="top-right" autoClose={1500} />
+      <Link to="/" className="btn-fechar">
+        <img id="voltar_icone" src={voltar} alt="Pedidos" />
+      </Link>
 
       <div className="pedidos">
         <h1>Histórico de pedidos</h1>
 
-        <Link to="/" className="btn-fechar">
-          ❌
-        </Link>
+
         <h2>Filtros</h2>
 
         <div className="filtro-datas">
@@ -209,9 +210,11 @@ const Pedidos = () => {
           .map((pedido) => (
             <div key={pedido.id_pedido} className={`pedido-card ${abertos[pedido.id_pedido] ? "aberto" : "fechado"}`}>
               <div className="pedido-header">
-                <h2 onClick={() => togglePedido(pedido.id_pedido)}>
-                  Pedido #{pedido.id_pedido} {abertos[pedido.id_pedido] ? <img className="e_and_r_icons" src={recolher_img} /> : <img className="e_and_r_icons" src={expandir_img} />}
-                </h2>
+                <div className="pedido_info">
+                  <h2 onClick={() => togglePedido(pedido.id_pedido)}>
+                    Pedido #{pedido.id_pedido} {abertos[pedido.id_pedido] ? <img className="e_and_r_icons" src={recolher_img} /> : <img className="e_and_r_icons" src={expandir_img} />}
+                  </h2>
+                </div>
 
                 <Link to={`/alterar-pedidos/${pedido.id_pedido}`}><button className="btn_alterar">Alterar</button></Link>
 

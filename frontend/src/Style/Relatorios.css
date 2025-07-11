@@ -1,11 +1,12 @@
 .page-relatorios {
   display: flex;
   min-height: 100vh;
+  margin-top: 40px;
 }
 
 .btn-fechar {
   position: fixed; /* flutua mesmo com rolagem */
-  top: 20px;
+  margin-top: 40px;
   right: 200px; /* 👈 fica à direita agora */
   font-size: 28px;
   text-decoration: none;
@@ -32,7 +33,6 @@
 .relatorios {
   flex-grow: 1;
   padding-left: 120px;
-  margin-top: -20px;
 }
 
 .filtros-data, .filtros-rapidos {
