@@ -346,4 +346,31 @@ router.put('/pedido/:id', (req, res) => {
 
 
 
+const mysqlPromise = require('mysql2/promise'); // só aqui
+
+router.get("/cardapio", async (req, res) => {
+  try {
+    const tempConnection = await mysqlPromise.createConnection({
+      host: process.env.HOST,
+      user: process.env.USER,
+      password: process.env.PASS,
+      database: process.env.DB,
+      port: process.env.DB_PORT || 3306,
+    });
+
+    const [pizzas] = await tempConnection.query("SELECT * FROM pizzas");
+    const [esfihas] = await tempConnection.query("SELECT * FROM esfihas");
+
+    await tempConnection.end(); // encerra a conexão temporária
+
+    res.json({ pizzas, esfihas });
+  } catch (err) {
+    console.error("Erro ao buscar cardápio:", err);
+    res.status(500).json({ erro: "Erro ao buscar cardápio" });
+  }
+});
+
+
+
+
 module.exports = router;

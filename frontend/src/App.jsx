@@ -8,6 +8,7 @@ import Cardapio from "./Pages/Cardapio";
 import AlterarPedidos from "./Pages/Alterar-pedidos";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+// import './Style/App.css';
 
 function App() {
   return (

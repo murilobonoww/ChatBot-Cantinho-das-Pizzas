@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import "../Style/Pedidos.css";
 import relatorios_img from "../assets/relatorios.png";
 import pedido_img from "../assets/pedido.png";
-import entregadores_img from "../assets/entregadores.png";
 import expandir_img from "../assets/expandir_.png";
 import recolher_img from "../assets/recolher.png";
 import voltar from "../assets/voltar.png";

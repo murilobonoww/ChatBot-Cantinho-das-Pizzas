@@ -5,7 +5,7 @@ import relatorios from "../Assets/relatorios_img.png";
 import historico from "../Assets/historico.png";
 import menu from "../Assets/menu3.png";
 import config from "../Assets/config.png";
-import entregadores from "../Assets/entregadores1.png";
+import entregadores from "../Assets/entregador2.png";
 import { Link } from "react-router-dom";
 
 const cards = [

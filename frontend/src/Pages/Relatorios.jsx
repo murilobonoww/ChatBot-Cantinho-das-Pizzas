@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import relatorios_img from "../assets/relatorios.png";
 import pedido_img from "../assets/pedido.png";
-import entregadores_img from "../assets/entregadores.png";
 import "../Style/Relatorios.css";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import voltar from "../assets/voltar.png";
