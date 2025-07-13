@@ -3,9 +3,16 @@
   max-width: 1100px;
   width: 95%;    
   margin: 0 auto;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'MinhaFonte2', sans-serif; /* fonte personalizada */
   background: #fff;
   color: #333;
+}
+
+@font-face {
+  font-family: "MinhaFonte2";
+  src: url("/src/assets/Lexend-SemiBold.ttf") format("truetype");
+  font-weight: bold;
+  font-style: normal;
 }
 
 .col-preco35 {

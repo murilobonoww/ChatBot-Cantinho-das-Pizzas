@@ -45,10 +45,17 @@
   padding: 20px;
   margin-bottom: 24px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  max-width: 600px;
-  font-family: Arial, sans-serif;
+  max-width: 620px;
+  font-family: 'MinhaFonte3', sans-serif;
   transition: transform 0.3s ease;
   
+}
+
+@font-face {
+  font-family: "MinhaFonte3";
+  src: url("/src/assets/Lexend-Regular.ttf") format("truetype");
+  font-weight: bold;
+  font-style: normal;
 }
 
 .pedido-card:hover {
@@ -92,6 +99,8 @@
 .pedido_info{
   cursor: pointer;
   margin-right: 200px;
+    font-family: 'MinhaFonte2', sans-serif;
+
 }
 
 .pedido-detalhes {
@@ -116,6 +125,7 @@
   border-radius: 5px;
   font-weight: bold;
   font-size: 1rem;
+  font-family: 'MinhaFonte', sans-serif;
   color: white;
   cursor: pointer;
   text-transform: lowercase;
@@ -201,6 +211,7 @@
 }
 
 .btn_alterar{
+  font-family: 'MinhaFonte', sans-serif;
   margin-right: 15px;
   border-radius: 5px;
   background-color: #c1c1c1;

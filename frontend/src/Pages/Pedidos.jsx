@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import "../Style/Pedidos.css";
-import relatorios_img from "../assets/relatorios.png";
-import pedido_img from "../assets/pedido.png";
 import expandir_img from "../assets/expandir_.png";
 import recolher_img from "../assets/recolher.png";
 import voltar from "../assets/voltar.png";
@@ -18,8 +16,6 @@ const Pedidos = () => {
   const [nomeCliente, setNomeCliente] = useState("");
   const [itemFiltro, setItemFiltro] = useState("");
   const [itensSelecionados, setItensSelecionados] = useState([]);
-
-
 
   useEffect(() => {
     fetch("http://localhost:3000/pedido/getAll")

@@ -1,9 +1,8 @@
 import React from "react";
 import "../Style/Home.css";
-import cardapio from "../Assets/cardapio.png";
 import relatorios from "../Assets/relatorios_img.png";
 import historico from "../Assets/historico.png";
-import menu from "../Assets/menu3.png";
+import menu from "../Assets/menu5.png";
 import config from "../Assets/config.png";
 import entregadores from "../Assets/entregador2.png";
 import { Link } from "react-router-dom";

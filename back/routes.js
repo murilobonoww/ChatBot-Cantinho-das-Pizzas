@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('./db'); // conexão com MySQL (connection.js)
 const { resolvePath } = require('react-router-dom');
+const dotenv = require('dotenv');
+dotenv.config();
 
 router.post('/pedido/post', (req, res) => {
   const pedido = req.body;
@@ -242,6 +244,12 @@ router.put('/pedido/:id/status', (req, res) => {
 
 
 router.get('/relatorios/financeiro', (req, res) => {
+  const token = req.headers['authorization'];
+  const SENHA_GERENCIA = process.env.SENHA_GERENCIA;
+
+  if (token !== `Bearer ${SENHA_GERENCIA}`) {
+    return res.status(403).json({ mensagem: 'Acesso negado: senha incorreta' });
+  }
   const { inicio, fim } = req.query;
 
   let sql = `
@@ -346,7 +354,7 @@ router.put('/pedido/:id', (req, res) => {
 
 
 
-const mysqlPromise = require('mysql2/promise'); // só aqui
+const mysqlPromise = require('mysql2/promise');
 
 router.get("/cardapio", async (req, res) => {
   try {

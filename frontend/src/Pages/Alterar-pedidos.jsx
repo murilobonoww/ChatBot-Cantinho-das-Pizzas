@@ -103,7 +103,7 @@ export default function AlterarPedidos() {
                     >
                         <option value="pendente">Pendente</option>
                         <option value="andamento">Andamento</option>
-                        <option value="concluído">Concluído</option>
+                        <option value="oncluído">Concluído</option>
                     </select>
                 </label>
 
