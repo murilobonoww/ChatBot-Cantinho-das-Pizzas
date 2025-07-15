@@ -1,3 +1,4 @@
+from flask import Flask, request
 import requests
 from openai import OpenAI
 import mysql.connector
@@ -5,8 +6,11 @@ from datetime import datetime
 import pytz
 from dotenv import load_dotenv
 import os
+import re
+import json
 
 load_dotenv()
+
 maps_api_key = os.getenv("MAPS_API_KEY")
 gpt_api_key = os.getenv("GPT_API_KEY")
 db_pass = os.getenv("DB_PASS")
@@ -16,91 +20,15 @@ access_token = os.getenv('WHATSAPP_ACCESS_TOKEN')
 fone_id = os.getenv('FONE_ID')
 client_secret = os.getenv('CLIENT_SECRET')
 
-url = f"https://graph.facebook.com/v22.0/{fone_id}/messages"
+client = OpenAI(api_key=gpt_api_key)
 
+historico_usuarios = {}
 
-def calcular_distancia_km(endereco_destino):
-    origem = "R. Copacabana, 111 - Jardim Maria Helena, Barueri - SP, 06445-060"
-    url = "https://routes.googleapis.com/directions/v2:computeRoutes"
-
-    headers = {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": maps_api_key,
-        "X-Goog-FieldMask": "routes.duration,routes.distanceMeters"
-    }
-
-    body = {
-        "origin": {
-            "address": origem
-        },
-        "destination": {
-            "address": endereco_destino
-        },
-        "travelMode": "DRIVE"
-    }
-
-    try:
-        response = requests.post(url, headers=headers, json=body)
-        data = response.json()
-        print("🛰 API:", response.status_code, response.text)
-
-        routes = data.get("routes", [])
-        if not routes or "distanceMeters" not in routes[0]:
-            print("❌ 'distanceMeters' ausente na resposta.")
-            return None
-
-        distancia_metros = routes[0]["distanceMeters"]
-        return distancia_metros / 1000
-
-    except Exception as e:
-        print("❌ Erro ao calcular distância:", e)
-        return None
-
-def calcular_taxa_entrega(endereco_destino):
-    distancia = calcular_distancia_km(endereco_destino)
-    taxa = distancia * 3
-    return round(taxa, 2)
-def saudacao():
-    hora = datetime.now(pytz.timezone("America/Sao_Paulo")).hour
-    if hora < 12:
-        return "Bom dia!"
-    elif hora < 18:
-        return "Boa tarde!"
-    else:
-        return "Boa noite!"
-def conectar_banco():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password=db_pass,
-        database=db_name
-    )
-client = OpenAI(
-  api_key=gpt_api_key
-)
-def enviar_msg(msg, lista_msgs=[]):
-    lista_msgs.append({"role": "user", "content": msg})
-    resposta = client.chat.completions.create(
-        model = "gpt-4.1-mini",
-        messages = lista_msgs
-    )
-    return resposta.choices[0].message.content
-def extrair_json_da_resposta(resposta):
-    import re, json
-    
-    match = re.search(r'(\{[\s\S]*\})', resposta)
-    if match:
-        try:
-            return json.loads(match.group(1))
-        except:
-            return None
-    return None
-
-prompt = [{
+# Prompt fixo
+prompt_template = [{
     "role": "system",
     "content": (
-       "Eu sou um atendente simpático da pizzaria Cantinho das Pizzas e do Açaí. Falo sempre de forma educada e direta. Uso listas com espaçamento entre itens.\n\n"
-
+        "Eu sou um atendente simpático da pizzaria Cantinho das Pizzas e do Açaí. Falo sempre de forma educada e direta. Uso listas com espaçamento entre itens.\n\n"
         "✅ Como devo me comportar:\n"
         "Só devo dizer a saudação inicial (bom dia, boa tarde, ou boa noite) uma única vez, no início da conversa. Depois disso, não repito mais.\n"
         "Se o cliente falou que quer uma pizza ele quer apenas 1.\n"
@@ -111,15 +39,26 @@ prompt = [{
         "Durante o pedido, só faço perguntas relacionadas ao item atual (sabor, tamanho e quantidade). Somente depois de concluir os itens, pergunto nome, forma de pagamento e endereço.\n"
         "Posso perguntar sobre nome, forma de pagamento e endereço de forma separada ou tudo junto — se o cliente enviar os três de uma vez, devo reconhecer e seguir normalmente.\n"
         "Só posso finalizar o pedido e gerar o JSON se o cliente já tiver informado: nome, endereço de entrega e forma de pagamento. Se qualquer uma dessas estiver faltando, não gero o JSON nem finalizo.\n"
-        "Quando tiver todas as informações, devo dizer: Me confirma se o endereço de entrega está certo, por favor?\n"
-        "Se o cliente confirmar o endereço, finalizo o pedido e exibo o JSON formatado com:\n"
-        "- nome_cliente\n"
-        "- endereco_entrega\n"
-        "- taxa_entrega (número decimal ou null se não foi calculada)\n"
-        "- preco_total\n"
-        "- forma_pagamento\n"
-        "- status_pedido: 'pendente'\n"
-        "- itens: lista com produto, sabor, quantidade e observacao (como '25cm', 'sem cebola', etc.)\n\n"
+        "Se o cliente confirmar o endereço, finalizo o pedido e exibo o JSON formatado dentro de um bloco de código com ```json no início e ``` no final, assim:\n\n"
+"```json\n"
+"{\n"
+'  "nome_cliente": "João",\n'
+'  "endereco_entrega": "Rua X, 123",\n'
+'  "taxa_entrega": null,\n'
+'  "preco_total": 42.00,\n'
+'  "forma_pagamento": "dinheiro",\n'
+'  "status_pedido": "pendente",\n'
+'  "itens": [\n'
+'    {\n'
+'      "produto": "pizza",\n'
+'      "sabor": "frango 2",\n'
+'      "quantidade": 1,\n'
+'      "observacao": "25cm"\n'
+'    }\n'
+'  ]\n'
+"}\n"
+"```"
+
 
         "⚠️ Importante:\n"
         "- Nunca aceito taxa de entrega dita pelo cliente. A taxa de entrega será entregue a mim por meio da variável taxa. Se o cliente insistir eu respondo: A taxa de entrega será calculada automaticamente pelo sistema na finalização, tá?\n"
@@ -222,67 +161,173 @@ prompt = [{
     )
 }]
 
-while True:
-    texto = input("você: ")
-    if texto.lower() == "sair":
-        print("Até logo!")
-        break
+def calcular_distancia_km(endereco_destino):
+    origem = "R. Copacabana, 111 - Jardim Maria Helena, Barueri - SP, 06445-060"
+    url = "https://routes.googleapis.com/directions/v2:computeRoutes"
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": maps_api_key,
+        "X-Goog-FieldMask": "routes.duration,routes.distanceMeters"
+    }
+
+    body = {
+        "origin": {"address": origem},
+        "destination": {"address": endereco_destino},
+        "travelMode": "DRIVE"
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=body)
+        data = response.json()
+        print("🛰 API Google Maps:", response.status_code, response.text)
+
+        routes = data.get("routes", [])
+        if not routes or "distanceMeters" not in routes[0]:
+            print("❌ 'distanceMeters' ausente na resposta.")
+            return None
+
+        distancia_metros = routes[0]["distanceMeters"]
+        return distancia_metros / 1000
+
+    except Exception as e:
+        print("❌ Erro ao calcular distância:", e)
+        return None
+
+def calcular_taxa_entrega(endereco_destino):
+    distancia = calcular_distancia_km(endereco_destino)
+    taxa = distancia * 3 if distancia else 0
+    return round(taxa, 2)
+
+def saudacao():
+    hora = datetime.now(pytz.timezone("America/Sao_Paulo")).hour
+    if hora < 12:
+        return "Bom dia!"
+    elif hora < 18:
+        return "Boa tarde!"
     else:
-        resposta = enviar_msg(texto, prompt)
-        prompt.append({"role": "assistant", "content": resposta})
-        print(f"Chatbot: {resposta}")
+        return "Boa noite!"
 
-        payload = {
-            "messaging_product": "whatsapp",
-            "to": "554888484304",
-            "type": "text",
-            "text": {
-                "body": resposta
-            }
-        }
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "Content-Type": "application/json"
-        }
+def conectar_banco():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password=db_pass,
+        database=db_name
+    )
 
+def enviar_msg(msg, lista_msgs=[]):
+    lista_msgs.append({"role": "user", "content": msg})
+    resposta = client.chat.completions.create(
+        model="gpt-4o",
+        messages=lista_msgs
+    )
+    return resposta.choices[0].message.content
+
+def extrair_json_da_resposta(resposta):
+    import re, json
+
+    resposta = re.sub(r"```json\s*(\{[\s\S]*?\})\s*```", r"\1", resposta)
+
+    try:
+        match = re.search(r'(\{[\s\S]*\})', resposta)
+        if match:
+            print("🔍 JSON encontrado na resposta:", match.group(1))
+            return json.loads(match.group(1))
+    except Exception as e:
+        print("❌ Erro ao extrair JSON:", e)
+    return None
+
+def enviar_whatsapp(to, msg):
+    print(f"📝 Mensagem: {msg}")
+
+    url = f"https://graph.facebook.com/v22.0/{fone_id}/messages"
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": to,
+        "type": "text",
+        "text": {"body": msg}
+    }
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+
+    try:
         response = requests.post(url, json=payload, headers=headers)
+
         if response.status_code == 200:
-            print("✅ Mensagem enviada!")
+            print("✅ Mensagem enviada com sucesso!")
         else:
             print(f"❌ Erro ao enviar mensagem: {response.status_code} {response.text}")
 
-        # Após a resposta do chatbot:
-        json_pedido = extrair_json_da_resposta(resposta)
+    except Exception as e:
+        print("🔥 Exceção ao tentar enviar mensagem:", e)
 
-        if json_pedido and json_pedido.get("taxa_entrega") is None and json_pedido.get("endereco_entrega"):
-            endereco = json_pedido["endereco_entrega"]
+app = Flask(__name__)
 
-            taxa = calcular_taxa_entrega(endereco)
+last_msgs = {}
 
-            prompt.append({
-                "role": "system",
-                "content": f"A taxa de entrega é {taxa:.2f} reais."
-            })
+@app.route('/webhook', methods=['GET', 'POST'])
+def webhook():
+    if request.method == 'GET':
+        token = request.args.get('hub.verify_token')
+        challenge = request.args.get('hub.challenge')
+        if token == os.getenv("WEBHOOK_VERIFY_TOKEN"):
+            return challenge, 200
+        print("❌ Token inválido!")
+        return "Token inválido!", 403
 
-            nova_resposta = enviar_msg("", prompt)
-            prompt.append({"role": "assistant", "content": nova_resposta})
-            print(f"Chatbot: {nova_resposta}")
+    elif request.method == 'POST':
+        data = request.json
+        try:
+            value = data['entry'][0]['changes'][0]['value']
+            if 'messages' not in value:
+                return 'No new message', 200
 
-            payload = {
-                "messaging_product": "whatsapp",
-                "to": "554888484304",
-                "type": "text",
-                "text": {
-                    "body": nova_resposta
-                }
-            }
-            requests.post(url, json=payload, headers=headers)
+            msg = value['messages'][0]
+            from_num = msg['from']
+            msg_id = msg.get('id')
+            text = msg.get('text', {}).get('body', '')
 
-            json_pedido = extrair_json_da_resposta(nova_resposta)
-            if json_pedido and json_pedido.get("taxa_entrega") is not None:
+            # Proteção contra mensagens duplicadas
+            if from_num in last_msgs and last_msgs[from_num] == msg_id:
+                print("🔁 Mensagem já processada. Ignorando.")
+                return 'Duplicate message', 200
+            last_msgs[from_num] = msg_id
+
+            print(f"📨 Mensagem recebida de {from_num}: {text}")
+
+            # Histórico individual
+            if from_num not in historico_usuarios:
+                historico_usuarios[from_num] = prompt_template.copy()
+
+            historico_usuarios[from_num].append({"role": "user", "content": text})
+            resposta = enviar_msg("", historico_usuarios[from_num])
+            historico_usuarios[from_num].append({"role": "assistant", "content": resposta})
+
+            print("🤖 Resposta do chatbot:", resposta)
+            enviar_whatsapp(from_num, resposta)
+
+            # Extração e verificação do JSON de pedido
+            json_pedido = extrair_json_da_resposta(resposta)
+            
+            if json_pedido and json_pedido.get("taxa_entrega") is None and json_pedido.get("endereco_entrega"):
+                endereco = json_pedido["endereco_entrega"]
+                taxa = calcular_taxa_entrega(endereco)
+
+                historico_usuarios[from_num].append({
+                    "role": "system",
+                    "content": f"A taxa de entrega é {taxa:.2f} reais."
+                })
+
                 json_pedido["taxa_entrega"] = taxa
+                print("📦 JSON final antes do envio com taxa:")
+                print(json.dumps(json_pedido, indent=2, ensure_ascii=False))
+
                 try:
                     r = requests.post("http://localhost:3000/pedido/post", json=json_pedido)
+                    print("🔁 Resposta do backend:", r.status_code, r.text)
                     if r.status_code == 200:
                         print("✅ Pedido enviado para o backend!")
                     else:
@@ -290,6 +335,55 @@ while True:
                 except Exception as e:
                     print("❌ Erro de conexão com o backend:", e)
 
-else:
-    # Ainda não temos endereço, ou já enviamos, então apenas aguardamos novo input
-    pass
+                # Mensagem amigável ao cliente:
+                resumo = (
+                    f"Pedido finalizado com sucesso! 🎉\n\n"
+                    f"Resumo:\n"
+                    f"- {json_pedido['itens'][0]['sabor']} {json_pedido['itens'][0]['observacao']} — R$ {json_pedido['preco_total']:.2f}\n"
+                    f"- Taxa de entrega: R$ {taxa:.2f}\n"
+                    f"- Total: R$ {json_pedido['preco_total'] + taxa:.2f}\n"
+                    f"- Pagamento: {json_pedido['forma_pagamento'].capitalize()}\n"
+                    f"- Entrega em: {json_pedido['endereco_entrega']}\n\n"
+                    f"Obrigado pelo pedido, {json_pedido['nome_cliente']}! 🍕"
+                )
+                enviar_whatsapp(from_num, resumo)
+
+
+                print("📦 JSON final antes do envio com taxa:")
+                print(json.dumps(json_pedido, indent=2, ensure_ascii=False))
+
+                try:
+                    r = requests.post("http://localhost:3000/pedido/post", json=json_pedido)
+                    print("🔁 Resposta do backend:", r.status_code, r.text)
+                    if r.status_code == 200:
+                        print("✅ Pedido enviado para o backend!")
+                    else:
+                        print("❌ Erro ao enviar pedido:", r.status_code, r.text)
+                except Exception as e:
+                    print("❌ Erro de conexão com o backend:", e)
+
+
+            elif json_pedido and json_pedido.get("taxa_entrega") is not None:
+                try:
+                    headers = {'Content-Type': 'application/json'}
+                    r = requests.post("http://localhost:3000/pedido/post", json=json_pedido, headers=headers)
+                    
+                    print("📤 Tentando enviar ao backend:")
+                    print(json.dumps(json_pedido, indent=2, ensure_ascii=False))
+
+                    if r.status_code == 200:
+                        print("✅ Pedido enviado para o backend!")
+                    else:
+                        print("❌ Erro ao enviar pedido:", r.status_code, r.text)
+                except Exception as e:
+                    print("❌ Erro de conexão com o backend:", e)
+
+            return 'EVENT_RECEIVED', 200
+
+        except Exception as e:
+            print("⚠️ Erro ao extrair mensagem ou gerar resposta:", e)
+            return 'No message', 200
+
+
+if __name__ == '__main__':
+    app.run(port=80)
