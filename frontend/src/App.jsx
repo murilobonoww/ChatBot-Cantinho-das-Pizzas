@@ -6,15 +6,14 @@ import Relatorios from "./Pages/Relatorios";
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Cardapio from "./Pages/Cardapio";
 import AlterarPedidos from "./Pages/Alterar-pedidos";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Toaster } from 'react-hot-toast';
 // import './Style/App.css';
 
 function App() {
   return (
     
     <Router>
-      <ToastContainer />
+      <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/pedidos" element={<Pedidos />} />

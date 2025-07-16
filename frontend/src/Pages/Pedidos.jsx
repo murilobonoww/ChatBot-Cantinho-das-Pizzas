@@ -2,11 +2,18 @@ import React, { useEffect, useState } from "react";
 import "../Style/Pedidos.css";
 import expandir_img from "../assets/expandir_.png";
 import recolher_img from "../assets/recolher.png";
+import lixo_img from "../assets/lixo.png";
 import voltar from "../assets/voltar.png";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
+import { Toaster } from "react-hot-toast"; // precisa desse também
+// dentro do JSX:
+<Toaster position="top-right" />
+
 import { Link, useLocation } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+
+const MySwal = withReactContent(Swal);
 
 const Pedidos = () => {
   const [pedidos, setPedidos] = useState([]);
@@ -16,6 +23,7 @@ const Pedidos = () => {
   const [nomeCliente, setNomeCliente] = useState("");
   const [itemFiltro, setItemFiltro] = useState("");
   const [itensSelecionados, setItensSelecionados] = useState([]);
+  
 
   useEffect(() => {
     fetch("http://localhost:3000/pedido/getAll")
@@ -95,6 +103,40 @@ const Pedidos = () => {
       .catch(err => console.error("Erro ao buscar pedidos:", err));
   };
 
+  const handleDeletePedido = (id) => {
+    MySwal.fire({
+      title: 'Tem certeza?',
+      text: "Você não poderá reverter isso",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#fe4d4d',
+      cancelButtonColor: '#454545',
+      confirmButtonText: 'Sim, deletar!',
+      cancelButtonText: 'Cancelar',
+      customClass: {
+        confirmButton: 'swal-confirm-button',
+        cancelButton: 'swal-cancel-button',
+        title: 'swal-custom-title',
+        htmlContainer: 'swal-custom-text'
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`http://localhost:3000/pedido/${id}`, {
+          method: "DELETE",
+        })
+          .then(res => {
+            if (!res.ok) throw new Error("Erro ao deletar pedido");
+            setPedidos(prev => prev.filter(p => p.id_pedido !== id));
+            toast.success("Pedido deletado com sucesso!");
+          })
+          .catch(err => {
+            console.error("Erro ao deletar pedido:", err);
+            toast.error("Erro ao deletar pedido.");
+          });
+      }
+    });
+  };
+
 
   const formatarDataHora = (dataString) => {
     const data = new Date(dataString);
@@ -120,7 +162,7 @@ const Pedidos = () => {
 
   return (
     <div className="page-pedidos">
-      <ToastContainer position="top-right" autoClose={1500} />
+      <Toaster position="top-right" />
       <Link to="/" className="btn-fechar">
         <img id="voltar_icone" src={voltar} alt="Pedidos" />
       </Link>
@@ -133,8 +175,9 @@ const Pedidos = () => {
 
         <div className="filtro-datas">
           <label>
-            <div className="lbl_filtro">Data Início:</div>
+            <div className="lbl_filtro">Início:</div>
             <input
+              className="inputs_filtro"
               type="date"
               value={dataInicio}
               onChange={e => setDataInicio(e.target.value)}
@@ -142,8 +185,9 @@ const Pedidos = () => {
           </label>
 
           <label>
-            <div className="lbl_filtro">Data Fim:</div>
+            <div className="lbl_filtro">Fim:</div>
             <input
+              className="inputs_filtro"
               type="date"
               value={dataFim}
               onChange={e => setDataFim(e.target.value)}
@@ -153,6 +197,7 @@ const Pedidos = () => {
           <label>
             <div className="lbl_filtro">Nome do Cliente:</div>
             <input
+              className="inputs_filtro"
               type="text"
               value={nomeCliente}
               onChange={e => setNomeCliente(e.target.value)}
@@ -161,19 +206,19 @@ const Pedidos = () => {
           </label>
 
           <div className="filtro-itens">
-            <label>
-              <div className="lbl_filtro">Filtrar por item:</div>
-              <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                <input
-                  type="text"
-                  value={itemFiltro}
-                  onChange={e => setItemFiltro(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && adicionarItemFiltro()}
-                  placeholder="Digite um item e pressione Enter"
-                />
-                <button onClick={adicionarItemFiltro}>Adicionar</button>
-              </div>
-            </label>
+            <label className="lbl_filtro">Filtrar por item:</label>
+            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+              <input
+                className="inputs_filtro"
+                id="itemFiltro"
+                type="text"
+                value={itemFiltro}
+                onChange={e => setItemFiltro(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && adicionarItemFiltro()}
+                placeholder="Digite um item e pressione Enter"
+              />
+              <button id="adc_item" onClick={adicionarItemFiltro}>Adicionar</button>
+            </div>
 
             {itensSelecionados.length > 0 && (
               <div className="tags-selecionadas">
@@ -211,7 +256,18 @@ const Pedidos = () => {
                   </h2>
                 </div>
 
-                <Link to={`/alterar-pedidos/${pedido.id_pedido}`}><button className="btn_alterar">Alterar</button></Link>
+                {/* Botão de Deletar */}
+                <button
+                  className="btn_deletar"
+                  onClick={() => handleDeletePedido(pedido.id_pedido)}
+                  title="Excluir pedido"
+                >
+                  <img id="lixo_img" src={lixo_img} alt="Deletar Pedido" />
+                </button>
+
+                <Link to={`/alterar-pedidos/${pedido.id_pedido}`}>
+                  <button className="btn_alterar">Alterar</button>
+                </Link>
 
                 {pedido.status_pedido && (
                   <button
@@ -221,8 +277,9 @@ const Pedidos = () => {
                     {pedido.status_pedido}
                   </button>
                 )}
-
               </div>
+
+
 
               {abertos[pedido.id_pedido] && (
                 <div className="pedido-detalhes">

@@ -6,11 +6,12 @@ import menu from "../Assets/menu5.png";
 import config from "../Assets/config.png";
 import entregadores from "../Assets/entregador2.png";
 import { Link } from "react-router-dom";
+import fundo from "../Assets/fundo.png";
 
 const cards = [
   { icon: <img id="menu_img" src={historico}/>, title: "Histórico de Pedidos", to: "/pedidos" },
   { icon: <img id="menu_img" src={entregadores}/>, title: "Entregadores", to: "/entregadores" },
-  { icon: <img id="menu_img" src={relatorios}/>, title: "Relatórios", to: "/relatorios" },
+  { icon: <img id="menu_img" src={relatorios}/>, title: "Relatórios/faturamento", to: "/relatorios" },
   { icon: <img id="menu_img" src={menu}/> , title: "Cardápio", to: "/cardapio" },
   { icon: <img id="menu_img" src={config}/>, title: "Configurações", to: "/configuracoes" }
 ];

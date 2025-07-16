@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../Style/Relatorios.css";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
@@ -12,6 +12,13 @@ export default function Relatorios() {
   const [fim, setFim] = useState("");
   const [senha, setSenha] = useState("");
   const [autorizado, setAutorizado] = useState(false);
+  const [filtroSelecionado, setFiltroSelecionado] = useState(null);
+
+  useEffect(() => {
+    if (autorizado && relatorio.total_vendas === undefined) {
+      aplicarFiltroRapido(7); // ou 0, 15, 30 etc.
+    }
+  }, [autorizado]);
 
   const pagamentosData = [
     { name: "Pix", value: relatorio.pagamentos?.pix || 0 },
@@ -50,15 +57,28 @@ export default function Relatorios() {
   };
 
   const aplicarFiltroRapido = (dias) => {
-    const hoje = new Date();
-    const dataFim = hoje.toISOString().slice(0, 10);
-    const dataInicio = new Date(hoje.setDate(hoje.getDate() - dias))
-      .toISOString()
-      .slice(0, 10);
+    if (filtroSelecionado === dias) {
+      setFiltroSelecionado(null);
+      setInicio("");
+      setFim("");
+      buscarRelatorio("", ""); // busca sem filtro
+    } else {
+      const hoje = new Date();
+      const dataFim = hoje.toISOString().slice(0, 10);
+      const dataInicio = new Date(hoje.setDate(hoje.getDate() - dias))
+        .toISOString()
+        .slice(0, 10);
 
-    setInicio(dataInicio);
-    setFim(dataFim);
-    buscarRelatorio(dataInicio, dataFim);
+      setInicio(dataInicio);
+      setFim(dataFim);
+      setFiltroSelecionado(dias);
+      buscarRelatorio(dataInicio, dataFim);
+    }
+  };
+
+  const buscaManual = () => {
+    setFiltroSelecionado(null);
+    buscarRelatorio();
   };
 
   return (
@@ -94,17 +114,17 @@ export default function Relatorios() {
             <div className="filtros-data">
               <label>Início: <input type="date" value={inicio} onChange={e => setInicio(e.target.value)} /></label>
               <label>Fim: <input type="date" value={fim} onChange={e => setFim(e.target.value)} /></label>
-              <button onClick={() => buscarRelatorio()}>Buscar</button>
+              <button onClick={() => buscaManual()}> Buscar</button>
             </div>
 
             <div className="filtros-rapidos">
               <p>Filtros rápidos:</p>
-              <button onClick={() => aplicarFiltroRapido(0)}>Hoje</button>
-              <button onClick={() => aplicarFiltroRapido(7)}>Últimos 7 dias</button>
-              <button onClick={() => aplicarFiltroRapido(15)}>Últimos 15 dias</button>
-              <button onClick={() => aplicarFiltroRapido(30)}>Últimos 30 dias</button>
-              <button onClick={() => aplicarFiltroRapido(90)}>Últimos 3 meses</button>
-              <button onClick={() => aplicarFiltroRapido(365)}>Últimos 12 meses</button>
+              <button className={filtroSelecionado === 0 ? "filtro-ativo" : ""} onClick={() => aplicarFiltroRapido(0)}>Hoje</button>
+              <button className={filtroSelecionado === 7 ? "filtro-ativo" : ""} onClick={() => aplicarFiltroRapido(7)}>Últimos 7 dias</button>
+              <button className={filtroSelecionado === 15 ? "filtro-ativo" : ""} onClick={() => aplicarFiltroRapido(15)}>Últimos 15 dias</button>
+              <button className={filtroSelecionado === 30 ? "filtro-ativo" : ""} onClick={() => aplicarFiltroRapido(30)}>Últimos 30 dias</button>
+              <button className={filtroSelecionado === 90 ? "filtro-ativo" : ""} onClick={() => aplicarFiltroRapido(90)}>Últimos 3 meses</button>
+              <button className={filtroSelecionado === 365 ? "filtro-ativo" : ""} onClick={() => aplicarFiltroRapido(365)}>Últimos 12 meses</button>
             </div>
 
             <div className="resumos">
@@ -115,7 +135,7 @@ export default function Relatorios() {
             </div>
 
             <h2>Vendas por forma de pagamento</h2>
-            <PieChart width={400} height={350}>
+            <PieChart width={440} height={350}>
               <Pie
                 data={pagamentosData}
                 dataKey="value"

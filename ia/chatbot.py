@@ -1,3 +1,4 @@
+from time import sleep
 from flask import Flask, request
 import requests
 from openai import OpenAI
@@ -161,6 +162,37 @@ prompt_template = [{
     )
 }]
 
+def gerar_mensagem_amigavel(json_pedido):
+    try:
+        itens = json_pedido.get("itens", [])
+        total_pedido = json_pedido.get("preco_total", 0)
+        taxa = json_pedido.get("taxa_entrega", 0)
+        nome = json_pedido.get("nome_cliente", "cliente")
+        pagamento = json_pedido.get("forma_pagamento", "").capitalize()
+        endereco = json_pedido.get("endereco_entrega", "")
+
+        itens_formatados = []
+        for item in itens:
+            sabor = item.get("sabor", "sabor desconhecido")
+            qtd = item.get("quantidade", 1)
+            obs = item.get("observacao", "")
+            linha = f"- {qtd}x {sabor} ({obs})"
+            itens_formatados.append(linha)
+
+        mensagem = (
+            f"🍕 Seu pedido ficou assim:\n\n"
+            f"{chr(10).join(itens_formatados)}\n"
+            f"- Taxa de entrega: R$ {taxa:.2f}\n"
+            f"- Total a pagar: R$ {total_pedido}\n\n"
+            f"🧾 Pagamento: {pagamento}\n"
+            f"📍 Entrega em: {endereco}\n\n"
+            f"Obrigado pelo pedido, {nome}! Em breve estaremos aí. 😄"
+        )
+        return mensagem
+    except Exception as e:
+        return f"⚠️ Erro ao montar resumo amigável: {str(e)}"
+
+
 def calcular_distancia_km(endereco_destino):
     origem = "R. Copacabana, 111 - Jardim Maria Helena, Barueri - SP, 06445-060"
     url = "https://routes.googleapis.com/directions/v2:computeRoutes"
@@ -303,11 +335,18 @@ def webhook():
                 historico_usuarios[from_num] = prompt_template.copy()
 
             historico_usuarios[from_num].append({"role": "user", "content": text})
+            
+            
             resposta = enviar_msg("", historico_usuarios[from_num])
             historico_usuarios[from_num].append({"role": "assistant", "content": resposta})
 
             print("🤖 Resposta do chatbot:", resposta)
-            enviar_whatsapp(from_num, resposta)
+            # Verifica se a resposta contém JSON formatado
+            if "```json" in resposta:
+                print("📦 Detecção de JSON: não enviar essa resposta via WhatsApp.")
+            else:
+                enviar_whatsapp(from_num, resposta)
+
 
             # Extração e verificação do JSON de pedido
             json_pedido = extrair_json_da_resposta(resposta)
@@ -322,6 +361,7 @@ def webhook():
                 })
 
                 json_pedido["taxa_entrega"] = taxa
+                json_pedido["preco_total"] = round(json_pedido.get("preco_total", 0) + taxa, 2)
                 print("📦 JSON final antes do envio com taxa:")
                 print(json.dumps(json_pedido, indent=2, ensure_ascii=False))
 
@@ -330,33 +370,9 @@ def webhook():
                     print("🔁 Resposta do backend:", r.status_code, r.text)
                     if r.status_code == 200:
                         print("✅ Pedido enviado para o backend!")
-                    else:
-                        print("❌ Erro ao enviar pedido:", r.status_code, r.text)
-                except Exception as e:
-                    print("❌ Erro de conexão com o backend:", e)
-
-                # Mensagem amigável ao cliente:
-                resumo = (
-                    f"Pedido finalizado com sucesso! 🎉\n\n"
-                    f"Resumo:\n"
-                    f"- {json_pedido['itens'][0]['sabor']} {json_pedido['itens'][0]['observacao']} — R$ {json_pedido['preco_total']:.2f}\n"
-                    f"- Taxa de entrega: R$ {taxa:.2f}\n"
-                    f"- Total: R$ {json_pedido['preco_total'] + taxa:.2f}\n"
-                    f"- Pagamento: {json_pedido['forma_pagamento'].capitalize()}\n"
-                    f"- Entrega em: {json_pedido['endereco_entrega']}\n\n"
-                    f"Obrigado pelo pedido, {json_pedido['nome_cliente']}! 🍕"
-                )
-                enviar_whatsapp(from_num, resumo)
-
-
-                print("📦 JSON final antes do envio com taxa:")
-                print(json.dumps(json_pedido, indent=2, ensure_ascii=False))
-
-                try:
-                    r = requests.post("http://localhost:3000/pedido/post", json=json_pedido)
-                    print("🔁 Resposta do backend:", r.status_code, r.text)
-                    if r.status_code == 200:
-                        print("✅ Pedido enviado para o backend!")
+                        resumo_amigavel = gerar_mensagem_amigavel(json_pedido)
+                        sleep(2)
+                        enviar_whatsapp(from_num, resumo_amigavel)
                     else:
                         print("❌ Erro ao enviar pedido:", r.status_code, r.text)
                 except Exception as e:

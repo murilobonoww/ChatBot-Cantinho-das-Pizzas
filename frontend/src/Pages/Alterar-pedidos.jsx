@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../Style/Alterar-pedidos.css";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 
 export default function AlterarPedidos() {
@@ -64,7 +62,6 @@ export default function AlterarPedidos() {
 
     return (
         <>
-            <ToastContainer />
             <div className="alterar-pedidos-container">
                 <h1>Alterar Pedido {pedido.id_pedido}</h1>
 
