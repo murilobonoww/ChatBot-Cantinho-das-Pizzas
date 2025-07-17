@@ -45,12 +45,20 @@ const Pedidos = () => {
 
   useEffect(() => {
     buscarPedidosFiltrados();
-  }, [dataInicio, dataFim, nomeCliente]); // sem itensSelecionados
+  }, [dataInicio, dataFim, nomeCliente]);
 
   useEffect(() => {
-    // Isso força o React a "refiltrar" os pedidos com base nos itens selecionados
     setPedidos((prevPedidos) => [...prevPedidos]);
   }, [itensSelecionados]);
+
+  useEffect(() => {
+  const interval = setInterval(() => {
+    buscarPedidosFiltrados();
+  }, 5000);
+
+  return () => clearInterval(interval);
+}, [dataInicio, dataFim, nomeCliente]);
+
 
   const location = useLocation();
 
