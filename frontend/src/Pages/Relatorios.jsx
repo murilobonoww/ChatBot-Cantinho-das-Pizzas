@@ -97,14 +97,16 @@ export default function Relatorios() {
           <div className="centralizar_gerencia">
             <div className="senha-gerencia">
               <p>Digite a senha da gerência:</p>
-              <input
-                type="password"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && buscarRelatorio()}
-                placeholder="Senha"
-              />
-              <button onClick={() => buscarRelatorio()}>Acessar Relatórios</button>
+              <div className="input_senha_gerencia">
+                <input
+                  type="password"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && buscarRelatorio()}
+                  placeholder="Senha"
+                />
+                <button onClick={() => buscarRelatorio()}>Acessar Relatórios</button>
+              </div>
             </div>
           </div>
         )}
@@ -112,8 +114,8 @@ export default function Relatorios() {
         {autorizado && (
           <>
             <div className="filtros-data">
-              <label>Início: <input type="date" value={inicio} onChange={e => setInicio(e.target.value)} /></label>
-              <label>Fim: <input type="date" value={fim} onChange={e => setFim(e.target.value)} /></label>
+              <label>Início: <input id="inputs_inicio_e_fim_relatorios" type="date" value={inicio} onChange={e => setInicio(e.target.value)} /></label>
+              <label>Fim: <input id="inputs_inicio_e_fim_relatorios" type="date" value={fim} onChange={e => setFim(e.target.value)} /></label>
               <button onClick={() => buscaManual()}> Buscar</button>
             </div>
 

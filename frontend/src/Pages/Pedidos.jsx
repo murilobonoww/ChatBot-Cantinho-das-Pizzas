@@ -105,9 +105,8 @@ const Pedidos = () => {
 
   const handleDeletePedido = (id) => {
     MySwal.fire({
-      title: 'Tem certeza?',
+      title: '⚠️ \n Tem certeza?',
       text: "Você não poderá reverter isso",
-      icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#fe4d4d',
       cancelButtonColor: '#454545',
