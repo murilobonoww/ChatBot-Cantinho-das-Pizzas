@@ -1,4 +1,5 @@
 from time import sleep
+import traceback
 from flask import Flask, request
 import requests
 from openai import OpenAI
@@ -6,9 +7,11 @@ import mysql.connector
 from datetime import datetime
 import pytz
 from dotenv import load_dotenv
+from flask import send_from_directory
 import os
 import re
 import json
+app = Flask(__name__)
 
 load_dotenv()
 
@@ -20,6 +23,7 @@ app_id = os.getenv("APP_ID")
 access_token = os.getenv('WHATSAPP_ACCESS_TOKEN')
 fone_id = os.getenv('FONE_ID')
 client_secret = os.getenv('CLIENT_SECRET')
+webhook_verify_token = os.getenv('WEBHOOK_VERIFY_TOKEN')
 
 client = OpenAI(api_key=gpt_api_key)
 
@@ -33,8 +37,91 @@ def saudacao():
         return "Boa tarde!"
     else:
         return "Boa noite!"
+    
+    
+    
+def get_or_upload_media_id():
+    try:
+        with open("media_id.txt", "r") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return upload_pdf_para_whatsapp()
 
-# Prompt fixo
+def upload_pdf_para_whatsapp():
+    token = os.getenv("WHATSAPP_ACCESS_TOKEN")
+    phone_number_id = os.getenv("FONE_ID")
+    url = f"https://graph.facebook.com/v19.0/{phone_number_id}/media"
+    
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    files = {
+        "file": ("cardapio.pdf", open("assets/cardapio.pdf", "rb"), "application/pdf")
+    }
+
+    data = {
+        "messaging_product": "whatsapp",
+        "type": "document"
+    }
+
+    response = requests.post(url, headers=headers, files=files, data=data)
+    result = response.json()
+
+    if "id" in result:
+        media_id = result["id"]
+        with open("media_id.txt", "w") as f:
+            f.write(media_id)
+        print("✅ media_id gerado:", media_id)
+        return media_id
+    else:
+        print("❌ Erro ao enviar PDF:", result)
+        return None
+
+
+# 2️⃣ - Lê o media_id salvo em txt
+def carregar_media_id():
+    if not os.path.exists("media_id.txt"):
+        return None
+    with open("media_id.txt", "r") as f:
+        return f.read().strip()
+
+# 3️⃣ - Envia o PDF para um cliente via WhatsApp
+def enviar_pdf_para_cliente(numero_cliente):
+    token = os.getenv("WHATSAPP_ACCESS_TOKEN")
+    phone_number_id = os.getenv("FONE_ID")
+    media_id = 697077749976326
+
+    if not media_id:
+        print("❌ Não foi possível enviar o cardápio (media_id inválido)")
+        return
+
+    url = f"https://graph.facebook.com/v19.0/{phone_number_id}/messages"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    body = {
+        "messaging_product": "whatsapp",
+        "to": numero_cliente,
+        "type": "document",
+        "document": {
+            "id": 697077749976326,
+            "caption": "Claro! Aqui está o nosso cardápio completo 🍕📖\n\n",
+            "filename": "cardapio.pdf"
+        }
+    }
+
+    response = requests.post(url, headers=headers, json=body)
+    print("✅ PDF enviado:", response.json())
+
+
+
+
+
+
+
 prompt_template = [{
     "role": "system",
     "content": (
@@ -81,9 +168,9 @@ prompt_template = [{
 
         "Doces:"
         "Suflair 5,50"
-        "Kit ket ao leite 5,50"
-        "Kit ket branco 5,50"
-        "Kit ket dark 5,50"
+        "Kit Kat ao leite 5,50"
+        "Kit Kat branco 5,50"
+        "Kit Kat dark 5,50"
         "Bis extra original 5,50"
         "Azedinho 1,00"
         "Caribe 4,00"
@@ -99,64 +186,66 @@ prompt_template = [{
         "Suco Natural One • 300ml (uva ou laranja) — R$ 5,00 • 900ml (uva, laranja ou pêssego) — R$ 18,00 • 2L (uva ou laranja) — R$ 30,00"
         "Suco Del Valle • 1 litro — R$ 15,00 • Lata 290ml (pêssego, maracujá, goiaba ou manga) — R$ 7,00"
         "Água mineral • Com ou sem gás — R$ 3,00"
+        
         "Refrigerantes 2 litros • Coca-Cola — R$ 15,00 • Fanta Laranja — R$ 15,00 • Sprite — R$ 15,00 • Sukita (uva ou laranja) — R$ 12,00"
         "Cervejas em lata • Skol 350ml — R$ 5,00 • Skol Latão — R$ 7,00 • Brahma Latão — R$ 7,00 • Brahma Duplo Malte — R$ 8,00"
         "Cervejas long neck — R$ 10,00 • Budweiser (normal ou zero) • Amstel • Stella Artois • Heineken"
         "Cervejas 600ml — R$ 15,00 • Original • Stella Artois"
         "Vinho Pérgola — R$ 30,00 • Opções: seco ou suave"
-        "Outras bebidas:  • Cabaré Ice — R$ 12,00 • Smirnoff Ice — R$ 12,00 • Energético Monster — R$ 12,00 • Schweppes — R$ 6,00"
+        "Outras bebidas:  • Cabaré Ice — R$ 12,00 • Smirnoff — R$ 12,00 • Energético Monster — R$ 12,00 • Schweppes — R$ 6,00"
+        "Quando informar ao cliente os ingredientes de uma pizza, devo sempre falar o termo \"molho artesanal\" onde o ingrediente for \"molho\""
 
         "Sabores de pizza:\n"
-        "alho: 32.00 / 42.00 - molho, muçarela e alho frito\n"
-        "atum 1: 34.00 / 57.00 - molho, muçarela, atum e cebola\n"
-        "atum 2: 35.00 / 55.00 - molho, atum e cebola\n"
-        "bacon: 28.00 / 47.00 - molho, muçarela e bacon\n"
-        "baiana 1: 29.00 / 45.00 - molho, muçarela, calabresa, cebola e pimenta\n"
-        "baiana 2: 30.00 / 50.00 - molho, calabresa, cebola, pimenta e ovo\n"
-        "batata palha: 30.00 / 42.00 - molho, muçarela e batata palha\n"
-        "bauru: 29.00 / 48.00 - molho, muçarela, presunto e tomate\n"
-        "brócolis: 35.00 / 51.00 - molho, muçarela, brócolis e catupiry\n"
-        "caipira: 38.00 / 55.00 - molho, frango, milho e catupiry\n"
-        "calabacon: 35.00 / 50.00 - molho, calabresa, bacon e muçarela\n"
-        "calabresa 1: 26.00 / 39.00 - molho, muçarela, calabresa e cebola\n"
-        "calabresa 2: 32.00 / 46.00 - molho, calabresa e cebola\n"
-        "carne seca 1: 35.00 / 55.00 - molho, muçarela, carne seca e cebola\n"
-        "carne seca 2: 38.00 / 60.00 - molho, carne seca e catupiry\n"
-        "catubresa: 33.00 / 48.00 - molho, calabresa, catupiry e muçarela\n"
-        "champion: 30.00 / 45.00 - molho, muçarela e champignon\n"
-        "cinco queijos: 38.00 / 60.00 - molho, muçarela, catupiry, provolone, gorgonzola e parmesão\n"
-        "cubana: 35.00 / 48.00 - molho, presunto, banana, canela e açúcar\n"
-        "dois queijos: 31.00 / 45.00 - molho, muçarela e catupiry\n"
-        "escarola: 31.00 / 48.00 - molho, escarola refogada e muçarela\n"
-        "frango 1: 32.00 / 49.00 - molho, muçarela e frango\n"
-        "frango 2: 32.00 / 49.00 - molho, frango e catupiry\n"
-        "frango 3: 32.00 / 49.00 - molho, frango, requeijão e milho\n"
-        "hot-dog: 35.00 / 50.00 - molho, salsicha, milho, batata palha, ketchup e mostarda\n"
-        "lombo 1: 35.00 / 52.00 - molho, muçarela e lombo canadense\n"
-        "lombo 2: 38.00 / 55.00 - molho, lombo e catupiry\n"
-        "marguerita: 32.00 / 48.00 - molho, muçarela, tomate e manjericão\n"
-        "meio a meio: 26.00 / 39.00 - escolha 2 sabores\n"
-        "mexicana: 33.00 / 45.00 - molho, carne moída, milho, pimenta e cebola\n"
-        "mucabresa: 32.00 / 45.00 - molho, muçarela e calabresa\n"
-        "muçarela: 26.00 / 39.00 - molho e muçarela\n"
-        "palmito 1: 32.00 / 50.00 - molho, muçarela e palmito\n"
-        "palmito 2: 35.00 / 55.00 - molho, palmito e catupiry\n"
-        "peperone: 35.00 / 58.00 - molho, muçarela e peperone\n"
-        "portuguesa: 32.00 / 48.00 - molho, muçarela, presunto, ovo, cebola, azeitona e pimentão\n"
-        "à moda: 35.00 / 55.00 - molho, muçarela, presunto, calabresa, bacon, ovo, cebola e azeitona\n"
-        "toscana: 30.00 / 46.00 - molho, muçarela e linguiça toscana\n"
-        "três queijos 1: 32.00 / 46.00 - molho, muçarela, catupiry e provolone\n"
-        "três queijos 2: 33.00 / 49.00 - molho, muçarela, gorgonzola e catupiry\n"
-        "quatro queijos: 35.00 / 54.00 - molho, muçarela, catupiry, provolone e gorgonzola\n"
-        "banana: 33.00 / 45.00 - banana, canela e açúcar\n"
+        "alho: 32.00 / 42.00 - molho, muçarela, alho, azeitona e orégano\n"
+        "atum 1: 34.00 / 57.00 - molho, atum, cebola, azeitona e orégano\n"
+        "atum 2: 35.00 / 55.00 - molho, atum, muçarela, cebola, tomate picado, azeitona e orégano\n"
+        "bacon: 28.00 / 47.00 - molho, muçarela, bacon, azeitona e orégano\n"
+        "baiana 1: 29.00 / 45.00 - molho, calabresa, ovo, cebola, pimenta, azeitona e orégano\n"
+        "baiana 2: 30.00 / 50.00 - molho, calabresa, muçarela, ovo, cebola, pimenta, azeitona e orégano\n"
+        "batata palha: 30.00 / 42.00 - molho, muçarela, batata palha, azeitona e orégano\n"
+        "bauru: 29.00 / 48.00 - molho, presunto ralado, tomate picado, muçarela, azeitona e orégano\n"
+        "brócolis: 35.00 / 51.00 - molho, brócolis, bacon, muçarela, azeitona e orégano\n"
+        "caipira: 38.00 / 55.00 - molho, frango, muçarela, milho, bacon, azeitona e orégano\n"
+        "calabacon: 35.00 / 50.00 - molho, calabresa, catupiry, bacon, azeitona e orégano\n"
+        "calabresa 1: 26.00 / 39.00 - molho, calabresa, cebola, azeitona e orégano\n"
+        "calabresa 2: 32.00 / 46.00 - molho, calabresa, tomate, ovo, bacon, azeitona e orégano\n"
+        "carne seca 1: 35.00 / 55.00 - molho, carne seca com muçarela, azeitona e orégano\n"
+        "carne seca 2: 38.00 / 60.00 - molho, carne seca com vinagrete, muçarela, azeitona e orégano\n"
+        "catubresa: 33.00 / 48.00 - molho, calabresa, catupiry, azeitona e orégano\n"
+        "champion: 30.00 / 45.00 - molho, champion, azeitona e orégano\n"
+        "cinco queijos: 38.00 / 60.00 - molho, catupiry, gorgonzola, muçarela, provolone, parmesão, azeitona e orégano\n"
+        "cubana: 35.00 / 48.00 - molho, calabresa, vinagrete, parmesão, bacon, azeitona e orégano\n"
+        "dois queijos: 31.00 / 45.00 - molho, catupiry, muçarela, azeitona e orégano\n"
+        "escarola: 31.00 / 48.00 - molho, escarola, muçarela, bacon, azeitona e orégano\n"
+        "frango 1: 32.00 / 49.00 - molho, frango com catupiry, azeitona e orégano\n"
+        "frango 2: 32.00 / 49.00 - molho, frango com muçarela, azeitona e orégano\n"
+        "frango 3: 32.00 / 49.00 - molho, frango com cheddar, azeitona e orégano\n"
+        "hot-dog: 35.00 / 50.00 - molho, salsicha, batata palha, azeitona, catupiry e orégano\n"
+        "lombo 1: 35.00 / 52.00 - molho, muçarela, lombo, tomate, azeitona e orégano\n"
+        "lombo 2: 38.00 / 55.00 - molho, lombo, catupiry, azeitona e orégano\n"
+        "marguerita: 32.00 / 48.00 - molho, muçarela, manjericão, tomate seco, azeitona e orégano\n"
+        "meio a meio: 26.00 / 39.00 - molho, muçarela, calabresa, azeitona e orégano\n"
+        "mexicana: 33.00 / 45.00 - molho, calabresa, parmesão, azeitona e orégano\n"
+        "muçabresa: 32.00 / 45.00 - molho, muçarela, calabresa, azeitona e orégano\n"
+        "muçarela: 26.00 / 39.00 - molho, muçarela, azeitona e orégano\n"
+        "palmito 1: 32.00 / 50.00 - molho, palmito, muçarela, azeitona e orégano\n"
+        "palmito 2: 35.00 / 55.00 - molho, palmito, catupiry, azeitona e orégano\n"
+        "peperone: 35.00 / 58.00 - molho, peperone, muçarela, azeitona e orégano\n"
+        "portuguesa: 32.00 / 48.00 - molho, presunto, ovo, milho, ervilha, palmito, cebola, muçarela, azeitona e orégano\n"
+        "à moda: 35.00 / 55.00 - calabresa, ovo, pimentão, catupiry, muçarela e orégano\n"
+        "toscana: 30.00 / 46.00 - molho, linguiça ralada, cebola, muçarela, tomate, azeitona e orégano\n"
+        "três queijos 1: 32.00 / 46.00 - molho, catupiry, muçarela, cheddar, azeitona e orégano\n"
+        "três queijos 2: 33.00 / 49.00 - molho, catupiry, provolone, muçarela, azeitona e orégano\n"
+        "quatro queijos: 35.00 / 54.00 - molho, catupiry, muçarela, parmesão, provolone, azeitona e orégano\n"
+        "banana: 33.00 / 45.00 - banana, leite condensado, canela e chocolate\n"
         "brigadeiro: 33.00 / 45.00 - chocolate e granulado\n"
-        "carmela: 31.00 / 43.00 - banana, doce de leite e canela\n"
-        "romeu e julieta: 35.00 / 55.00 - goiabada e muçarela\n"
-        "morango: 30.00 / 45.00 - chocolate e morango\n"
-        "mm's: 33.00 / 50.00 - chocolate e MM's\n"
-        "ovo maltine: 35.00 / 55.00 - chocolate e Ovomaltine\n"
-        "prestígio: 31.00 / 43.00 - chocolate e coco ralado\n"
-        "chocolate: 29.00 / 40.00 - chocolate\n\n"
+        "carmela: 31.00 / 43.00 - banana e chocolate branco\n"
+        "romeu e julieta: 35.00 / 55.00 - muçarela e goiabada\n"
+        "morango: 30.00 / 45.00 - chocolate ao leite e morango\n"
+        "mm's: 33.00 / 50.00 - chocolate ao leite e MM's\n"
+        "ovo maltine: 35.00 / 55.00 - chocolate ao leite e ovo maltine\n"
+        "prestígio: 31.00 / 43.00 - chocolate ao leite e coco\n"
+        "chocolate: 29.00 / 40.00 - chocolate ao leite\n\n"
 
         "Sabores de esfiha:\n"
         "Carne: 3.50\nCalabresa: 3.50\nQueijo: 4.00\nMilho: 4.20\nAlho: 4.20\nBauru: 4.40\n"
@@ -164,10 +253,11 @@ prompt_template = [{
         "Calabresa c/ Catupiry: 4.40\nEscarola: 4.40\nBacon: 4.40\nAtum: 4.40\nPalmito c/ Catupiry: 4.40\n"
         "Palmito c/ Queijo: 4.40\nFrango c/ Catupiry: 4.40\nFrango c/ Queijo: 4.40\nFrango c/ Cheddar: 4.40\n"
         "Frango c/ Queijo e Milho: 4.80\nFrango c/ Queijo, Milho e Bacon: 4.80\nFrango c/ Catupiry e Bacon: 4.80\n"
-        "Calabresa c/ Queijo e Bacon: 4.80\nCalabresa c/ Catupiry Bacon: 4.80\nAtum c/ Queijo: 4.80\n"
+        "Calabresa c/ Queijo e Bacon: 4.80\nCalabresa c/ Catupiry e Bacon: 4.80\nAtum c/ Queijo: 4.80\n"
         "Atum c/ Catupiry: 4.80\nAtum c/ Cheddar: 4.80\nBrócolis: 4.80\nCarne Seca: 4.80\nDois Queijos: 4.80\n"
         "Sonho de Valsa: 8.00\nM&M’s: 8.00\nBrigadeiro: 8.00\nCarmela: 8.00\nPrestígio: 8.00\n"
         "Ovo Maltine: 8.00\nRomeu e Julieta: 8.00\nChocolate: 8.00\nPaçoca: 8.00\nMorango: 8.00\nOuro Branco: 8.00\nUva: 8.00\n\n"
+        "Bomba chocolate: 29.00\n Bomba Sonho de Valsa: 35.00\n Bomba Avelã: 29.00\n Bomba Prestígio: 31.00\n Bomba OvoMaltine: 32.00\n Bomba MM's: 35.00\n Bomba Brigadeiro: 31.00"
         
 "        - Se o cliente perguntar quais as formas de pagamento, ou disser uma forma que não aceitamos, respondo com: \"Aceitamos apenas pix, débito e crédito. Qual você prefere?\" sem emoji nessa frase\n"
 "        - Se o cliente mencionar pagamento com dinheiro, boleto, pix parcelado, cartão alimentação ou outra forma não permitida, respondo com: \"Aceitamos apenas pix, débito e crédito. Qual você prefere?\" sem emoji nessa frase\n"
@@ -184,7 +274,7 @@ prompt_template = [{
 "Nunca devo dar o preço do item sozinho. O preço será mostrado apenas ao final do pedido, com o total calculado automaticamente.\n"
 "Nunca devo pedir nome, endereço ou forma de pagamento enquanto o cliente ainda estiver escolhendo os itens. Esses dados só devem ser solicitados **depois** que o cliente disser que é só isso ou que quer fechar o pedido.\n"
 "Devo evitar respostas longas e cheias de informação quando o cliente fizer um pedido. Mantenho a resposta curta, simpática e fluida.\n"
-
+"Se o cliente pedir o cardápio OU perguntar quais os sabores de pizza/esfiha OU quais bebidas/sobremesas/comida temos, responda apenas com a palavra especial: [ENVIAR_CARDAPIO_PDF]. Assim, o sistema detecta essa palavra e envia o PDF do cardápio automaticamente. Não envio nunca o cardápio em texto, apenas o PDF.\n"
     )
 }]
 
@@ -315,22 +405,20 @@ def enviar_whatsapp(to, msg):
     except Exception as e:
         print("🔥 Exceção ao tentar enviar mensagem:", e)
 
-app = Flask(__name__)
 
 last_msgs = {}
 
-@app.route('/webhook', methods=['GET', 'POST'])
+@app.route("/webhook", methods=["GET", "POST"])
 def webhook():
     if request.method == 'GET':
         token = request.args.get('hub.verify_token')
         challenge = request.args.get('hub.challenge')
-        if token == os.getenv("WEBHOOK_VERIFY_TOKEN"):
+        if token == webhook_verify_token:
             return challenge, 200
-        print("❌ Token inválido!")
         return "Token inválido!", 403
 
     elif request.method == 'POST':
-        data = request.json
+        data = request.get_json()
         try:
             value = data['entry'][0]['changes'][0]['value']
             if 'messages' not in value:
@@ -339,75 +427,79 @@ def webhook():
             msg = value['messages'][0]
             from_num = msg['from']
             msg_id = msg.get('id')
-            text = msg.get('text', {}).get('body', '')
+            text = msg.get('text', {}).get('body', '').lower()
 
-            # Proteção contra mensagens duplicadas
+            # Verificação de duplicidade
             if from_num in last_msgs and last_msgs[from_num] == msg_id:
-                print("🔁 Mensagem já processada. Ignorando.")
                 return 'Duplicate message', 200
             last_msgs[from_num] = msg_id
 
             print(f"📨 Mensagem recebida de {from_num}: {text}")
+
+           
 
             # Histórico individual
             if from_num not in historico_usuarios:
                 historico_usuarios[from_num] = prompt_template.copy()
 
             historico_usuarios[from_num].append({"role": "user", "content": text})
-            
-            
             resposta = enviar_msg("", historico_usuarios[from_num])
             historico_usuarios[from_num].append({"role": "assistant", "content": resposta})
+            
+             # Enviar PDF se pedir o cardápio
+            if resposta.strip () == "[ENVIAR_CARDAPIO_PDF]":
+                resultado_upload = upload_pdf_para_whatsapp()
+                media_id = resultado_upload
+                if media_id:
+                    enviar_pdf_para_cliente(from_num)
+                else:
+                    print("Erro ao fazer upload do PDF:", resultado_upload)
+                return "ok", 200
 
             print("🤖 Resposta do chatbot:", resposta)
-            # Verifica se a resposta contém JSON formatado
-            if "```json" in resposta:
-                print("📦 Detecção de JSON: não enviar essa resposta via WhatsApp.")
-            else:
+
+            if "```json" not in resposta:
                 enviar_whatsapp(from_num, resposta)
 
-
-            # Extração e verificação do JSON de pedido
             json_pedido = extrair_json_da_resposta(resposta)
-            
+
             if json_pedido and json_pedido.get("taxa_entrega") is None and json_pedido.get("endereco_entrega"):
                 endereco = json_pedido["endereco_entrega"]
-                taxa = calcular_taxa_entrega(endereco)
+                distancia_km = calcular_distancia_km(endereco)
+
+                if distancia_km is None:
+                    enviar_whatsapp(from_num, "❌ Endereço inválido. Verifique e envie novamente.")
+                    return 'ENDERECO_INVALIDO', 200
+
+                if distancia_km > 15:
+                    enviar_whatsapp(from_num, "🚫 Fora do nosso raio de entrega (15 km).")
+                    return 'FORA_RAIO', 200
+
+                taxa = round(distancia_km * 3, 2)
+                json_pedido["taxa_entrega"] = taxa
+                json_pedido["preco_total"] = round(json_pedido.get("preco_total", 0) + taxa, 2)
 
                 historico_usuarios[from_num].append({
                     "role": "system",
                     "content": f"A taxa de entrega é {taxa:.2f} reais."
                 })
 
-                json_pedido["taxa_entrega"] = taxa
-                json_pedido["preco_total"] = round(json_pedido.get("preco_total", 0) + taxa, 2)
-                print("📦 JSON final antes do envio com taxa:")
-                print(json.dumps(json_pedido, indent=2, ensure_ascii=False))
-
                 try:
                     r = requests.post("http://localhost:3000/pedido/post", json=json_pedido)
-                    print("🔁 Resposta do backend:", r.status_code, r.text)
                     if r.status_code == 200:
-                        print("✅ Pedido enviado para o backend!")
-                        resumo_amigavel = gerar_mensagem_amigavel(json_pedido)
+                        resumo = gerar_mensagem_amigavel(json_pedido)
                         sleep(2)
-                        enviar_whatsapp(from_num, resumo_amigavel)
+                        enviar_whatsapp(from_num, resumo)
                     else:
                         print("❌ Erro ao enviar pedido:", r.status_code, r.text)
                 except Exception as e:
                     print("❌ Erro de conexão com o backend:", e)
 
-
             elif json_pedido and json_pedido.get("taxa_entrega") is not None:
                 try:
-                    headers = {'Content-Type': 'application/json'}
-                    r = requests.post("http://localhost:3000/pedido/post", json=json_pedido, headers=headers)
-                    
-                    print("📤 Tentando enviar ao backend:")
-                    print(json.dumps(json_pedido, indent=2, ensure_ascii=False))
-
+                    r = requests.post("http://localhost:3000/pedido/post", json=json_pedido)
                     if r.status_code == 200:
-                        print("✅ Pedido enviado para o backend!")
+                        print("✅ Pedido enviado ao backend!")
                     else:
                         print("❌ Erro ao enviar pedido:", r.status_code, r.text)
                 except Exception as e:
@@ -416,9 +508,11 @@ def webhook():
             return 'EVENT_RECEIVED', 200
 
         except Exception as e:
-            print("⚠️ Erro ao extrair mensagem ou gerar resposta:", e)
-            return 'No message', 200
+            print("⚠️ Erro ao processar mensagem:")
+            traceback.print_exc()
+            return 'erro', 400
+
 
 
 if __name__ == '__main__':
-    app.run(port=80)
+    app.run(host="0.0.0.0", port=80)

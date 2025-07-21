@@ -68,7 +68,8 @@
 }
 
 .dashboard-card h2 {
-  font-size: 18px;
+  font-size: 15px;
   margin: 0;
   font-family: MinhaFonte3, sans-serif;
+  color: #484848;
 }
