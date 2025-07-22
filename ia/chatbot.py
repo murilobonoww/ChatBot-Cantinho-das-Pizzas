@@ -24,10 +24,27 @@ access_token = os.getenv('WHATSAPP_ACCESS_TOKEN')
 fone_id = os.getenv('FONE_ID')
 client_secret = os.getenv('CLIENT_SECRET')
 webhook_verify_token = os.getenv('WEBHOOK_VERIFY_TOKEN')
+media_id = os.getenv('MEDIA_ID')
+
 
 client = OpenAI(api_key=gpt_api_key)
 
 historico_usuarios = {}
+
+def pegar_coordenadas(endereco):
+    url = f"https://maps.googleapis.com/maps/api/geocode/json?address={requests.utils.quote(endereco)}&key={maps_api_key}"
+    response = requests.get(url)
+    data = response.json()
+
+    if data['status'] == 'OK':
+        location = data['results'][0]['geometry']['location']
+        lat = location['lat']
+        lng = location['lng']
+        return lat, lng
+    else:
+        print("Erro ao obter coordenadas:", data.get('status'))
+        return None, None
+
 
 def saudacao():
     hora = datetime.now(pytz.timezone("America/Sao_Paulo")).hour
@@ -90,7 +107,6 @@ def carregar_media_id():
 def enviar_pdf_para_cliente(numero_cliente):
     token = os.getenv("WHATSAPP_ACCESS_TOKEN")
     phone_number_id = os.getenv("FONE_ID")
-    media_id = 697077749976326
 
     if not media_id:
         print("❌ Não foi possível enviar o cardápio (media_id inválido)")
@@ -107,7 +123,7 @@ def enviar_pdf_para_cliente(numero_cliente):
         "to": numero_cliente,
         "type": "document",
         "document": {
-            "id": 697077749976326,
+            "id": media_id,
             "caption": "Claro! Aqui está o nosso cardápio completo 🍕📖\n\n",
             "filename": "cardapio.pdf"
         }
@@ -136,6 +152,7 @@ prompt_template = [{
         "Durante o pedido, só faço perguntas relacionadas ao item atual (sabor, tamanho e quantidade). Somente depois de concluir os itens, pergunto nome, forma de pagamento e endereço.\n"
         "Posso perguntar sobre nome, forma de pagamento e endereço de forma separada ou tudo junto — se o cliente enviar os três de uma vez, devo reconhecer e seguir normalmente.\n"
         "Só posso finalizar o pedido e gerar o JSON se o cliente já tiver informado: nome, endereço de entrega e forma de pagamento. Se qualquer uma dessas estiver faltando, não gero o JSON nem finalizo.\n"
+        "Se o cliente disser o endereço completo (ex: 'Rua Copacabana, 111, Boa Parada, Barueri - SP'), devo identificar e separar corretamente o nome da rua e o número da casa e adicionar os valores no json nos campos street e houseNumber respectivamente.\n"
         "Se o cliente confirmar o endereço, finalizo o pedido e exibo o JSON formatado dentro de um bloco de código com ```json no início e ``` no final, assim:\n\n"
 "```json\n"
 "{\n"
@@ -145,6 +162,10 @@ prompt_template = [{
 '  "preco_total": 42.00,\n'
 '  "forma_pagamento": "dinheiro",\n'
 '  "status_pedido": "pendente",\n'
+'  "latitude": 0.0,\n'
+'  "longitude": 0.0,\n'
+'  "houseNumber": 0,\n'
+'  "street": "",\n'
 '  "itens": [\n'
 '    {\n'
 '      "produto": "pizza",\n'
@@ -267,7 +288,7 @@ prompt_template = [{
 "        - Se o cliente tentar fazer brincadeiras ou mensagens sem sentido, mantenho a postura profissional e respondo de forma objetiva e gentil.\n"
 "Se o cliente concluir o pedido de comida e não tiver escolhido nenhuma bebida, posso perguntar gentilmente: \"Deseja incluir alguma bebida para acompanhar? Temos refris, sucos, água e mais 😊\"\n"
 "Se o cliente disser que quer pagar com cartão, devo perguntar: \"Você prefere pagar no débito ou crédito?\" sem emoji nessa frase\n"
-"Se o cliente disser que quer mudar o pedido, devo analisar se ele especificou o que deseja alterar:\n"
+"Se o cliente disser que quer mudar o pedido (isso não se aplica a endereços), devo analisar se ele especificou o que deseja alterar:\n"
 "- Se ele **ainda não disse os itens**, respondo: \"Sem problemas! Vamos corrigir. O que você gostaria de mudar?\"\n"
 "- Se ele **já informou o que quer mudar**, respondo: \"Claro! Só 1 minutinho, vou verificar com a equipe se ainda é possível fazer a alteração no seu pedido. 😊\"\n"
 "Quando o cliente disser o item que deseja (ex: 'quero uma pizza de frango 1 grande'), devo apenas confirmar de forma leve e seguir com o pedido, sem dar preço nem pedir nome, endereço ou forma de pagamento ainda. Exemplo de resposta adequada: 'Pizza de frango 1 grande, certo? 😋 Quer adicionar mais alguma coisa ou posso seguir com seu pedido?'\n"
@@ -478,6 +499,11 @@ def webhook():
                 taxa = round(distancia_km * 3, 2)
                 json_pedido["taxa_entrega"] = taxa
                 json_pedido["preco_total"] = round(json_pedido.get("preco_total", 0) + taxa, 2)
+                
+                lat, lng = pegar_coordenadas(endereco)
+                json_pedido["latitude"] = lat
+                json_pedido["longitude"] = lng
+                print(lat, lng)
 
                 historico_usuarios[from_num].append({
                     "role": "system",

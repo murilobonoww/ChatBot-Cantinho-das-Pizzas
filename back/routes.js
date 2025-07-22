@@ -4,6 +4,59 @@ const db = require('./db'); // conexão com MySQL (connection.js)
 const { resolvePath } = require('react-router-dom');
 const dotenv = require('dotenv');
 dotenv.config();
+const axios = require('axios');
+
+function formatarEndereco(endereco) {
+  if (!endereco || typeof endereco !== 'string') return '';
+  return endereco
+    .trim()
+    .replace(/^R\.\s*/i, '')               // remove "R." do início
+    .replace(/\s*-\s*/g, ', ')             // substitui traço por vírgula e espaço
+    .replace(/,([^ ])/g, ', $1')           // força espaço após vírgulas
+    .replace(/\s{2,}/g, ' ')               // remove espaços duplos
+    .replace(/,+/g, ',')                   // evita vírgulas duplicadas
+    .trim();
+}
+
+
+
+
+
+async function enviarParaFoody(pedido, id_pedido, lat, lng) {
+  const enderecoFormatado = formatarEndereco(pedido.endereco_entrega);
+
+  const payload = {
+    id: String(id_pedido),
+    status: 'open',
+    notes: pedido.observacao || '',
+    courierFee: pedido.taxa_entrega || 0,
+    orderTotal: pedido.preco_total || 0,
+    deliveryPoint: {
+      address: enderecoFormatado || '',
+      street: '', //gpt irá extrair
+      houseNumber: '', //gpt irá extrair
+      coordinates: {
+        lat: lat || '',
+        lng: lng || '',
+      },
+      city: 'Barueri',
+      region: 'SP',
+      country: 'BR',
+    }
+  };
+
+  try {
+    console.log(enderecoFormatado, lat, lng)
+    const res = await axios.post('https://app.foodydelivery.com/rest/1.2/orders', payload, {
+      headers: { 'Content-Type': 'application/json;charset=UTF-8', 'Authorization': 'edab289cff47488bb78c9e2897420ffe' }
+    });
+    console.log(`✅ Pedido #${id_pedido} enviado para Foody. Status: ${res.status}`);
+  } catch (error) {
+    console.error(`❌ Erro ao enviar pedido #${id_pedido} para Foody:`, error?.response?.data || error.message);
+  }
+}
+
+
 
 router.post('/pedido/post', (req, res) => {
   const pedido = req.body;
@@ -15,7 +68,9 @@ router.post('/pedido/post', (req, res) => {
     preco_total,
     forma_pagamento,
     status_pedido,
-    itens
+    itens,
+    latitude,
+    longitude
   } = pedido;
 
   const sqlPedido = `
@@ -60,8 +115,9 @@ router.post('/pedido/post', (req, res) => {
         return res.status(500).json({ mensagem: 'Erro ao registrar os itens do pedido' });
       }
 
-      console.log(`📦 Pedido #${id_pedido} registrado com sucesso.`);
-      res.status(200).json({ mensagem: "✅ Pedido registrado com sucesso!", id_pedido });
+      console.log(`📦 Pedido #${id_pedido} registrado com sucesso. (ainda não enviado pra foody)`);
+      enviarParaFoody(pedido, id_pedido, latitude, longitude); // ← envia para a Foody de forma assíncrona
+      res.status(200).json({ mensagem: "✅ Pedido registrado e enviado para a Foody com sucesso!", id_pedido });
     });
   });
 });
