@@ -1,64 +1,90 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const db = require('./db'); // conexão com MySQL (connection.js)
-const { resolvePath } = require('react-router-dom');
-const dotenv = require('dotenv');
+const db = require("./db"); // conexão com MySQL (connection.js)
+const { resolvePath } = require("react-router-dom");
+const dotenv = require("dotenv");
 dotenv.config();
-const axios = require('axios');
+const axios = require("axios");
 
 function formatarEndereco(endereco) {
-  if (!endereco || typeof endereco !== 'string') return '';
+  if (!endereco || typeof endereco !== "string") return "";
   return endereco
     .trim()
-    .replace(/^R\.\s*/i, '')               // remove "R." do início
-    .replace(/\s*-\s*/g, ', ')             // substitui traço por vírgula e espaço
-    .replace(/,([^ ])/g, ', $1')           // força espaço após vírgulas
-    .replace(/\s{2,}/g, ' ')               // remove espaços duplos
-    .replace(/,+/g, ',')                   // evita vírgulas duplicadas
+    .replace(/^R\.\s*/i, "") // remove "R." do início
+    .replace(/\s*-\s*/g, ", ") // substitui traço por vírgula e espaço
+    .replace(/,([^ ])/g, ", $1") // força espaço após vírgulas
+    .replace(/\s{2,}/g, " ") // remove espaços duplos
+    .replace(/,+/g, ",") // evita vírgulas duplicadas
     .trim();
 }
-
-
-
-
 
 async function enviarParaFoody(pedido, id_pedido, lat, lng) {
   const enderecoFormatado = formatarEndereco(pedido.endereco_entrega);
 
   const payload = {
     id: String(id_pedido),
-    status: 'open',
-    notes: pedido.observacao || '',
+    status: "open",
+    notes: pedido.observacao || "",
     courierFee: pedido.taxa_entrega || 0,
     orderTotal: pedido.preco_total || 0,
     deliveryPoint: {
-      address: enderecoFormatado || '',
-      street: '', //gpt irá extrair
-      houseNumber: '', //gpt irá extrair
+      address: enderecoFormatado || "",
+      street: "", // gpt irá extrair
+      houseNumber: "", // gpt irá extrair
       coordinates: {
-        lat: lat || '',
-        lng: lng || '',
+        lat: lat || "",
+        lng: lng || "",
       },
-      city: 'Barueri',
-      region: 'SP',
-      country: 'BR',
-    }
+      city: "Barueri",
+      region: "SP",
+      country: "BR",
+    },
   };
 
+  console.log(payload);
+
   try {
-    console.log(enderecoFormatado, lat, lng)
-    const res = await axios.post('https://app.foodydelivery.com/rest/1.2/orders', payload, {
-      headers: { 'Content-Type': 'application/json;charset=UTF-8', 'Authorization': 'edab289cff47488bb78c9e2897420ffe' }
+    const res = await axios.post(
+      "https://app.foodydelivery.com/rest/1.2/orders",
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "edab289cff47488bb78c9e2897420ffe",
+        },
+      }
+    );
+
+    console.log(
+      `✅ Pedido #${id_pedido} enviado para Foody. Status: ${res.status}`
+    );
+
+    // Extrair o uid da resposta da API
+    const uid_foody = res.data.uid; // Ajuste conforme a estrutura real da resposta da API
+
+    // Atualizar a tabela pedido com o uid
+    const sqlUpdateUid = `UPDATE pedido SET uid_foody = ? WHERE id_pedido = ?`;
+    db.query(sqlUpdateUid, [uid_foody, id_pedido], (err) => {
+      if (err) {
+        console.error(
+          `❌ Erro ao atualizar uid_foody do pedido #${id_pedido}:`,
+          err
+        );
+        return;
+      }
+      console.log(
+        `✅ uid_foody ${uid_foody} salvo para o pedido #${id_pedido}`
+      );
     });
-    console.log(`✅ Pedido #${id_pedido} enviado para Foody. Status: ${res.status}`);
   } catch (error) {
-    console.error(`❌ Erro ao enviar pedido #${id_pedido} para Foody:`, error?.response?.data || error.message);
+    console.error(
+      `❌ Erro ao enviar pedido #${id_pedido} para Foody:`,
+      error?.response?.data || error.message
+    );
   }
 }
 
-
-
-router.post('/pedido/post', (req, res) => {
+router.post("/pedido/post", (req, res) => {
   const pedido = req.body;
 
   const {
@@ -70,7 +96,7 @@ router.post('/pedido/post', (req, res) => {
     status_pedido,
     itens,
     latitude,
-    longitude
+    longitude,
   } = pedido;
 
   const sqlPedido = `
@@ -85,13 +111,13 @@ router.post('/pedido/post', (req, res) => {
     taxa_entrega,
     preco_total,
     forma_pagamento,
-    status_pedido || 'pendente'
+    status_pedido || "aberto",
   ];
 
   db.query(sqlPedido, valoresPedido, (err, resultado) => {
     if (err) {
-      console.error('❌ Erro ao inserir pedido:', err);
-      return res.status(500).json({ mensagem: 'Erro ao registrar o pedido' });
+      console.error("❌ Erro ao inserir pedido:", err);
+      return res.status(500).json({ mensagem: "Erro ao registrar o pedido" });
     }
 
     const id_pedido = resultado.insertId;
@@ -101,29 +127,37 @@ router.post('/pedido/post', (req, res) => {
       VALUES ?
     `;
 
-    const valoresItens = itens.map(item => [
+    const valoresItens = itens.map((item) => [
       id_pedido,
       item.produto,
       item.sabor,
       item.quantidade,
-      item.observacao || ''
+      item.observacao || "",
     ]);
 
     db.query(sqlItem, [valoresItens], (err2) => {
       if (err2) {
-        console.error('❌ Erro ao inserir itens do pedido:', err2);
-        return res.status(500).json({ mensagem: 'Erro ao registrar os itens do pedido' });
+        console.error("❌ Erro ao inserir itens do pedido:", err2);
+        return res
+          .status(500)
+          .json({ mensagem: "Erro ao registrar os itens do pedido" });
       }
 
-      console.log(`📦 Pedido #${id_pedido} registrado com sucesso. (ainda não enviado pra foody)`);
+      console.log(
+        `📦 Pedido #${id_pedido} registrado com sucesso. (ainda não enviado pra foody)`
+      );
       enviarParaFoody(pedido, id_pedido, latitude, longitude); // ← envia para a Foody de forma assíncrona
-      res.status(200).json({ mensagem: "✅ Pedido registrado e enviado para a Foody com sucesso!", id_pedido });
+      res
+        .status(200)
+        .json({
+          mensagem: "✅ Pedido registrado e enviado para a Foody com sucesso!",
+          id_pedido,
+        });
     });
   });
 });
 
-
-router.get('/pedido/getAll', (req, res) => {
+router.get("/pedido/getAll", (req, res) => {
   const { inicio, fim, cliente } = req.query;
 
   let sql = `
@@ -149,20 +183,20 @@ router.get('/pedido/getAll', (req, res) => {
   }
 
   if (conditions.length > 0) {
-    sql += ` WHERE ` + conditions.join(' AND ');
+    sql += ` WHERE ` + conditions.join(" AND ");
   }
 
   sql += ` ORDER BY p.id_pedido DESC`;
 
   db.query(sql, params, (err, resultados) => {
     if (err) {
-      console.error('❌ Erro ao buscar pedidos:', err);
-      return res.status(500).json({ mensagem: 'Erro ao buscar pedidos' });
+      console.error("❌ Erro ao buscar pedidos:", err);
+      return res.status(500).json({ mensagem: "Erro ao buscar pedidos" });
     }
 
     const pedidosMap = {};
 
-    resultados.forEach(row => {
+    resultados.forEach((row) => {
       const id = row.id_pedido;
       if (!pedidosMap[id]) {
         pedidosMap[id] = {
@@ -174,7 +208,7 @@ router.get('/pedido/getAll', (req, res) => {
           forma_pagamento: row.forma_pagamento,
           status_pedido: row.status_pedido,
           data_pedido: row.data_pedido,
-          itens: []
+          itens: [],
         };
       }
 
@@ -184,7 +218,7 @@ router.get('/pedido/getAll', (req, res) => {
           produto: row.produto,
           sabor: row.sabor,
           quantidade: row.quantidade,
-          observacao: row.observacao
+          observacao: row.observacao,
         });
       }
     });
@@ -194,7 +228,7 @@ router.get('/pedido/getAll', (req, res) => {
   });
 });
 
-router.get('/pedido/:id', (req, res) => {
+router.get("/pedido/:id", (req, res) => {
   const idPedido = req.params.id;
 
   const sql = `
@@ -209,12 +243,12 @@ router.get('/pedido/:id', (req, res) => {
 
   db.query(sql, [idPedido], (err, resultados) => {
     if (err) {
-      console.error('❌ Erro ao buscar pedido:', err);
-      return res.status(500).json({ mensagem: 'Erro ao buscar pedido' });
+      console.error("❌ Erro ao buscar pedido:", err);
+      return res.status(500).json({ mensagem: "Erro ao buscar pedido" });
     }
 
     if (resultados.length === 0) {
-      return res.status(404).json({ mensagem: 'Pedido não encontrado' });
+      return res.status(404).json({ mensagem: "Pedido não encontrado" });
     }
 
     const pedido = {
@@ -226,17 +260,17 @@ router.get('/pedido/:id', (req, res) => {
       forma_pagamento: resultados[0].forma_pagamento,
       status_pedido: resultados[0].status_pedido,
       data_pedido: resultados[0].data_pedido,
-      itens: []
+      itens: [],
     };
 
-    resultados.forEach(row => {
+    resultados.forEach((row) => {
       if (row.id_item !== null) {
         pedido.itens.push({
           id_item: row.id_item,
           produto: row.produto,
           sabor: row.sabor,
           quantidade: row.quantidade,
-          observacao: row.observacao
+          observacao: row.observacao,
         });
       }
     });
@@ -245,8 +279,7 @@ router.get('/pedido/:id', (req, res) => {
   });
 });
 
-
-router.delete('/pedido/:id', (req, res) => {
+router.delete("/pedido/:id", (req, res) => {
   const idPedido = req.params.id;
 
   // Primeiro, exclui os itens vinculados ao pedido
@@ -254,8 +287,10 @@ router.delete('/pedido/:id', (req, res) => {
 
   db.query(sqlDeleteItens, [idPedido], (err1) => {
     if (err1) {
-      console.error('❌ Erro ao deletar itens do pedido:', err1);
-      return res.status(500).json({ mensagem: 'Erro ao deletar itens do pedido' });
+      console.error("❌ Erro ao deletar itens do pedido:", err1);
+      return res
+        .status(500)
+        .json({ mensagem: "Erro ao deletar itens do pedido" });
     }
 
     // Depois, exclui o próprio pedido
@@ -263,21 +298,23 @@ router.delete('/pedido/:id', (req, res) => {
 
     db.query(sqlDeletePedido, [idPedido], (err2, resultado) => {
       if (err2) {
-        console.error('❌ Erro ao deletar pedido:', err2);
-        return res.status(500).json({ mensagem: 'Erro ao deletar pedido' });
+        console.error("❌ Erro ao deletar pedido:", err2);
+        return res.status(500).json({ mensagem: "Erro ao deletar pedido" });
       }
 
       if (resultado.affectedRows === 0) {
-        return res.status(404).json({ mensagem: 'Pedido não encontrado' });
+        return res.status(404).json({ mensagem: "Pedido não encontrado" });
       }
 
       console.log(`🗑️ Pedido #${idPedido} e seus itens foram deletados.`);
-      res.status(200).json({ mensagem: `✅ Pedido #${idPedido} deletado com sucesso.` });
+      res
+        .status(200)
+        .json({ mensagem: `✅ Pedido #${idPedido} deletado com sucesso.` });
     });
   });
 });
 
-router.put('/pedido/:id/status', (req, res) => {
+router.put("/pedido/:id/status", (req, res) => {
   const id = req.params.id;
   const { novoStatus } = req.body;
 
@@ -286,7 +323,9 @@ router.put('/pedido/:id/status', (req, res) => {
   db.query(sql, [novoStatus, id], (err, resultado) => {
     if (err) {
       console.error("❌ Erro ao atualizar status do pedido:", err);
-      return res.status(500).json({ mensagem: "Erro ao atualizar status do pedido" });
+      return res
+        .status(500)
+        .json({ mensagem: "Erro ao atualizar status do pedido" });
     }
 
     if (resultado.affectedRows === 0) {
@@ -298,13 +337,12 @@ router.put('/pedido/:id/status', (req, res) => {
   });
 });
 
-
-router.get('/relatorios/financeiro', (req, res) => {
-  const token = req.headers['authorization'];
+router.get("/relatorios/financeiro", (req, res) => {
+  const token = req.headers["authorization"];
   const SENHA_GERENCIA = process.env.SENHA_GERENCIA;
 
   if (token !== `Bearer ${SENHA_GERENCIA}`) {
-    return res.status(403).json({ mensagem: 'Acesso negado: senha incorreta' });
+    return res.status(403).json({ mensagem: "Acesso negado: senha incorreta" });
   }
   const { inicio, fim } = req.query;
 
@@ -323,7 +361,7 @@ router.get('/relatorios/financeiro', (req, res) => {
 
   if (inicio && fim) {
     sql += ` WHERE p.data_pedido BETWEEN ? AND ? `;
-    valores.push(inicio + ' 00:00:00', fim + ' 23:59:59');
+    valores.push(inicio + " 00:00:00", fim + " 23:59:59");
   }
 
   sql += ` ORDER BY p.data_pedido DESC LIMIT 100`;
@@ -331,27 +369,31 @@ router.get('/relatorios/financeiro', (req, res) => {
   db.query(sql, valores, (err, resultados) => {
     if (err) {
       console.error("❌ Erro ao buscar dados financeiros:", err);
-      return res.status(500).json({ mensagem: "Erro ao buscar relatório financeiro" });
+      return res
+        .status(500)
+        .json({ mensagem: "Erro ao buscar relatório financeiro" });
     }
 
     let total_vendas = 0;
     let total_pedidos = resultados.length;
-    let pagamentos = { pix: 0, dinheiro: 0, cartao: 0 };
+    let pagamentos = { pix: 0, débito: 0, crédito: 0 };
 
-    const pedidosFormatados = resultados.map(r => {
+    const pedidosFormatados = resultados.map((r) => {
       total_vendas += parseFloat(r.preco_total);
 
       const pg = r.forma_pagamento.toLowerCase();
+
       if (pg.includes("pix")) pagamentos.pix += parseFloat(r.preco_total);
-      else if (pg.includes("dinheiro")) pagamentos.dinheiro += parseFloat(r.preco_total);
-      else pagamentos.cartao += parseFloat(r.preco_total);
+      else if (pg.includes("débito"))
+        pagamentos.débito += parseFloat(r.preco_total);
+      else pagamentos.crédito += parseFloat(r.preco_total);
 
       return {
-        data: new Date(r.data_pedido).toLocaleDateString('pt-BR'),
+        data: new Date(r.data_pedido).toLocaleDateString("pt-BR"),
         cliente: r.nome_cliente,
         valor: parseFloat(r.preco_total),
         pagamento: r.forma_pagamento,
-        entregador: r.entregador || "-"
+        entregador: r.entregador || "-",
       };
     });
 
@@ -363,12 +405,12 @@ router.get('/relatorios/financeiro', (req, res) => {
       ticket_medio,
       mais_vendido: "-",
       pagamentos,
-      pedidos: pedidosFormatados
+      pedidos: pedidosFormatados,
     });
   });
 });
 
-router.put('/pedido/:id', (req, res) => {
+router.put("/pedido/:id", (req, res) => {
   const id = req.params.id;
   const {
     nome_cliente,
@@ -376,7 +418,7 @@ router.put('/pedido/:id', (req, res) => {
     forma_pagamento,
     status_pedido,
     taxa_entrega,
-    preco_total
+    preco_total,
   } = req.body;
 
   const sql = `
@@ -385,32 +427,34 @@ router.put('/pedido/:id', (req, res) => {
     WHERE id_pedido = ?
   `;
 
-  db.query(sql, [
-    nome_cliente,
-    endereco_entrega,
-    forma_pagamento,
-    status_pedido,
-    taxa_entrega,
-    preco_total,
-    id
-  ], (err, resultado) => {
-    if (err) {
-      console.error("❌ Erro ao atualizar pedido:", err);
-      return res.status(500).json({ mensagem: "Erro ao atualizar pedido" });
-    }
+  db.query(
+    sql,
+    [
+      nome_cliente,
+      endereco_entrega,
+      forma_pagamento,
+      status_pedido,
+      taxa_entrega,
+      preco_total,
+      id,
+    ],
+    (err, resultado) => {
+      if (err) {
+        console.error("❌ Erro ao atualizar pedido:", err);
+        return res.status(500).json({ mensagem: "Erro ao atualizar pedido" });
+      }
 
-    if (resultado.affectedRows === 0) {
-      return res.status(404).json({ mensagem: "Pedido não encontrado" });
-    }
+      if (resultado.affectedRows === 0) {
+        return res.status(404).json({ mensagem: "Pedido não encontrado" });
+      }
 
-    console.log(`✅ Pedido #${id} atualizado com sucesso`);
-    res.status(200).json({ mensagem: "Pedido atualizado com sucesso!" });
-  });
+      console.log(`✅ Pedido #${id} atualizado com sucesso`);
+      res.status(200).json({ mensagem: "Pedido atualizado com sucesso!" });
+    }
+  );
 });
 
-
-
-const mysqlPromise = require('mysql2/promise');
+const mysqlPromise = require("mysql2/promise");
 
 router.get("/cardapio", async (req, res) => {
   try {
@@ -424,17 +468,117 @@ router.get("/cardapio", async (req, res) => {
 
     const [pizzas] = await tempConnection.query("SELECT * FROM pizzas");
     const [esfihas] = await tempConnection.query("SELECT * FROM esfihas");
+    const [bebidas] = await tempConnection.query("SELECT * FROM bebidas");
+    const [doces] = await tempConnection.query("SELECT * FROM doces");
 
-    await tempConnection.end(); // encerra a conexão temporária
+    await tempConnection.end();
 
-    res.json({ pizzas, esfihas });
+    res.json({ pizzas, esfihas, bebidas, doces });
   } catch (err) {
     console.error("Erro ao buscar cardápio:", err);
     res.status(500).json({ erro: "Erro ao buscar cardápio" });
   }
 });
 
+router.get("/pedidos/new", (req, res) => {
+  const sql = `SELECT COUNT(*) AS total FROM pedido WHERE status_pedido = 'aberto'`;
 
+  db.query(sql, (err, resultados) => {
+    if (err) {
+      console.error("❌ Erro ao verificar pedidos novos:", err);
+      return res.status(500).json({ erro: "Erro ao verificar pedidos novos" });
+    }
+
+    const temNovos = resultados[0].total > 0;
+    res.json({ novos: temNovos });
+  });
+});
+
+
+
+
+router.get("/pedido/foody/:uid", async (req, res) => {
+  const { uid } = req.params;
+
+  try {
+    const response = await axios.get(
+      `https://app.foodydelivery.com/rest/1.2/orders/${uid}`,
+      {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "edab289cff47488bb78c9e2897420ffe",
+        },
+      }
+    );
+
+    const pedidoFoody = response.data;
+
+    // Estruturar a resposta com base no payload da Foody
+    const resposta = {
+      uid: pedidoFoody.uid,
+      id: pedidoFoody.id,
+      status: pedidoFoody.status,
+      deliveryFee: pedidoFoody.deliveryFee,
+      paymentMethod: pedidoFoody.paymentMethod,
+      notes: pedidoFoody.notes,
+      courierFee: pedidoFoody.courierFee,
+      orderTotal: pedidoFoody.orderTotal,
+      orderDetails: pedidoFoody.orderDetails,
+      orderTrackerUrl: pedidoFoody.orderTrackerUrl,
+      despatchMode: pedidoFoody.despatchMode,
+      deliveryPoint: {
+        address: pedidoFoody.deliveryPoint?.address,
+        street: pedidoFoody.deliveryPoint?.street,
+        houseNumber: pedidoFoody.deliveryPoint?.houseNumber,
+        postalCode: pedidoFoody.deliveryPoint?.postalCode,
+        coordinates: {
+          lat: pedidoFoody.deliveryPoint?.coordinates?.lat,
+          lng: pedidoFoody.deliveryPoint?.coordinates?.lng,
+        },
+        city: pedidoFoody.deliveryPoint?.city,
+        region: pedidoFoody.deliveryPoint?.region,
+        country: pedidoFoody.deliveryPoint?.country,
+        complement: pedidoFoody.deliveryPoint?.complement,
+      },
+      collectionPoint: {
+        name: pedidoFoody.collectionPoint?.name,
+        address: pedidoFoody.collectionPoint?.address,
+        postalCode: pedidoFoody.collectionPoint?.postalCode,
+        coordinates: {
+          lat: pedidoFoody.collectionPoint?.coordinates?.lat,
+          lng: pedidoFoody.collectionPoint?.coordinates?.lng,
+        },
+        city: pedidoFoody.collectionPoint?.city,
+        region: pedidoFoody.collectionPoint?.region,
+        country: pedidoFoody.collectionPoint?.country,
+      },
+      customer: {
+        customerPhone: pedidoFoody.customer?.customerPhone,
+        customerName: pedidoFoody.customer?.customerName,
+        customerEmail: pedidoFoody.customer?.customerEmail,
+      },
+      courier: {
+        courierPhone: pedidoFoody.courier?.courierPhone,
+        courierName: pedidoFoody.courier?.courierName,
+        courierType: pedidoFoody.courier?.courierType,
+      },
+      date: pedidoFoody.date,
+      readyDate: pedidoFoody.readyDate,
+      despatchDate: pedidoFoody.despatchDate,
+      collectedDate: pedidoFoody.collectedDate,
+      deliveryDate: pedidoFoody.deliveryDate,
+      creationDate: pedidoFoody.creationDate,
+      updateDate: pedidoFoody.updateDate,
+    };
+
+    res.status(200).json(resposta);
+  } catch (error) {
+    console.error(`❌ Erro ao buscar pedido #${uid} na Foody:`, error?.response?.data || error.message);
+    res.status(500).json({ mensagem: "Erro ao buscar pedido na Foody Delivery" });
+  }
+});
+
+module.exports = router;
 
 
 module.exports = router;

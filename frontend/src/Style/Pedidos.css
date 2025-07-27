@@ -13,7 +13,7 @@
 .btn-fechar {
   position: fixed;
   margin-top: 20px;
-  left: 40px;
+  left: 0;
   font-size: 28px;
   text-decoration: none;
   color: #333;
@@ -35,10 +35,6 @@
   transform: scale(1.1);
 }
 
-#voltar_icone {
-  max-width: 50px;
-}
-
 /* Container principal */
 .pedidos {
   padding-left: 0px;
@@ -49,11 +45,11 @@
 }
 
 /* TOPO fixo */
-.topo-fixo {
+.topo-fixo-pedidos {
   font-family: MinhaFonte  , sans-serif;
   position: sticky;
   top: 0;
-  background-color: rgb(245, 245, 245);
+  background-color: #121212;
   width: 100%;
   z-index: 1000;
   padding: 20px 30px 15px 30px;
@@ -61,23 +57,23 @@
   border-bottom: 1px solid #ddd;
    left: 0; /* garante o alinhamento à esquerda */
    display: flex;
-
+  padding-left: 150px;
 }
 
-.topo-fixo-restante{
+.topo-fixo-pedidos-restante{
   margin-left: 80px;
-  margin-top: 80px;
 }
 
-.topo-fixo h1 {
+.topo-fixo-pedidos h1 {
   margin: 0 0 12px 0;
-  color: #000000;
+  color: #ffffff;
 }
 
-.topo-fixo h2 {
+.topo-fixo-pedidos h2 {
   margin-top: 16px;
   margin-bottom: 10px;
   font-size: 24px;
+  color: #ffffff;
 }
 
 /* Formulário filtros */
@@ -94,11 +90,12 @@
 .lbl_filtro {
   font-size: 20px;
   margin-bottom: 4px;
-  color: #555;
+  color: #cbcbcb;
   user-select: none;
 }
 
 .inputs_filtro {
+  font-family: 'MinhaFonte3', sans-serif;
   padding: 6px 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -112,6 +109,7 @@
   vertical-align: middle;
   display: inline-block;
   height: 30px;
+  color: #757575;
 }
 
 
@@ -121,7 +119,7 @@
 }
 
 .inputs_filtro::placeholder {
-  color: #aaa;
+  color: #757575;
 }
 
 /* Filtro itens */
@@ -134,9 +132,9 @@
 }
 
 #adc_item {
-  background-color: #000000;
+  background-color: #d3d3d3;
   border: none;
-  color: white;
+  color: rgb(0, 0, 0);
   padding: 7px 10px;
   border-radius: 6px;
   cursor: pointer;
@@ -192,7 +190,7 @@
 }
 
 /* Botão modo filtro */
-.topo-fixo > button {
+.topo-fixo-pedidos > button {
   margin-top: 10px;
   background-color: #e63946;
   color: white;
@@ -205,7 +203,7 @@
   user-select: none;
 }
 
-.topo-fixo > button:hover {
+.topo-fixo-pedidos > button:hover {
   background-color: #d62828;
 }
 
@@ -215,7 +213,7 @@
   overflow-y: auto;
   padding-right: 12px;
   padding: 40px;
-  margin-left: 110px;
+  background-color: #121212;
 }
 
 /* Cartão de pedido */
@@ -228,6 +226,7 @@
   max-width: 620px;
   font-family: 'MinhaFonte', sans-serif;
   transition: transform 0.3s ease;
+  margin-left: 110px;
 }
 
 .pedido-card:hover {
@@ -314,15 +313,26 @@
   font-size: 1rem;
 }
 
-.status-botao.pendente {
-  background-color: #ff6572;
+.status-botao.aberto {
+  background-color: #f1c40f;
+}
+
+.status-botao.aceito {
+  /* background-color: #3498db; */
+  /* background-color: #3498db; */
+  background-color: #3498db;
+
+}
+
+.status-botao.despachado {
+  background-color: #643708;
 }
 
 .status-botao.andamento {
-  background-color: #343434;
+  background-color: #FF7043;
 }
 
-.status-botao.concluído {
+.status-botao.entregue {
   background-color: #2E8B57;
 }
 
@@ -382,6 +392,7 @@
   font-size: 18px;
   margin-top: 16px;
   color: #777;
+  user-select: none;
 }
 
 
@@ -422,3 +433,14 @@
 }
 
 
+#btn_pedidos_modo{
+  background-color: #FF7043;
+  color: white;
+  transition: all 0.2s ease-in-out;
+}
+
+#btn_pedidos_modo:hover{
+  transform: scale(1.03);
+  border: 0;
+  filter: brightness(1.1);
+}

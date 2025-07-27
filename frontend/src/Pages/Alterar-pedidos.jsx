@@ -98,9 +98,9 @@ export default function AlterarPedidos() {
                         value={pedido.status_pedido}
                         onChange={e => handleChange("status_pedido", e.target.value)}
                     >
-                        <option value="pendente">Pendente</option>
+                        <option value="aberto">Aberto</option>
                         <option value="andamento">Andamento</option>
-                        <option value="oncluído">Concluído</option>
+                        <option value="concluído">Entregue</option>
                     </select>
                 </label>
 

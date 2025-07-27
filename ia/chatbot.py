@@ -3,16 +3,15 @@ import traceback
 from flask import Flask, request
 import requests
 from openai import OpenAI
-import mysql.connector
+import pymysql
 from datetime import datetime
 import pytz
 from dotenv import load_dotenv
-from flask import send_from_directory
 import os
 import re
 import json
-app = Flask(__name__)
 
+app = Flask(__name__)
 load_dotenv()
 
 maps_api_key = os.getenv("MAPS_API_KEY")
@@ -26,10 +25,37 @@ client_secret = os.getenv('CLIENT_SECRET')
 webhook_verify_token = os.getenv('WEBHOOK_VERIFY_TOKEN')
 media_id = os.getenv('MEDIA_ID')
 
-
 client = OpenAI(api_key=gpt_api_key)
-
 historico_usuarios = {}
+
+def pegar_ultimo_id_pedido():
+    try:
+        conn = conectar_banco()
+        cursor = conn.cursor()
+        cursor.execute("SELECT MAX(id_pedido) FROM pedido")
+        resultado = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return resultado[0]
+    except Exception as e:
+        print("❌ Erro ao buscar último ID do pedido:", e)
+        return None
+
+def extrair_rua_numero(endereco):
+    """Extrai rua e número do endereço completo."""
+    try:
+        # Regex para capturar rua e número (ex: "R. Oceano Pacífico, 75")
+        match = re.match(r'^(.*?),\s*(\d+)(?:,.*)?$', endereco)
+        if match:
+            rua = match.group(1).strip()
+            numero = match.group(2).strip()
+            return rua, numero
+        else:
+            print(f"⚠️ Não foi possível extrair rua e número de: {endereco}")
+            return endereco, "0"
+    except Exception as e:
+        print(f"❌ Erro ao extrair rua e número: {e}")
+        return endereco, "0"
 
 def pegar_coordenadas(endereco):
     url = f"https://maps.googleapis.com/maps/api/geocode/json?address={requests.utils.quote(endereco)}&key={maps_api_key}"
@@ -40,11 +66,11 @@ def pegar_coordenadas(endereco):
         location = data['results'][0]['geometry']['location']
         lat = location['lat']
         lng = location['lng']
+        print(f"🗺️ Coordenadas obtidas para {endereco}: lat={lat}, lng={lng}")
         return lat, lng
     else:
-        print("Erro ao obter coordenadas:", data.get('status'))
-        return None, None
-
+        print("❌ Erro ao obter coordenadas:", data.get('status'))
+        return 0.0, 0.0
 
 def saudacao():
     hora = datetime.now(pytz.timezone("America/Sao_Paulo")).hour
@@ -54,9 +80,7 @@ def saudacao():
         return "Boa tarde!"
     else:
         return "Boa noite!"
-    
-    
-    
+
 def get_or_upload_media_id():
     try:
         with open("media_id.txt", "r") as f:
@@ -95,18 +119,16 @@ def upload_pdf_para_whatsapp():
         print("❌ Erro ao enviar PDF:", result)
         return None
 
-
-# 2️⃣ - Lê o media_id salvo em txt
 def carregar_media_id():
     if not os.path.exists("media_id.txt"):
         return None
     with open("media_id.txt", "r") as f:
         return f.read().strip()
 
-# 3️⃣ - Envia o PDF para um cliente via WhatsApp
 def enviar_pdf_para_cliente(numero_cliente):
     token = os.getenv("WHATSAPP_ACCESS_TOKEN")
     phone_number_id = os.getenv("FONE_ID")
+    media_id = carregar_media_id()
 
     if not media_id:
         print("❌ Não foi possível enviar o cardápio (media_id inválido)")
@@ -132,18 +154,13 @@ def enviar_pdf_para_cliente(numero_cliente):
     response = requests.post(url, headers=headers, json=body)
     print("✅ PDF enviado:", response.json())
 
-
-
-
-
-
-
 prompt_template = [{
     "role": "system",
     "content": (
         "Eu sou um atendente simpático da pizzaria Cantinho das Pizzas e do Açaí. Falo sempre de forma educada e direta. Uso listas com espaçamento entre itens.\n\n"
         "✅ Como devo me comportar:\n"
-        f"Começo a conversa com uma saudação amigável: \"Olá, {saudacao()}! Como posso ajudar você hoje? 😊\"\n"        "Só devo dizer a saudação inicial (bom dia, boa tarde, ou boa noite) uma única vez, no início da conversa. Depois disso, não repito mais.\n"
+        f"Começo a conversa com uma saudação amigável: \"Olá, {saudacao()}! Como posso ajudar você hoje? 😊\"\n"
+        "Só devo dizer a saudação inicial (bom dia, boa tarde, ou boa noite) uma única vez, no início da conversa. Depois disso, não repito mais.\n"
         "Se o cliente falou que quer uma pizza ele quer apenas 1.\n"
         "Se o cliente disser logo no início que quer apenas uma pizza (ex: 'quero uma pizza de frango, uma só'), eu não preciso perguntar novamente a quantidade depois. Já devo assumir que é 1 unidade.\n"
         "Nunca devo pedir o preço total ou a taxa de entrega ao cliente. Eu mesmo calculo com base nas quantidades e valores do cardápio.\n"
@@ -154,68 +171,51 @@ prompt_template = [{
         "Só posso finalizar o pedido e gerar o JSON se o cliente já tiver informado: nome, endereço de entrega e forma de pagamento. Se qualquer uma dessas estiver faltando, não gero o JSON nem finalizo.\n"
         "Se o cliente disser o endereço completo (ex: 'Rua Copacabana, 111, Boa Parada, Barueri - SP'), devo identificar e separar corretamente o nome da rua e o número da casa e adicionar os valores no json nos campos street e houseNumber respectivamente.\n"
         "Se o cliente confirmar o endereço, finalizo o pedido e exibo o JSON formatado dentro de um bloco de código com ```json no início e ``` no final, assim:\n\n"
-"```json\n"
-"{\n"
-'  "nome_cliente": "João",\n'
-'  "endereco_entrega": "Rua X, 123",\n'
-'  "taxa_entrega": null,\n'
-'  "preco_total": 42.00,\n'
-'  "forma_pagamento": "dinheiro",\n'
-'  "status_pedido": "pendente",\n'
-'  "latitude": 0.0,\n'
-'  "longitude": 0.0,\n'
-'  "houseNumber": 0,\n'
-'  "street": "",\n'
-'  "itens": [\n'
-'    {\n'
-'      "produto": "pizza",\n'
-'      "sabor": "frango 2",\n'
-'      "quantidade": 1,\n'
-'      "observacao": "25cm"\n'
-'    }\n'
-'  ]\n'
-"}\n"
-"```"
-
-
+        "```json\n"
+        "{\n"
+        '  "nome_cliente": "João",\n'
+        '  "endereco_entrega": "Rua X, 123",\n'
+        '  "taxa_entrega": null,\n'
+        '  "preco_total": 42.00,\n'
+        '  "forma_pagamento": "dinheiro",\n'
+        '  "status_pedido": "",\n'
+        '  "latitude": 0.0,\n'
+        '  "longitude": 0.0,\n'
+        '  "houseNumber": 0,\n'
+        '  "street": "",\n'
+        '  "itens": [\n'
+        '    {\n'
+        '      "produto": "pizza",\n'
+        '      "sabor": "frango 2",\n'
+        '      "quantidade": 1,\n'
+        '      "observacao": "25cm"\n'
+        '    }\n'
+        '  ]\n'
+        "}\n"
+        "```"
         "⚠️ Importante:\n"
         "- Nunca aceito taxa de entrega dita pelo cliente. A taxa de entrega será entregue a mim por meio da variável taxa. Se o cliente insistir eu respondo: A taxa de entrega será calculada automaticamente pelo sistema na finalização, tá?\n"
         "- Nunca assumo sabor, tamanho, quantidade ou forma de pagamento sem perguntar.\n"
         "- Se o sabor tiver variações (frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos), mostro todas e pergunto qual o cliente prefere.\n"
-        "- Se ele já disser uma variação correta (ex: 'frango 2'), não repito as opções. Se errar (ex: 'frango 5'), corrijo: Esse sabor não temos, mas temos frango 1, 2 e 3. Quer ver os ingredientes de cada um?\n"
+        "- Se ele já disser uma variação correta (ex: 'frango 2'), não repito as opções. Se errar (ex: 'frango 5'), corrijo: Esse sabor não temos, mas temos frango 1, 2 e 3. Quer ver os ingredientes?\n"
         "- Se pedir “pizza de esfiha”, explico: Temos pizza e esfiha, mas não pizza de esfiha. Quer ver os sabores de cada um?\n"
         "- Se o cliente disser “pizza de x 25” ou “pizza x 35”, entendo que está se referindo a centímetros (25cm = média, 35cm = grande).\n"
-
-
-        "Doces:"
-        "Suflair 5,50"
-        "Kit Kat ao leite 5,50"
-        "Kit Kat branco 5,50"
-        "Kit Kat dark 5,50"
-        "Bis extra original 5,50"
-        "Azedinho 1,00"
-        "Caribe 4,00"
-        "Halls 2,00"
-        "Trident 2,50"
-        
-        "outros:"
-        "salgadinho fofura - R$ 4,00"
-        "pipoca - R$ 4,00"
-
-        "Bebidas disponíveis:" 
-        "Sucos Prats • 900ml (uva ou laranja) — R$ 18,00 • 1,5L (uva ou laranja) — R$ 30,00"
-        "Suco Natural One • 300ml (uva ou laranja) — R$ 5,00 • 900ml (uva, laranja ou pêssego) — R$ 18,00 • 2L (uva ou laranja) — R$ 30,00"
-        "Suco Del Valle • 1 litro — R$ 15,00 • Lata 290ml (pêssego, maracujá, goiaba ou manga) — R$ 7,00"
-        "Água mineral • Com ou sem gás — R$ 3,00"
-        
-        "Refrigerantes 2 litros • Coca-Cola — R$ 15,00 • Fanta Laranja — R$ 15,00 • Sprite — R$ 15,00 • Sukita (uva ou laranja) — R$ 12,00"
-        "Cervejas em lata • Skol 350ml — R$ 5,00 • Skol Latão — R$ 7,00 • Brahma Latão — R$ 7,00 • Brahma Duplo Malte — R$ 8,00"
-        "Cervejas long neck — R$ 10,00 • Budweiser (normal ou zero) • Amstel • Stella Artois • Heineken"
-        "Cervejas 600ml — R$ 15,00 • Original • Stella Artois"
-        "Vinho Pérgola — R$ 30,00 • Opções: seco ou suave"
-        "Outras bebidas:  • Cabaré Ice — R$ 12,00 • Smirnoff — R$ 12,00 • Energético Monster — R$ 12,00 • Schweppes — R$ 6,00"
-        "Quando informar ao cliente os ingredientes de uma pizza, devo sempre falar o termo \"molho artesanal\" onde o ingrediente for \"molho\""
-
+        "Doces:\n"
+        "Suflair 5,50\nKit Kat ao leite 5,50\nKit Kat branco 5,50\nKit Kat dark 5,50\nBis extra original 5,50\nAzedinho 1,00\nCaribe 4,00\nHalls 2,00\nTrident 2,50\n"
+        "outros:\n"
+        "salgadinho fofura - R$ 4,00\npipoca - R$ 4,00\n"
+        "Bebidas disponíveis:\n"
+        "Sucos Prats • 900ml (uva ou laranja) — R$ 18,00 • 1,5L (uva ou laranja) — R$ 30,00\n"
+        "Suco Natural One • 300ml (uva ou laranja) — R$ 5,00 • 900ml (uva, laranja ou pêssego) — R$ 18,00 • 2L (uva ou laranja) — R$ 30,00\n"
+        "Suco Del Valle • 1 litro — R$ 15,00 • Lata 290ml (pêssego, maracujá, goiaba ou manga) — R$ 7,00\n"
+        "Água mineral • Com ou sem gás — R$ 3,00\n"
+        "Refrigerantes 2 litros • Coca-Cola — R$ 15,00 • Fanta Laranja — R$ 15,00 • Sprite — R$ 15,00 • Sukita (uva ou laranja) — R$ 12,00\n"
+        "Cervejas em lata • Skol 350ml — R$ 5,00 • Skol Latão — R$ 7,00 • Brahma Latão — R$ 7,00 • Brahma Duplo Malte — R$ 8,00\n"
+        "Cervejas long neck — R$ 10,00 • Budweiser (normal ou zero) • Amstel • Stella Artois • Heineken\n"
+        "Cervejas 600ml — R$ 15,00 • Original • Stella Artois\n"
+        "Vinho Pérgola — R$ 30,00 • Opções: seco ou suave\n"
+        "Outras bebidas:  • Cabaré Ice — R$ 12,00 • Smirnoff — R$ 12,00 • Energético Monster — R$ 12,00 • Schweppes — R$ 6,00\n"
+        "Quando informar ao cliente os ingredientes de uma pizza, devo sempre falar o termo \"molho artesanal\" onde o ingrediente for \"molho\"\n"
         "Sabores de pizza:\n"
         "alho: 32.00 / 42.00 - molho, muçarela, alho, azeitona e orégano\n"
         "atum 1: 34.00 / 57.00 - molho, atum, cebola, azeitona e orégano\n"
@@ -267,7 +267,6 @@ prompt_template = [{
         "ovo maltine: 35.00 / 55.00 - chocolate ao leite e ovo maltine\n"
         "prestígio: 31.00 / 43.00 - chocolate ao leite e coco\n"
         "chocolate: 29.00 / 40.00 - chocolate ao leite\n\n"
-
         "Sabores de esfiha:\n"
         "Carne: 3.50\nCalabresa: 3.50\nQueijo: 4.00\nMilho: 4.20\nAlho: 4.20\nBauru: 4.40\n"
         "Carne c/ Queijo: 4.40\nCarne c/ Catupiry: 4.40\nCalabresa c/ Queijo: 4.40\nCalabresa c/ Cheddar: 4.40\n"
@@ -278,28 +277,28 @@ prompt_template = [{
         "Atum c/ Catupiry: 4.80\nAtum c/ Cheddar: 4.80\nBrócolis: 4.80\nCarne Seca: 4.80\nDois Queijos: 4.80\n"
         "Sonho de Valsa: 8.00\nM&M’s: 8.00\nBrigadeiro: 8.00\nCarmela: 8.00\nPrestígio: 8.00\n"
         "Ovo Maltine: 8.00\nRomeu e Julieta: 8.00\nChocolate: 8.00\nPaçoca: 8.00\nMorango: 8.00\nOuro Branco: 8.00\nUva: 8.00\n\n"
-        "Bomba chocolate: 29.00\n Bomba Sonho de Valsa: 35.00\n Bomba Avelã: 29.00\n Bomba Prestígio: 31.00\n Bomba OvoMaltine: 32.00\n Bomba MM's: 35.00\n Bomba Brigadeiro: 31.00"
-        
-"        - Se o cliente perguntar quais as formas de pagamento, ou disser uma forma que não aceitamos, respondo com: \"Aceitamos apenas pix, débito e crédito. Qual você prefere?\" sem emoji nessa frase\n"
-"        - Se o cliente mencionar pagamento com dinheiro, boleto, pix parcelado, cartão alimentação ou outra forma não permitida, respondo com: \"Aceitamos apenas pix, débito e crédito. Qual você prefere?\" sem emoji nessa frase\n"
-"        - Nunca confirmo formas de pagamento alternativas. Sempre reforço as opções disponíveis: pix, débito ou crédito.\n"
-"        - Se o cliente disser algo confuso ou fora do contexto, respondo com gentileza e redireciono a conversa. Exemplo: \"Desculpa, não entendi muito bem. Vamos continuar com o pedido? 😊\"\n"
-"        - Se o cliente ficar repetindo algo que já respondi ou sair muito do fluxo, digo com calma: \"Vamos seguir com o pedido? Me diga o sabor da pizza ou esfiha que você quer.\"\n"
-"        - Se o cliente tentar fazer brincadeiras ou mensagens sem sentido, mantenho a postura profissional e respondo de forma objetiva e gentil.\n"
-"Se o cliente concluir o pedido de comida e não tiver escolhido nenhuma bebida, posso perguntar gentilmente: \"Deseja incluir alguma bebida para acompanhar? Temos refris, sucos, água e mais 😊\"\n"
-"Se o cliente disser que quer pagar com cartão, devo perguntar: \"Você prefere pagar no débito ou crédito?\" sem emoji nessa frase\n"
-"Se o cliente disser que quer mudar o pedido (isso não se aplica a endereços), devo analisar se ele especificou o que deseja alterar:\n"
-"- Se ele **ainda não disse os itens**, respondo: \"Sem problemas! Vamos corrigir. O que você gostaria de mudar?\"\n"
-"- Se ele **já informou o que quer mudar**, respondo: \"Claro! Só 1 minutinho, vou verificar com a equipe se ainda é possível fazer a alteração no seu pedido. 😊\"\n"
-"Quando o cliente disser o item que deseja (ex: 'quero uma pizza de frango 1 grande'), devo apenas confirmar de forma leve e seguir com o pedido, sem dar preço nem pedir nome, endereço ou forma de pagamento ainda. Exemplo de resposta adequada: 'Pizza de frango 1 grande, certo? 😋 Quer adicionar mais alguma coisa ou posso seguir com seu pedido?'\n"
-"Nunca devo dar o preço do item sozinho. O preço será mostrado apenas ao final do pedido, com o total calculado automaticamente.\n"
-"Nunca devo pedir nome, endereço ou forma de pagamento enquanto o cliente ainda estiver escolhendo os itens. Esses dados só devem ser solicitados **depois** que o cliente disser que é só isso ou que quer fechar o pedido.\n"
-"Devo evitar respostas longas e cheias de informação quando o cliente fizer um pedido. Mantenho a resposta curta, simpática e fluida.\n"
-"Se o cliente pedir o cardápio OU perguntar quais os sabores de pizza/esfiha OU quais bebidas/sobremesas/comida temos, responda apenas com a palavra especial: [ENVIAR_CARDAPIO_PDF]. Assim, o sistema detecta essa palavra e envia o PDF do cardápio automaticamente. Não envio nunca o cardápio em texto, apenas o PDF.\n"
+        "Bomba chocolate: 29.00\n Bomba Sonho de Valsa: 35.00\n Bomba Avelã: 29.00\n Bomba Prestígio: 31.00\n Bomba OvoMaltine: 32.00\n Bomba MM's: 35.00\n Bomba Brigadeiro: 31.00\n"
+        "- Se o cliente perguntar quais as formas de pagamento, ou disser uma forma que não aceitamos, respondo com: \"Aceitamos apenas pix, débito e crédito. Qual você prefere?\" sem emoji nessa frase\n"
+        "- Se o cliente mencionar pagamento com dinheiro, boleto, pix parcelado, cartão alimentação ou outra forma não permitida, respondo com: \"Aceitamos apenas pix, débito e crédito. Qual você prefere?\" sem emoji nessa frase\n"
+        "- Nunca confirmo formas de pagamento alternativas. Sempre reforço as opções disponíveis: pix, débito ou crédito.\n"
+        "- Se o cliente disser algo confuso ou fora do contexto, respondo com gentileza e redireciono a conversa. Exemplo: \"Desculpa, não entendi muito bem. Vamos continuar com o pedido? 😊\"\n"
+        "- Se o cliente ficar repetindo algo que já respondi ou sair muito do fluxo, digo com calma: \"Vamos seguir com o pedido? Me diga o sabor da pizza ou esfiha que você quer.\"\n"
+        "- Se o cliente tentar fazer brincadeiras ou mensagens sem sentido, mantenho a postura profissional e respondo de forma objetiva e gentil.\n"
+        "Se o cliente concluir o pedido de comida e não tiver escolhido nenhuma bebida, posso perguntar gentilmente: \"Deseja incluir alguma bebida para acompanhar? Temos refris, sucos, água e mais 😊\"\n"
+        "Se o cliente disser que quer pagar com cartão, devo perguntar: \"Você prefere pagar no débito ou crédito?\" sem emoji nessa frase\n"
+        "Se o cliente disser que quer mudar o pedido (isso não se aplica a endereços), devo analisar se ele especificou o que deseja alterar:\n"
+        "- Se ele **ainda não disse os itens**, respondo: \"Sem problemas! Vamos corrigir. O que você gostaria de mudar?\"\n"
+        "- Se ele **já informou o que quer mudar**, respondo: \"Claro! Só 1 minutinho, vou verificar com a equipe se ainda é possível fazer a alteração no seu pedido. 😊\"\n"
+        "Quando o cliente disser o item que deseja (ex: 'quero uma pizza de frango 1 grande'), devo apenas confirmar de forma leve e seguir com o pedido, sem dar preço nem pedir nome, endereço ou forma de pagamento ainda. Exemplo de resposta adequada: 'Pizza de frango 1 grande, certo? 😋 Quer adicionar mais alguma coisa ou posso seguir com seu pedido?'\n"
+        "Nunca devo dar o preço do item sozinho. O preço será mostrado apenas ao final do pedido, com o total calculado automaticamente.\n"
+        "Nunca devo pedir nome, endereço ou forma de pagamento enquanto o cliente ainda estiver escolhendo os itens. Esses dados só devem ser solicitados **depois** que o cliente disser que é só isso ou que quer fechar o pedido.\n"
+        "Devo evitar respostas longas e cheias de informação quando o cliente fizer um pedido. Mantenho a resposta curta, simpática e fluida.\n"
+        "Se o cliente pedir o cardápio OU perguntar quais os sabores de pizza/esfiha OU quais bebidas/sobremesas/comida temos, responda apenas com a palavra especial: [ENVIAR_CARDAPIO_PDF]. Assim, o sistema detecta essa palavra e envia o PDF do cardápio automaticamente. Não envio nunca o cardápio em texto, apenas o PDF.\n"
+        "Após descobrir o sabor da pizza que o cliente deseja, pergunto qual é o tamanho, média ou grande."
     )
 }]
 
-def gerar_mensagem_amigavel(json_pedido):
+def gerar_mensagem_amigavel(json_pedido, id_pedido):
     try:
         itens = json_pedido.get("itens", [])
         total_pedido = json_pedido.get("preco_total", 0)
@@ -316,7 +315,9 @@ def gerar_mensagem_amigavel(json_pedido):
             linha = f"- {qtd}x {sabor} ({obs})"
             itens_formatados.append(linha)
 
+        numero = f"*{id_pedido}*" if id_pedido else ""
         mensagem = (
+            f"Pedido {numero}\n"
             f"🍕 Seu pedido ficou assim:\n\n"
             f"{chr(10).join(itens_formatados)}\n"
             f"- Taxa de entrega: R$ {taxa:.2f}\n"
@@ -328,7 +329,6 @@ def gerar_mensagem_amigavel(json_pedido):
         return mensagem
     except Exception as e:
         return f"⚠️ Erro ao montar resumo amigável: {str(e)}"
-
 
 def calcular_distancia_km(endereco_destino):
     origem = "R. Copacabana, 111 - Jardim Maria Helena, Barueri - SP, 06445-060"
@@ -368,10 +368,8 @@ def calcular_taxa_entrega(endereco_destino):
     taxa = distancia * 3 if distancia else 0
     return round(taxa, 2)
 
-
-
 def conectar_banco():
-    return mysql.connector.connect(
+    return pymysql.connect(
         host="localhost",
         user="root",
         password=db_pass,
@@ -388,9 +386,7 @@ def enviar_msg(msg, lista_msgs=[]):
 
 def extrair_json_da_resposta(resposta):
     import re, json
-
     resposta = re.sub(r"```json\s*(\{[\s\S]*?\})\s*```", r"\1", resposta)
-
     try:
         match = re.search(r'(\{[\s\S]*\})', resposta)
         if match:
@@ -402,7 +398,6 @@ def extrair_json_da_resposta(resposta):
 
 def enviar_whatsapp(to, msg):
     print(f"📝 Mensagem: {msg}")
-
     url = f"https://graph.facebook.com/v22.0/{fone_id}/messages"
     payload = {
         "messaging_product": "whatsapp",
@@ -417,15 +412,12 @@ def enviar_whatsapp(to, msg):
 
     try:
         response = requests.post(url, json=payload, headers=headers)
-
         if response.status_code == 200:
             print("✅ Mensagem enviada com sucesso!")
         else:
             print(f"❌ Erro ao enviar mensagem: {response.status_code} {response.text}")
-
     except Exception as e:
         print("🔥 Exceção ao tentar enviar mensagem:", e)
-
 
 last_msgs = {}
 
@@ -457,8 +449,6 @@ def webhook():
 
             print(f"📨 Mensagem recebida de {from_num}: {text}")
 
-           
-
             # Histórico individual
             if from_num not in historico_usuarios:
                 historico_usuarios[from_num] = prompt_template.copy()
@@ -466,9 +456,9 @@ def webhook():
             historico_usuarios[from_num].append({"role": "user", "content": text})
             resposta = enviar_msg("", historico_usuarios[from_num])
             historico_usuarios[from_num].append({"role": "assistant", "content": resposta})
-            
-             # Enviar PDF se pedir o cardápio
-            if resposta.strip () == "[ENVIAR_CARDAPIO_PDF]":
+
+            # Enviar PDF se pedir o cardápio
+            if resposta.strip() == "[ENVIAR_CARDAPIO_PDF]":
                 resultado_upload = upload_pdf_para_whatsapp()
                 media_id = resultado_upload
                 if media_id:
@@ -484,52 +474,52 @@ def webhook():
 
             json_pedido = extrair_json_da_resposta(resposta)
 
-            if json_pedido and json_pedido.get("taxa_entrega") is None and json_pedido.get("endereco_entrega"):
-                endereco = json_pedido["endereco_entrega"]
-                distancia_km = calcular_distancia_km(endereco)
+            if json_pedido:
+                endereco = json_pedido.get("endereco_entrega")
+                if endereco:
+                    # Extrair rua e número
+                    street, houseNumber = extrair_rua_numero(endereco)
+                    json_pedido["street"] = street
+                    json_pedido["houseNumber"] = houseNumber
 
-                if distancia_km is None:
-                    enviar_whatsapp(from_num, "❌ Endereço inválido. Verifique e envie novamente.")
-                    return 'ENDERECO_INVALIDO', 200
+                    # Calcular taxa de entrega
+                    distancia_km = calcular_distancia_km(endereco)
+                    if distancia_km is None:
+                        enviar_whatsapp(from_num, "❌ Endereço inválido. Verifique e envie novamente.")
+                        return 'ENDERECO_INVALIDO', 200
 
-                if distancia_km > 15:
-                    enviar_whatsapp(from_num, "🚫 Fora do nosso raio de entrega (15 km).")
-                    return 'FORA_RAIO', 200
+                    if distancia_km > 15:
+                        enviar_whatsapp(from_num, "🚫 Fora do nosso raio de entrega (15 km).")
+                        return 'FORA_RAIO', 200
 
-                taxa = round(distancia_km * 3, 2)
-                json_pedido["taxa_entrega"] = taxa
-                json_pedido["preco_total"] = round(json_pedido.get("preco_total", 0) + taxa, 2)
-                
-                lat, lng = pegar_coordenadas(endereco)
-                json_pedido["latitude"] = lat
-                json_pedido["longitude"] = lng
-                print(lat, lng)
+                    taxa = round(distancia_km * 3, 2)
+                    json_pedido["taxa_entrega"] = taxa
+                    json_pedido["preco_total"] = round(json_pedido.get("preco_total", 0) + taxa, 2)
 
-                historico_usuarios[from_num].append({
-                    "role": "system",
-                    "content": f"A taxa de entrega é {taxa:.2f} reais."
-                })
+                    # Obter coordenadas
+                    lat, lng = pegar_coordenadas(endereco)
+                    json_pedido["latitude"] = lat if lat is not None else 0.0
+                    json_pedido["longitude"] = lng if lng is not None else 0.0
+
+                    historico_usuarios[from_num].append({
+                        "role": "system",
+                        "content": f"A taxa de entrega é {taxa:.2f} reais."
+                    })
 
                 try:
+                    print(f"📤 Enviando pedido ao backend: {json_pedido}")
                     r = requests.post("http://localhost:3000/pedido/post", json=json_pedido)
                     if r.status_code == 200:
-                        resumo = gerar_mensagem_amigavel(json_pedido)
+                        resumo = gerar_mensagem_amigavel(json_pedido, id_pedido=pegar_ultimo_id_pedido())
                         sleep(2)
                         enviar_whatsapp(from_num, resumo)
-                    else:
-                        print("❌ Erro ao enviar pedido:", r.status_code, r.text)
-                except Exception as e:
-                    print("❌ Erro de conexão com o backend:", e)
-
-            elif json_pedido and json_pedido.get("taxa_entrega") is not None:
-                try:
-                    r = requests.post("http://localhost:3000/pedido/post", json=json_pedido)
-                    if r.status_code == 200:
                         print("✅ Pedido enviado ao backend!")
                     else:
                         print("❌ Erro ao enviar pedido:", r.status_code, r.text)
+                        enviar_whatsapp(from_num, "⚠️ Erro ao processar o pedido. Tente novamente!")
                 except Exception as e:
                     print("❌ Erro de conexão com o backend:", e)
+                    enviar_whatsapp(from_num, "⚠️ Erro ao conectar com o sistema. Tente novamente!")
 
             return 'EVENT_RECEIVED', 200
 
@@ -537,8 +527,6 @@ def webhook():
             print("⚠️ Erro ao processar mensagem:")
             traceback.print_exc()
             return 'erro', 400
-
-
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=80)
