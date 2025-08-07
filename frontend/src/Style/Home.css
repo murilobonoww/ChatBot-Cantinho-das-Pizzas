@@ -69,11 +69,23 @@
   color: #3a3a3a; /* cinza escuro - Configurações */
 }
 
+/* Estilo do título dos cards */
 .dashboard-card h2 {
-  font-size: 15px;
+  font-size: 17px;
   margin: 0;
   font-family: MinhaFonte3, sans-serif;
-  color: #000000;
+  color: #d06f2c;
+  user-select: none;
+}
+
+/* Contêiner do ícone de notificação */
+.notification-icon-container {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  z-index: 1000;
+  display: inline-block;
+  line-height: 0;
 }
 
 
@@ -106,5 +118,7 @@
 }
 
 #not_icon.clicked{
-  opacity: 0;
+  opacity: 30%;
 }
+
+

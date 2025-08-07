@@ -1,6 +1,8 @@
+import eventlet
+eventlet.monkey_patch()
 from time import sleep
 import traceback
-from flask import Flask, request
+from flask import Flask, jsonify, request
 import requests
 from openai import OpenAI
 import pymysql
@@ -10,23 +12,94 @@ from dotenv import load_dotenv
 import os
 import re
 import json
+import socketio
+import signal
+from eventlet import wsgi
+import uuid
+from flask_cors import CORS
+from eventlet.green import urllib
 
 app = Flask(__name__)
+sio = socketio.Server(cors_allow_origins=["http://localhost:5173"], logger=True, engineio_logger=True)
+CORS(app, resources={r"/*": {"origins": "*"}})
+app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
+
+
 load_dotenv()
 
-maps_api_key = os.getenv("MAPS_API_KEY")
-gpt_api_key = os.getenv("GPT_API_KEY")
-db_pass = os.getenv("DB_PASS")
-db_name = os.getenv("DB_NAME")
-app_id = os.getenv("APP_ID")
-access_token = os.getenv('WHATSAPP_ACCESS_TOKEN')
-fone_id = os.getenv('FONE_ID')
-client_secret = os.getenv('CLIENT_SECRET')
-webhook_verify_token = os.getenv('WEBHOOK_VERIFY_TOKEN')
-media_id = os.getenv('MEDIA_ID')
+keys = [
+    "MAPS_API_KEY", "GPT_API_KEY", "DB_PASS", "DB_NAME", "APP_ID",
+    "WHATSAPP_ACCESS_TOKEN", "FONE_ID", "CLIENT_SECRET", "WEBHOOK_VERIFY_TOKEN", "MEDIA_ID"
+]
+
+(
+    maps_api_key,
+    gpt_api_key,
+    db_pass,
+    db_name,
+    app_id,
+    access_token,
+    fone_id,
+    client_secret,
+    webhook_verify_token,
+    media_id
+) = map(os.getenv, keys)
 
 client = OpenAI(api_key=gpt_api_key)
 historico_usuarios = {}
+notificacoes_ativas = {}
+
+
+def shutdown_server(signum, frame):
+        print("🛑 Recebido sinal de interrupção, encerrando servidor...")
+        wsgi.server_socket.close()  # Fecha o socket do servidor
+        exit(0)
+
+# Função para limpar notificações expiradas (mais de 1 hora)
+def limpar_notificacoes_expiradas():
+    print("🧹 Iniciando limpeza de notificações expiradas...")
+    while True:
+        try:
+            agora = datetime.now(pytz.timezone("America/Sao_Paulo"))
+            print("🕒 Verificando notificações expiradas...")
+            for id_notif, notif in list(notificacoes_ativas.items()):
+                try:
+                    # Converter timestamp para datetime offset-aware
+                    timestamp = datetime.strptime(notif['timestamp'], "%Y-%m-%d %H:%M:%S")
+                    timestamp = pytz.timezone("America/Sao_Paulo").localize(timestamp)
+                    if (agora - timestamp).total_seconds() > 3600:  # 1 hora
+                        del notificacoes_ativas[id_notif]
+                        sio.emit('notificacao_removida', {'id_notificacao': id_notif})
+                        print(f"🗑️ Notificação {id_notif} removida (expirada)")
+                except Exception as e:
+                    print(f"❌ Erro ao processar notificação {id_notif}: {e}")
+            eventlet.sleep(60)  # Substitui sleep para compatibilidade com eventlet
+        except Exception as e:
+            print(f"❌ Erro na limpeza de notificações: {e}")
+            eventlet.sleep(60)
+    print("🧹 Iniciando limpeza de notificações expiradas...")
+    while True:
+        try:
+            agora = datetime.now(pytz.timezone("America/Sao_Paulo"))
+            print("🕒 Verificando notificações expiradas...")
+            for id_notif, notif in list(notificacoes_ativas.items()):
+                try:
+                    timestamp = datetime.strptime(notif['timestamp'], "%Y-%m-%d %H:%M:%S")
+                    if (agora - timestamp).total_seconds() > 3600:  # 1 hora
+                        del notificacoes_ativas[id_notif]
+                        sio.emit('notificacao_removida', {'id_notificacao': id_notif})
+                        print(f"🗑️ Notificação {id_notif} removida (expirada)")
+                except Exception as e:
+                    print(f"❌ Erro ao processar notificação {id_notif}: {e}")
+            eventlet.sleep(60)  # Substitui sleep para compatibilidade com eventlet
+        except Exception as e:
+            print(f"❌ Erro na limpeza de notificações: {e}")
+            eventlet.sleep(60)
+        
+        
+# Iniciar limpeza em uma thread separada
+eventlet.spawn(limpar_notificacoes_expiradas)
+
 
 def pegar_ultimo_id_pedido():
     try:
@@ -295,6 +368,9 @@ prompt_template = [{
         "Devo evitar respostas longas e cheias de informação quando o cliente fizer um pedido. Mantenho a resposta curta, simpática e fluida.\n"
         "Se o cliente pedir o cardápio OU perguntar quais os sabores de pizza/esfiha OU quais bebidas/sobremesas/comida temos, responda apenas com a palavra especial: [ENVIAR_CARDAPIO_PDF]. Assim, o sistema detecta essa palavra e envia o PDF do cardápio automaticamente. Não envio nunca o cardápio em texto, apenas o PDF.\n"
         "Após descobrir o sabor da pizza que o cliente deseja, pergunto qual é o tamanho, média ou grande."
+        "### SOLICITAÇÃO DE ATENDENTE REAL ###"
+        "- Se o cliente pedir para falar com um atendente real, uma pessoa de verdade ou usar expressões similares (ex: \"quero falar com alguém\", \"chama um atendente\", \"não quero bot\"), devo responder com gentileza: \"Beleza, já chamei um atendente pra te ajudar! 😊 É só aguardar um pouquinho, tá?\"\n"
+        "- Após essa mensagem, não continuo o fluxo do pedido até que o atendente real assuma a conversa, nem após isso.\n"
     )
 }]
 
@@ -377,12 +453,17 @@ def conectar_banco():
     )
 
 def enviar_msg(msg, lista_msgs=[]):
-    lista_msgs.append({"role": "user", "content": msg})
-    resposta = client.chat.completions.create(
-        model="gpt-4o",
-        messages=lista_msgs
-    )
-    return resposta.choices[0].message.content
+    try:
+        lista_msgs.append({"role": "user", "content": msg})
+        resposta = client.chat.completions.create(
+            model="gpt-4o",
+            messages=lista_msgs
+        )
+        print(f"📥 Resposta da OpenAI: {resposta.choices[0].message.content}")
+        return resposta.choices[0].message.content
+    except Exception as e:
+        print(f"❌ Erro ao chamar API da OpenAI: {e}")
+        return "⚠️ Desculpe, estou com problemas para responder agora. Tente novamente em alguns minutos!"
 
 def extrair_json_da_resposta(resposta):
     import re, json
@@ -396,8 +477,33 @@ def extrair_json_da_resposta(resposta):
         print("❌ Erro ao extrair JSON:", e)
     return None
 
+def salvar_notificacao_no_banco(notificacao):
+    try:
+        conn = conectar_banco()
+        cursor = conn.cursor()
+        query = """
+            INSERT INTO notificacoes (id_notificacao, numero_cliente, mensagem, tipo, status, timestamp)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (
+            notificacao["id_notificacao"],
+            notificacao["numero_cliente"],
+            notificacao["mensagem"],
+            notificacao["tipo"],
+            notificacao["status"],
+            notificacao["timestamp"]
+        ))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("✅ Notificação salva no banco")
+    except Exception as e:
+        print(f"❌ Erro ao salvar notificação no banco: {e}")
+
+
+
 def enviar_whatsapp(to, msg):
-    print(f"📝 Mensagem: {msg}")
+    print(f"📝 Preparando envio para {to}: {msg}")
     url = f"https://graph.facebook.com/v22.0/{fone_id}/messages"
     payload = {
         "messaging_product": "whatsapp",
@@ -412,42 +518,178 @@ def enviar_whatsapp(to, msg):
 
     try:
         response = requests.post(url, json=payload, headers=headers)
+        print(f"📤 Resposta do WhatsApp API: {response.status_code} {response.text}")
         if response.status_code == 200:
             print("✅ Mensagem enviada com sucesso!")
         else:
             print(f"❌ Erro ao enviar mensagem: {response.status_code} {response.text}")
     except Exception as e:
-        print("🔥 Exceção ao tentar enviar mensagem:", e)
+        print(f"🔥 Exceção ao tentar enviar mensagem: {e}")
 
 last_msgs = {}
+
+def limpar_notificacoes_expiradas():
+    print("🧹 Iniciando limpeza de notificações expiradas...")
+    while True:
+        try:
+            agora = datetime.now(pytz.timezone("America/Sao_Paulo"))
+            print("🕒 Verificando notificações expiradas...")
+            conn = conectar_banco()
+            cursor = conn.cursor()
+            for id_notif, notif in list(notificacoes_ativas.items()):
+                try:
+                    timestamp = datetime.strptime(notif['timestamp'], "%Y-%m-%d %H:%M:%S")
+                    timestamp = pytz.timezone("America/Sao_Paulo").localize(timestamp)
+                    if (agora - timestamp).total_seconds() > 3600:  # 1 hora
+                        # Atualizar status no banco
+                        query = "UPDATE notificacoes SET status = 'expirada' WHERE id_notificacao = %s"
+                        cursor.execute(query, (id_notif,))
+                        conn.commit()
+                        # Remover do dicionário
+                        del notificacoes_ativas[id_notif]
+                        sio.emit('notificacao_removida', {'id_notificacao': id_notif})
+                        print(f"🗑️ Notificação {id_notif} removida (expirada)")
+                except Exception as e:
+                    print(f"❌ Erro ao processar notificação {id_notif}: {e}")
+            cursor.close()
+            conn.close()
+            eventlet.sleep(60)
+        except Exception as e:
+            print(f"❌ Erro na limpeza de notificações: {e}")
+            eventlet.sleep(60)
+      
+    
+@app.route("/notificacoes/ativas", methods=["GET"])
+def listar_notificacoes_ativas():
+    print("📥 Requisição recebida em /notificacoes/ativas")
+    try:
+        conn = conectar_banco()  # Função existente para conectar ao MySQL
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        query = """
+            SELECT id_notificacao, numero_cliente, mensagem, tipo, status, timestamp
+            FROM notificacoes
+            WHERE status = 'pendente'
+        """
+        cursor.execute(query)
+        notificacoes = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        # Sincronizar com notificacoes_ativas (opcional)
+        notificacoes_ativas.clear()  # Limpa o dicionário para evitar duplicatas
+        for notif in notificacoes:
+            # Converter timestamp para string no formato esperado
+            notif['timestamp'] = notif['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
+            notificacoes_ativas[notif['id_notificacao']] = notif
+
+        print(f"📋 Notificações ativas recuperadas do banco: {notificacoes_ativas}")
+        return jsonify(list(notificacoes_ativas.values())), 200
+    except Exception as e:
+        print(f"❌ Erro ao listar notificações ativas: {e}")
+        return {"error": str(e)}, 500
+    
+# Endpoint para atualizar status de notificação
+@app.route("/notificacoes/<id_notificacao>/status", methods=["PUT"])
+def atualizar_status_notificacao(id_notificacao):
+    data = request.get_json()
+    novo_status = data.get("status")
+    if novo_status not in ["pendente", "atendida", "rejeitada"]:
+        return {"error": "Status inválido"}, 400
+    try:
+        if id_notificacao in notificacoes_ativas:
+            notificacoes_ativas[id_notificacao]["status"] = novo_status
+            sio.emit("notificacao_atualizada", {
+                "id_notificacao": id_notificacao,
+                "status": novo_status
+            })
+            # Se atendida ou rejeitada, remover da lista
+            if novo_status in ["atendida", "rejeitada"]:
+                numero_cliente = notificacoes_ativas[id_notificacao]["numero_cliente"]
+                mensagem_cliente = (
+                    "Alteração confirmada! Seu pedido foi atualizado. 😊" if novo_status == "atendida" else
+                    "Desculpe, não foi possível alterar o pedido no momento. 😔 Quer tentar outra alteração?"
+                )
+                if notificacoes_ativas[id_notificacao]["tipo"] == "mudanca":
+                    enviar_whatsapp(numero_cliente, mensagem_cliente)
+                del notificacoes_ativas[id_notificacao]
+                sio.emit("notificacao_removida", {"id_notificacao": id_notificacao})
+            print(f"✅ Status da notificação {id_notificacao} atualizado para {novo_status}")
+            return {"message": "Status atualizado com sucesso"}, 200
+        else:
+            return {"error": "Notificação não encontrada"}, 404
+    except Exception as e:
+        print(f"❌ Erro ao atualizar status da notificação: {e}")
+        return {"error": str(e)}, 500
+
+
+@app.route("/notificacoes", methods=["POST"])
+def criar_notificacao():
+    print("📥 Requisição recebida em /notificacoes (POST)")
+    try:
+        data = request.get_json()
+        id_notificacao = str(uuid.uuid4())  # Gera um ID único para a notificação
+        numero_cliente = data.get("numero_cliente")
+        mensagem = data.get("mensagem")
+        tipo = data.get("tipo", "atendente_real")
+        status = data.get("status", "pendente")
+        timestamp = datetime.now(pytz.timezone("America/Sao_Paulo")).strftime("%Y-%m-%d %H:%M:%S")
+
+        if not numero_cliente or not mensagem:
+            print("❌ Dados incompletos na requisição")
+            return {"error": "numero_cliente e mensagem são obrigatórios"}, 400
+
+        notificacao = {
+            "id_notificacao": id_notificacao,
+            "numero_cliente": numero_cliente,
+            "mensagem": mensagem,
+            "tipo": tipo,
+            "status": status,
+            "timestamp": timestamp
+        }
+
+        notificacoes_ativas[id_notificacao] = notificacao
+        print(f"✅ Notificação registrada: {notificacao}")
+
+        # Emitir evento para o frontend
+        sio.emit("notificacao_nova", notificacao)
+        print(f"📡 Notificação emitida via Socket.IO: {id_notificacao}")
+
+        return {"message": "Notificação criada com sucesso", "id_notificacao": id_notificacao}, 201
+    except Exception as e:
+        print(f"❌ Erro ao criar notificação: {e}")
+        return {"error": str(e)}, 500
+
 
 @app.route("/webhook", methods=["GET", "POST"])
 def webhook():
     if request.method == 'GET':
         token = request.args.get('hub.verify_token')
         challenge = request.args.get('hub.challenge')
+        print(f"📥 Recebido GET no webhook: token={token}, challenge={challenge}")
         if token == webhook_verify_token:
             return challenge, 200
         return "Token inválido!", 403
 
     elif request.method == 'POST':
+        print("📥 Recebido POST no webhook")
         data = request.get_json()
         try:
             value = data['entry'][0]['changes'][0]['value']
             if 'messages' not in value:
+                print("⚠️ Nenhuma mensagem nova encontrada")
                 return 'No new message', 200
 
             msg = value['messages'][0]
             from_num = msg['from']
             msg_id = msg.get('id')
             text = msg.get('text', {}).get('body', '').lower()
+            print(f"📨 Mensagem recebida de {from_num}: {text}, ID: {msg_id}")
 
             # Verificação de duplicidade
             if from_num in last_msgs and last_msgs[from_num] == msg_id:
+                print("⚠️ Mensagem duplicada ignorada")
                 return 'Duplicate message', 200
             last_msgs[from_num] = msg_id
-
-            print(f"📨 Mensagem recebida de {from_num}: {text}")
 
             # Histórico individual
             if from_num not in historico_usuarios:
@@ -455,28 +697,79 @@ def webhook():
 
             historico_usuarios[from_num].append({"role": "user", "content": text})
             resposta = enviar_msg("", historico_usuarios[from_num])
+            print(f"🤖 Resposta do chatbot: {resposta}")
             historico_usuarios[from_num].append({"role": "assistant", "content": resposta})
 
             # Enviar PDF se pedir o cardápio
             if resposta.strip() == "[ENVIAR_CARDAPIO_PDF]":
+                print("📄 Solicitação de envio de cardápio PDF")
                 resultado_upload = upload_pdf_para_whatsapp()
                 media_id = resultado_upload
                 if media_id:
                     enviar_pdf_para_cliente(from_num)
                 else:
-                    print("Erro ao fazer upload do PDF:", resultado_upload)
+                    print("❌ Erro ao fazer upload do PDF:", resultado_upload)
                 return "ok", 200
 
-            print("🤖 Resposta do chatbot:", resposta)
 
+            if resposta.strip() == "Beleza, já chamei um atendente pra te ajudar! 😊 É só aguardar um pouquinho, tá?":
+                print(f"📞 Solicitação de atendente real para {from_num}")
+                enviar_whatsapp(from_num, resposta)
+
+                # Registrar notificação diretamente
+                print("📞 Preparando para registrar notificação...")
+                try:
+                    id_notificacao = str(uuid.uuid4())
+                    timestamp = datetime.now(pytz.timezone("America/Sao_Paulo")).strftime("%Y-%m-%d %H:%M:%S")
+                    notificacao = {
+                        "id_notificacao": id_notificacao,
+                        "numero_cliente": from_num,
+                        "mensagem": f"{from_num} está solicitando um atendente real.",
+                        "tipo": "atendente_real",
+                        "status": "pendente",
+                        "timestamp": timestamp
+                    }
+                    # Salvar no banco
+                    conn = conectar_banco()
+                    cursor = conn.cursor()
+                    query = """
+                        INSERT INTO notificacoes (id_notificacao, numero_cliente, mensagem, tipo, status, timestamp)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(query, (
+                        notificacao["id_notificacao"],
+                        notificacao["numero_cliente"],
+                        notificacao["mensagem"],
+                        notificacao["tipo"],
+                        notificacao["status"],
+                        notificacao["timestamp"]
+                    ))
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+                    print("✅ Notificação salva no banco")
+
+                    # Adicionar ao dicionário
+                    notificacoes_ativas[id_notificacao] = notificacao
+                    print(f"✅ Notificação registrada diretamente: {notificacao}")
+                    sio.emit("notificacao_nova", notificacao)
+                    print(f"📡 Notificação emitida via Socket.IO: {id_notificacao}")
+                except Exception as e:
+                    print(f"❌ Erro ao registrar notificação: {e}")
+
+                return "ok", 200
+            
             if "```json" not in resposta:
+                print(f"📤 Enviando resposta para {from_num}: {resposta}")
                 enviar_whatsapp(from_num, resposta)
 
             json_pedido = extrair_json_da_resposta(resposta)
+            print(f"📋 JSON extraído: {json_pedido}")
 
             if json_pedido:
                 endereco = json_pedido.get("endereco_entrega")
                 if endereco:
+                    print(f"📍 Processando endereço: {endereco}")
                     # Extrair rua e número
                     street, houseNumber = extrair_rua_numero(endereco)
                     json_pedido["street"] = street
@@ -485,21 +778,25 @@ def webhook():
                     # Calcular taxa de entrega
                     distancia_km = calcular_distancia_km(endereco)
                     if distancia_km is None:
+                        print("❌ Endereço inválido detectado")
                         enviar_whatsapp(from_num, "❌ Endereço inválido. Verifique e envie novamente.")
                         return 'ENDERECO_INVALIDO', 200
 
                     if distancia_km > 15:
+                        print("🚫 Endereço fora do raio de entrega")
                         enviar_whatsapp(from_num, "🚫 Fora do nosso raio de entrega (15 km).")
                         return 'FORA_RAIO', 200
 
                     taxa = round(distancia_km * 3, 2)
                     json_pedido["taxa_entrega"] = taxa
                     json_pedido["preco_total"] = round(json_pedido.get("preco_total", 0) + taxa, 2)
+                    print(f"💰 Taxa de entrega calculada: R${taxa}")
 
                     # Obter coordenadas
                     lat, lng = pegar_coordenadas(endereco)
                     json_pedido["latitude"] = lat if lat is not None else 0.0
                     json_pedido["longitude"] = lng if lng is not None else 0.0
+                    print(f"🗺️ Coordenadas: lat={lat}, lng={lng}")
 
                     historico_usuarios[from_num].append({
                         "role": "system",
@@ -515,18 +812,50 @@ def webhook():
                         enviar_whatsapp(from_num, resumo)
                         print("✅ Pedido enviado ao backend!")
                     else:
-                        print("❌ Erro ao enviar pedido:", r.status_code, r.text)
+                        print(f"❌ Erro ao enviar pedido: {r.status_code} {r.text}")
                         enviar_whatsapp(from_num, "⚠️ Erro ao processar o pedido. Tente novamente!")
                 except Exception as e:
-                    print("❌ Erro de conexão com o backend:", e)
+                    print(f"❌ Erro de conexão com o backend: {e}")
                     enviar_whatsapp(from_num, "⚠️ Erro ao conectar com o sistema. Tente novamente!")
 
             return 'EVENT_RECEIVED', 200
 
         except Exception as e:
-            print("⚠️ Erro ao processar mensagem:")
+            print("⚠️ Erro ao processar mensagem:", str(e))
             traceback.print_exc()
             return 'erro', 400
+        
+def carregar_notificacoes_do_banco():
+    print("📦 Carregando notificações do banco para notificacoes_ativas...")
+    try:
+        conn = conectar_banco()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        query = """
+            SELECT id_notificacao, numero_cliente, mensagem, tipo, status, timestamp
+            FROM notificacoes
+            WHERE status = 'pendente'
+        """
+        cursor.execute(query)
+        notificacoes = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        notificacoes_ativas.clear()
+        for notif in notificacoes:
+            notif['timestamp'] = notif['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
+            notificacoes_ativas[notif['id_notificacao']] = notif
+
+        print(f"✅ {len(notificacoes)} notificações carregadas: {notificacoes_ativas}")
+    except Exception as e:
+        print(f"❌ Erro ao carregar notificações do banco: {e}")
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=80)
+    print("🚀 Iniciando configuração do servidor Flask...")
+    signal.signal(signal.SIGINT, shutdown_server)  # Captura Ctrl+C
+    signal.signal(signal.SIGTERM, shutdown_server)  # Captura SIGTERM
+    try:
+        wsgi.server_socket = eventlet.listen(('0.0.0.0', 80))
+        eventlet.wsgi.server(wsgi.server_socket, app)
+        print("✅ Servidor Flask iniciado com sucesso!")
+    except Exception as e:
+        print(f"❌ Erro ao iniciar o servidor: {e}")

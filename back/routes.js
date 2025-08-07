@@ -494,9 +494,6 @@ router.get("/pedidos/new", (req, res) => {
   });
 });
 
-
-
-
 router.get("/pedido/foody/:uid", async (req, res) => {
   const { uid } = req.params;
 
@@ -575,6 +572,177 @@ router.get("/pedido/foody/:uid", async (req, res) => {
   } catch (error) {
     console.error(`❌ Erro ao buscar pedido #${uid} na Foody:`, error?.response?.data || error.message);
     res.status(500).json({ mensagem: "Erro ao buscar pedido na Foody Delivery" });
+  }
+});
+
+router.post("/cardapio", async (req, res) => {
+  const { section, nome, ingredientes, preco, preco_25, preco_35, tamanho } = req.body;
+
+  const validSections = ["pizzas", "esfihas", "bebidas", "doces"];
+  if (!validSections.includes(section)) {
+    return res.status(400).json({ mensagem: "Seção inválida" });
+  }
+
+  if (!nome) {
+    return res.status(400).json({ mensagem: "Nome ou sabor é obrigatório" });
+  }
+  if (section === "pizzas" && (!ingredientes || !preco_25 || !preco_35)) {
+    return res.status(400).json({ mensagem: "Ingredientes, preço 25cm e preço 35cm são obrigatórios" });
+  }
+  if ((section === "esfihas" || section === "doces") && !preco) {
+    return res.status(400).json({ mensagem: "Preço é obrigatório" });
+  }
+  if (section === "bebidas" && (!tamanho || !preco)) {
+    return res.status(400).json({ mensagem: "Tamanho e preço são obrigatórios para bebidas" });
+  }
+
+  try {
+    const tempConnection = await mysqlPromise.createConnection({
+      host: process.env.HOST,
+      user: process.env.USER,
+      password: process.env.PASS,
+      database: process.env.DB,
+      port: process.env.DB_PORT || 3306,
+    });
+
+    let sql;
+    let values;
+
+    switch (section) {
+      case "pizzas":
+        sql = `INSERT INTO pizzas (sabor, ingredientes, preco_25, preco_35) VALUES (?, ?, ?, ?)`;
+        values = [nome, ingredientes, preco_25, preco_35];
+        break;
+      case "esfihas":
+        sql = `INSERT INTO esfihas (sabor, preco) VALUES (?, ?)`;
+        values = [nome, preco];
+        break;
+      case "bebidas":
+        sql = `INSERT INTO bebidas (nome, tamanho, preco) VALUES (?, ?, ?)`;
+        values = [nome, tamanho, preco];
+        break;
+      case "doces":
+        sql = `INSERT INTO doces (nome, preco) VALUES (?, ?)`;
+        values = [nome, preco];
+        break;
+    }
+
+    await tempConnection.query(sql, values);
+    await tempConnection.end();
+
+    res.status(201).json({ mensagem: `Item adicionado com sucesso à seção ${section}` });
+  } catch (err) {
+    console.error(`❌ Erro ao adicionar item na seção ${section}:`, err);
+    res.status(500).json({ mensagem: "Erro ao adicionar item ao cardápio" });
+  }
+});
+
+router.put("/cardapio/:id", async (req, res) => {
+  const { id } = req.params;
+  const { section, nome, ingredientes, preco, preco_25, preco_35, tamanho } = req.body;
+
+  const validSections = ["pizzas", "esfihas", "bebidas", "doces"];
+  if (!validSections.includes(section)) {
+    return res.status(400).json({ mensagem: "Seção inválida" });
+  }
+
+  if (!nome) {
+    return res.status(400).json({ mensagem: "Nome ou sabor é obrigatório" });
+  }
+  if (section === "pizzas" && (!ingredientes || !preco_25 || !preco_35)) {
+    return res.status(400).json({ mensagem: "Ingredientes, preço 25cm e preço 35cm são obrigatórios" });
+  }
+  if ((section === "esfihas" || section === "doces") && !preco) {
+    return res.status(400).json({ mensagem: "Preço é obrigatório" });
+  }
+  if (section === "bebidas" && (!tamanho || !preco)) {
+    return res.status(400).json({ mensagem: "Tamanho e preço são obrigatórios para bebidas" });
+  }
+
+  try {
+    const tempConnection = await mysqlPromise.createConnection({
+      host: process.env.HOST,
+      user: process.env.USER,
+      password: process.env.PASS,
+      database: process.env.DB,
+      port: process.env.DB_PORT || 3306,
+    });
+
+    let sql;
+    let values;
+
+    switch (section) {
+      case "pizzas":
+        sql = `UPDATE pizzas SET sabor = ?, ingredientes = ?, preco_25 = ?, preco_35 = ? WHERE id = ?`;
+        values = [nome, ingredientes, preco_25, preco_35, id];
+        break;
+      case "esfihas":
+        sql = `UPDATE esfihas SET sabor = ?, preco = ? WHERE id = ?`;
+        values = [nome, preco, id];
+        break;
+      case "bebidas":
+        sql = `UPDATE bebidas SET nome = ?, tamanho = ?, preco = ? WHERE id = ?`;
+        values = [nome, tamanho, preco, id];
+        break;
+      case "doces":
+        sql = `UPDATE doces SET nome = ?, preco = ? WHERE id = ?`;
+        values = [nome, preco, id];
+        break;
+    }
+
+    const [result] = await tempConnection.query(sql, values);
+
+    if (result.affectedRows === 0) {
+      await tempConnection.end();
+      return res.status(404).json({ mensagem: "Item não encontrado" });
+    }
+
+    await tempConnection.end();
+    console.log(`✅ Item #${id} atualizado com sucesso na seção ${section}`);
+    res.status(200).json({ mensagem: `Item atualizado com sucesso na seção ${section}` });
+  } catch (err) {
+    console.error(`❌ Erro ao atualizar item #${id} na seção ${section}:`, err);
+    res.status(500).json({ mensagem: "Erro ao atualizar item no cardápio" });
+  }
+});
+
+router.delete("/cardapio", async (req, res) => {
+  const { section, ids } = req.body;
+
+  const validSections = ["pizzas", "esfihas", "bebidas", "doces"];
+  if (!validSections.includes(section) || !Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ mensagem: "Seção inválida ou lista de IDs vazia" });
+  }
+
+  try {
+    // Sanitizar IDs para números inteiros
+    const sanitizedIds = ids.map(id => parseInt(id)).filter(id => !isNaN(id));
+    if (sanitizedIds.length === 0) {
+      return res.status(400).json({ mensagem: "Nenhum ID válido fornecido" });
+    }
+
+    const tempConnection = await mysqlPromise.createConnection({
+      host: process.env.HOST,
+      user: process.env.USER,
+      password: process.env.PASS,
+      database: process.env.DB,
+      port: process.env.DB_PORT || 3306,
+    });
+
+    const sql = `DELETE FROM ${section} WHERE id IN (?)`;
+    const [result] = await tempConnection.query(sql, [sanitizedIds]);
+
+    await tempConnection.end();
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ mensagem: "Nenhum item encontrado para exclusão" });
+    }
+
+    console.log(`✅ ${result.affectedRows} item(s) deletado(s) da seção ${section}`);
+    res.status(200).json({ mensagem: `Item(s) deletado(s) com sucesso da seção ${section}` });
+  } catch (err) {
+    console.error(`❌ Erro ao deletar itens da seção ${section}:`, err);
+    res.status(500).json({ mensagem: err.message || "Erro ao deletar itens do cardápio" });
   }
 });
 

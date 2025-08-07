@@ -301,7 +301,7 @@ const Pedidos = () => {
                 id="btn_pedidos_modo"
                 onClick={() => setModoFiltro(modoFiltro === "OU" ? "E" : "OU")}
               >
-                Modo: {modoFiltro === "OU" ? "item 1 OU item 2" : "item 1 E item 2"}
+                Modo: {modoFiltro === "OU" ? "1 OU 2" : "1 E 2"}
               </button>
             </div>
             <h2 style={{ marginTop: "30px", marginBottom: "15px", fontSize: "20px" }}>

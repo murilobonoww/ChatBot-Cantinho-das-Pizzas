@@ -54,7 +54,7 @@
   z-index: 1000;
   padding: 20px 30px 15px 30px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #dddddd19;
    left: 0; /* garante o alinhamento à esquerda */
    display: flex;
   padding-left: 150px;
@@ -112,12 +112,6 @@
   color: #757575;
 }
 
-
-.inputs_filtro:focus {
-  border-color: #e63946;
-  box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.2);
-}
-
 .inputs_filtro::placeholder {
   color: #757575;
 }
@@ -132,7 +126,7 @@
 }
 
 #adc_item {
-  background-color: #d3d3d3;
+  background-color: #FF7043;
   border: none;
   color: rgb(0, 0, 0);
   padding: 7px 10px;
@@ -144,6 +138,7 @@
 
 #adc_item:hover {
   transform: scale(1.03);
+  filter: brightness(1.1);
 }
 
 /* Tags de filtro de itens */
@@ -295,7 +290,8 @@
 .btn_alterar:hover{
   background-color: #000000;
   color: #fff;
-  transform: scale(1.05);
+  transform: scale(1.1);
+  border: none;
 }
 
 /* Botão status */
@@ -436,11 +432,12 @@
 #btn_pedidos_modo{
   background-color: #FF7043;
   color: white;
+  border: none;
   transition: all 0.2s ease-in-out;
 }
 
 #btn_pedidos_modo:hover{
   transform: scale(1.03);
-  border: 0;
+  border: none;
   filter: brightness(1.1);
 }
