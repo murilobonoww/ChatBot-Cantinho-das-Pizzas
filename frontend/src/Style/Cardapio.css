@@ -50,6 +50,7 @@ html {
   width: 100%;
   max-width: 500px;
   margin: 0 auto;
+  font-family: 'MinhaFonte2', sans-serif;
 }
 
 .topo-fixo-container .atalhos-container {

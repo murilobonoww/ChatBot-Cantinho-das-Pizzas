@@ -1,11 +1,11 @@
-/* Dashboard.css */
-
+/* Dashboard container */
 .dashboard-container {
   padding: 40px 20px;
   font-family: 'MinhaFonte', sans-serif;
   background-color: #121212;
 }
 
+/* Dashboard title */
 .dashboard-container h1 {
   text-align: center;
   margin-bottom: 40px;
@@ -13,11 +13,13 @@
   user-select: none;
 }
 
-#menu_img{
+/* Menu images */
+#menu_img {
   max-width: 50px;
   user-select: none;
 }
 
+/* Dashboard grid layout */
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -26,6 +28,7 @@
   margin: 0 auto;
 }
 
+/* Individual dashboard card */
 .dashboard-card {
   background: white;
   border: 1px solid #e0e0e0;
@@ -39,57 +42,215 @@
   position: relative;
 }
 
+/* Hover effect for dashboard cards */
 .dashboard-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 }
 
+/* Icon styling within cards */
 .dashboard-card .icon {
   font-size: 40px;
   margin-bottom: 12px;
 }
 
-/* Cores distintas e sóbrias por tipo de card */
+/* Distinct colors for each card type */
 .dashboard-card:nth-child(1) .icon {
-  color: #a83232; /* vermelho escuro - Alterar Pedidos */
+  color: #a83232; /* Red - Histórico de Pedidos */
 }
 .dashboard-card:nth-child(2) .icon {
-  color: #b08800; /* amarelo mostarda - Histórico */
+  color: #b08800; /* Mustard - Entregas */
 }
 .dashboard-card:nth-child(3) .icon {
-  color: #228b58; /* verde musgo - Entregadores */
+  color: #228b58; /* Green - Entregadores */
 }
 .dashboard-card:nth-child(4) .icon {
-  color: #7a4fc3; /* roxo neutro - Relatórios */
+  color: #7a4fc3; /* Purple - Faturamento */
 }
 .dashboard-card:nth-child(5) .icon {
-  color: #d06f2c; /* laranja queimado - Cardápio */
+  color: #d06f2c; /* Orange - Cardápio */
 }
 .dashboard-card:nth-child(6) .icon {
-  color: #3a3a3a; /* cinza escuro - Configurações */
+  color: #3a3a3a; /* Gray - Configurações */
 }
 
-/* Estilo do título dos cards */
+/* Card title styling */
 .dashboard-card h2 {
   font-size: 17px;
   margin: 0;
   font-family: MinhaFonte3, sans-serif;
-  color: #d06f2c;
+  color: rgba(23, 23, 23, 0.8);
   user-select: none;
 }
 
-/* Contêiner do ícone de notificação */
+/* Notification icon container */
 .notification-icon-container {
   position: fixed;
-  right: 20px;
   top: 20px;
-  z-index: 1000;
-  display: inline-block;
-  line-height: 0;
+  right: 20px;
+  cursor: pointer;
+  z-index: 1100;
 }
 
+/* Notification badge */
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #d06f2c;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
 
+/* Notification icon */
+#not_icon {
+  max-width: 50px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-drag: none;
+  -moz-user-drag: none;
+  -ms-user-drag: none;
+  transition: all 0.15s ease-in-out;
+  right: 20px;
+  position: fixed;
+}
 
+/* Notification icon hover effect */
+#not_icon:hover {
+  transform: scale(1.1);
+}
+
+/* Notification icon when clicked */
+#not_icon.clicked {
+  opacity: 30%;
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: -350px;
+  width: 300px;
+  height: 100vh;
+  background-color: #f8f8f8;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+  transition: right 0.3s ease;
+  padding: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* Sidebar when open */
+.sidebar.open {
+  right: 0;
+}
+
+/* Sidebar heading */
+.sidebar h2 {
+  font-size: 1.5em;
+  margin-bottom: 20px;
+  color: #333;
+  font-family: MinhaFonte3, sans-serif;
+}
+
+/* Clear all notifications button */
+.limpar-button {
+  margin-bottom: 15px;
+  padding: 8px 12px;
+  background-color: #d06f2c;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: MinhaFonte3, sans-serif;
+}
+
+/* Hover effect for clear button */
+.limpar-button:hover {
+  background-color: #b05e24;
+}
+
+/* Notification list */
+.notification-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for notification list (Chrome, Edge, Safari) */
+.notification-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.notification-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+  background: #d06f2c;
+  border-radius: 4px;
+}
+
+.notification-list::-webkit-scrollbar-thumb:hover {
+  background: #b05e24;
+}
+
+/* Individual notification item */
+.notification-item {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* Pending notification */
+.notification-item.pendente {
+  background-color: #e6f3ff;
+  border-color: #3498db;
+}
+
+/* Attended notification */
+.notification-item.atendida {
+  background-color: #e6ffe6;
+  border-color: #28a745;
+}
+
+/* Attend button */
+.atender-button {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: MinhaFonte3, sans-serif;
+}
+
+/* Hover effect for attend button */
+.atender-button:hover {
+  background-color: #2980b9;
+}
+
+/* Badge for new orders */
 .badge {
   position: absolute;
   top: 12px;
@@ -100,25 +261,3 @@
   border-radius: 50%;
   z-index: 10;
 }
-
-#not_icon{
-  max-width: 50px;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-drag: none;  /* Safari/Chrome */
-  -moz-user-drag: none;     /* Firefox (não oficial, mas funciona em versões antigas) */
-  -ms-user-drag: none;      /* Internet Explorer/Edge */
-  transition: all 0.15s ease-in-out;
-  right: 50px;
-  position: fixed;
-}
-
-#not_icon:hover{
-  transform: scale(1.1);
-}
-
-#not_icon.clicked{
-  opacity: 30%;
-}
-
-
