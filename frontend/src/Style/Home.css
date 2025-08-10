@@ -132,12 +132,17 @@
   opacity: 30%;
 }
 
+#not_icon:focus {
+  outline: none;
+}
+
 /* Sidebar */
 .sidebar {
+  user-select: none;
   position: fixed;
   top: 0;
-  right: -350px;
-  width: 300px;
+  right: -360px;
+  width: 310px;
   height: 100vh;
   background-color: #f8f8f8;
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
@@ -182,7 +187,7 @@
 /* Notification list */
 .notification-list {
   list-style: none;
-  padding: 0;
+  padding: 5px 0 0 0;
   margin: 0;
   flex-grow: 1;
   max-height: calc(100vh - 150px);
@@ -213,6 +218,7 @@
 .notification-item {
   padding: 10px;
   margin-bottom: 10px;
+  margin-left: 30px;
   border-radius: 5px;
   background-color: #fff;
   border: 1px solid #ddd;
@@ -221,33 +227,44 @@
   word-break: break-word;
 }
 
+.notification-item.pendente:hover{
+  transform: scale(1.01);
+}
+
 /* Pending notification */
 .notification-item.pendente {
-  background-color: #e6f3ff;
-  border-color: #3498db;
+  margin-right: 40px;
+  border: 2px solid rgb(165, 165, 165);
+  border-bottom: 5px solid rgb(165, 165, 165);
+  transition: all 0.2s ease-in-out;
+  text-align: center;
+}
+
+.notification-item.pendente span{
+  align-self: flex-start !important;
+  user-select: none;
 }
 
 /* Attended notification */
 .notification-item.atendida {
   background-color: #e6ffe6;
-  border-color: #28a745;
 }
 
-/* Attend button */
 .atender-button {
   margin-top: 10px;
   padding: 5px 10px;
-  background-color: #3498db;
+  background-color: #e65c5c;
   color: white;
   border: none;
   border-radius: 3px;
   cursor: pointer;
   font-family: MinhaFonte3, sans-serif;
+  transition: all 0.2s ease;
+  user-select: none;
 }
 
-/* Hover effect for attend button */
 .atender-button:hover {
-  background-color: #2980b9;
+  background-color: #eb3535;
 }
 
 /* Badge for new orders */

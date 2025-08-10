@@ -39,8 +39,6 @@ function AppContent() {
           );
         });
 
-        console.log("Pedidos entregues agora:", entreguesAgora); // Log para depuração
-
         entreguesAgora.forEach((pedido) => {
           toast.success(
             <span>

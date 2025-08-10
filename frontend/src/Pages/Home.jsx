@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import entregas_icon2 from "../Assets/icone_entregas_2.png";
 import notificacao_icone from "../Assets/notification_icon.png";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const cards = [
@@ -30,8 +30,22 @@ export default function Home() {
   const reconnectIntervalRef = useRef(null);
   const processedEventsRef = useRef(new Set());
 
-  // Log component render for debugging
-  console.log("🖥️ Home component rendered");
+  // Function to format timestamp to HH:mm
+  const formatarHora = (timestamp) => {
+    try {
+      const data = new Date(timestamp);
+      if (isNaN(data.getTime())) {
+        console.error("Timestamp inválido:", timestamp);
+        return "Horário inválido";
+      }
+      const horas = String(data.getHours()).padStart(2, "0");
+      const minutos = String(data.getMinutes()).padStart(2, "0");
+      return `${horas}:${minutos}`;
+    } catch (error) {
+      console.error("Erro ao formatar timestamp:", error, "Timestamp:", timestamp);
+      return "Horário inválido";
+    }
+  };
 
   // Load initial notifications
   useEffect(() => {
@@ -40,7 +54,6 @@ export default function Home() {
         const response = await axios.get("http://localhost:5000/notificacoes/ativas");
         setNotificacoes(response.data);
         setTemNotificacoesNaoLidas(response.data.some((n) => n.status === "pendente"));
-        console.log("📥 Notificações iniciais carregadas:", response.data);
       } catch (error) {
         console.error("Erro ao carregar notificações iniciais:", error);
         toast.error("Erro ao carregar notificações iniciais", {
@@ -53,10 +66,7 @@ export default function Home() {
 
   // WebSocket setup
   useEffect(() => {
-    console.log("📥 Configurando WebSocket para notificações");
-
     const connectWebSocket = () => {
-      // Ensure no existing connection
       if (socketRef.current) {
         console.log("🔌 Fechando conexão WebSocket existente");
         socketRef.current.close();
@@ -78,7 +88,6 @@ export default function Home() {
           const data = JSON.parse(event.data);
           console.log("📥 Mensagem WebSocket recebida:", data);
 
-          // Create a unique event key
           const eventKey = `${data.event}-${data.data?.id_notificacao || Date.now()}`;
           if (processedEventsRef.current.has(eventKey)) {
             console.log("⚠️ Evento duplicado ignorado:", eventKey);
@@ -87,15 +96,19 @@ export default function Home() {
           processedEventsRef.current.add(eventKey);
 
           if (data.event === "notificacao_nova") {
+            const toastId = `notificacao_nova-${data.data.id_notificacao}`;
+            if (!toast.isActive(toastId)) { // Fixed: Removed .current
+              toast.info(
+                `Cliente ${data.data.numero_cliente} solicitou um atendente real`,
+                { autoClose: 5000, toastId }
+              );
+              console.log("🍞 Toast disparado:", toastId);
+            }
             setNotificacoes((prev) => {
               if (prev.some((n) => n.id_notificacao === data.data.id_notificacao)) {
                 console.log("⚠️ Notificação duplicada ignorada:", data.data.id_notificacao);
                 return prev;
               }
-              toast.info(
-                `Cliente ${data.data.numero_cliente} solicitou um atendente real`,
-                { autoClose: 5000, toastId: `notificacao_nova-${data.data.id_notificacao}` }
-              );
               console.log("📋 Adicionando nova notificação:", data.data);
               return [...prev, data.data];
             });
@@ -103,10 +116,14 @@ export default function Home() {
           }
 
           if (data.event === "notificacao_atualizada") {
-            toast.success(
-              `Notificação ${data.data.id_notificacao.slice(0, 8)}... marcada como ${data.data.status}`,
-              { autoClose: 4000, toastId: `notificacao_atualizada-${data.data.id_notificacao}` }
-            );
+            const toastId = `notificacao_atualizada-${data.data.id_notificacao}`;
+            if (!toast.isActive(toastId)) { // Fixed: Removed .current
+              toast.success(
+                `Notificação marcada como ${data.data.status}`,
+                { autoClose: 4000, toastId }
+              );
+              console.log("🍞 Toast disparado:", toastId);
+            }
             setNotificacoes((prev) => {
               const updatedNotificacoes = prev.map((notif) =>
                 notif.id_notificacao === data.data.id_notificacao
@@ -121,10 +138,14 @@ export default function Home() {
           }
 
           if (data.event === "notificacao_removida") {
-            toast.warn(
-              `Notificação ${data.data.id_notificacao.slice(0, 8)}... foi removida`,
-              { autoClose: 4000, toastId: `notificacao_removida-${data.data.id_notificacao}` }
-            );
+            const toastId = `notificacao_removida-${data.data.id_notificacao}`;
+            if (!toast.isActive(toastId)) { // Fixed: Removed .current
+              toast.warn(
+                `Notificação ${data.data.id_notificacao.slice(0, 8)}... foi removida`,
+                { autoClose: 4000, toastId }
+              );
+              console.log("🍞 Toast disparado:", toastId);
+            }
             setNotificacoes((prev) => {
               const updatedNotificacoes = prev.filter(
                 (notif) => notif.id_notificacao !== data.data.id_notificacao
@@ -141,11 +162,11 @@ export default function Home() {
             toastId: `error-${Date.now()}`,
           });
         }
+        // Removed: console.log(toastId); // This was causing undefined errors
       };
 
       socketRef.current.onerror = (error) => {
         console.error("❌ Erro WebSocket:", error);
-        toast.error("Erro na conexão WebSocket", { toastId: `ws-error-${Date.now()}` });
       };
 
       socketRef.current.onclose = () => {
@@ -159,7 +180,6 @@ export default function Home() {
     connectWebSocket();
 
     return () => {
-      console.log("🔌 Limpando WebSocket");
       if (socketRef.current) {
         socketRef.current.close();
         socketRef.current = null;
@@ -226,7 +246,6 @@ export default function Home() {
 
   return (
     <div className="dashboard-container">
-      <ToastContainer limit={3} />
       <div className="notification-icon-container">
         <img
           src={notificacao_icone}
@@ -265,8 +284,8 @@ export default function Home() {
                 role="listitem"
               >
                 <span>
-                  Cliente <strong>{notificacao.numero_cliente}</strong> solicitou um atendente real em{" "}
-                  {notificacao.timestamp}
+                  <strong>{notificacao.numero_cliente}</strong> solicitou um atendente real às{" "}
+                  {formatarHora(notificacao.timestamp)} {/* Updated: Use formatted time */}
                 </span>
                 {notificacao.status === "pendente" && (
                   <button
