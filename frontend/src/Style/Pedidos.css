@@ -1,7 +1,6 @@
 .page-pedidos {
   display: flex;
   min-height: 100vh;
-  background-color: #f0f0f0;
   font-family: 'MinhaFonte3', sans-serif;
 }
 
@@ -10,110 +9,74 @@
   src: url(../assets/Lexend-Regular.ttf);
 }
 
-.btn-fechar {
-  position: fixed;
-  margin-top: 20px;
-  left: 0;
-  font-size: 28px;
-  text-decoration: none;
-  color: #333;
-  background-color: #fff;
-  border: 2px solid #ccc;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-  z-index: 999;
-}
-
-.btn-fechar:hover {
-  background-color: #f5f5f5;
-  transform: scale(1.1);
-}
-
 /* Container principal */
 .pedidos {
   padding-left: 0px;
   flex-grow: 1;
-  height: 100vh; /* toda altura da tela */
+  height: 100vh;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
 }
 
 /* TOPO fixo */
 .topo-fixo-pedidos {
-  font-family: MinhaFonte  , sans-serif;
+  font-family: MinhaFonte , sans-serif;
   position: sticky;
   top: 0;
-  background-color: #121212;
-  width: 100%;
+  background-color: #ffffff;
   z-index: 1000;
   padding: 20px 30px 15px 30px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   border-bottom: 1px solid #dddddd19;
-   left: 0; /* garante o alinhamento à esquerda */
-   display: flex;
-  padding-left: 150px;
-}
-
-.topo-fixo-pedidos-restante{
-  margin-left: 80px;
+  left: 0;
+  display: flex;
 }
 
 .topo-fixo-pedidos h1 {
   margin: 0 0 12px 0;
-  color: #ffffff;
+  color: #000000;
 }
 
 .topo-fixo-pedidos h2 {
   margin-top: 16px;
   margin-bottom: 10px;
   font-size: 24px;
-  color: #ffffff;
+  color: #343434;
 }
 
 /* Formulário filtros */
 .filtro-datas {
   display: flex;
+  flex-direction: column;
   gap: 24px;
-  flex-wrap: wrap;
-  align-items: flex-end;
   margin-bottom: 12px;
-
-  
 }
 
 .lbl_filtro {
-  font-size: 20px;
+  font-size: 16px;
   margin-bottom: 4px;
-  color: #cbcbcb;
+  color: #7e7e7e;
   user-select: none;
 }
 
 .inputs_filtro {
   font-family: 'MinhaFonte3', sans-serif;
   padding: 6px 10px;
-  border: 1px solid #ccc;
   border-radius: 6px;
+  border: none;
+  border: 3px solid #afafaf;
+  border-bottom: 7px solid #afafaf;
   font-size: 14px;
   background-color: white;
-  color: inherit;
-  outline-color: #e63946;
   min-width: 180px;
-  box-shadow: none;
-  line-height: 1;
   vertical-align: middle;
   display: inline-block;
   height: 30px;
   color: #757575;
 }
 
-.inputs_filtro::placeholder {
-  color: #757575;
+.inputs_filtro:focus{
+  outline:  1px solid rgb(180, 180, 180);
 }
 
 /* Filtro itens */
@@ -128,8 +91,8 @@
 #adc_item {
   background-color: #FF7043;
   border: none;
-  color: rgb(0, 0, 0);
-  padding: 7px 10px;
+  color: white;
+  padding: 12px 12px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
@@ -187,9 +150,6 @@
 /* Botão modo filtro */
 .topo-fixo-pedidos > button {
   margin-top: 10px;
-  background-color: #e63946;
-  color: white;
-  padding: 8px 18px;
   border-radius: 30px;
   border: none;
   font-weight: 700;
@@ -207,8 +167,9 @@
   flex-grow: 1;
   overflow-y: auto;
   padding-right: 12px;
-  padding: 40px;
-  background-color: #121212;
+  padding: 40px 40px 40px 0;
+  background-color: #ffffff;
+  margin-top: 80px;
 }
 
 /* Cartão de pedido */
@@ -217,7 +178,8 @@
   border-radius: 5px;
   padding: 40px 20px 40px 20px;
   margin-bottom: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: #afafaf 3px solid;
+  border-bottom: #afafaf 10px solid;
   max-width: 620px;
   font-family: 'MinhaFonte', sans-serif;
   transition: transform 0.3s ease;
@@ -226,17 +188,8 @@
 
 .pedido-card:hover {
   transform: translateY(-4px);
+  background-color: rgb(246, 246, 246);
 }
-
-/* .pedido-card.pedido-novo {
-  border: 2px solid #e63946;
-  animation: pulse-border 3s infinite;
-}
-
-@keyframes pulse-border {
-  0%, 100% { border-color: #e63946; }
-  50% { border-color: #f1a1a8; }
-} */
 
 /* Cabeçalho do pedido */
 .pedido-header {
@@ -282,9 +235,9 @@
 .btn_alterar{
   font-family: 'MinhaFonte', sans-serif;
   margin-right: 15px;
-  border-radius: 5px;
   background-color: #c1c1c1;
   transition: all 0.3s ease-in-out;
+  border: none;
 }
 
 .btn_alterar:hover{
@@ -299,7 +252,6 @@
   padding: 10px 20px;
   border-radius: 5px;
   border: none;
-  cursor: pointer;
   color: white;
   user-select: none;
   min-width: 110px;
@@ -330,11 +282,6 @@
 
 .status-botao.entregue {
   background-color: #2E8B57;
-}
-
-.status-botao:hover {
-  filter: brightness(1.1);
-  transform: scale(1.05);
 }
 
 /* Detalhes do pedido (expandidos) */
@@ -391,6 +338,15 @@
   user-select: none;
 }
 
+.counter_div_orders_list{
+  position: fixed;
+  top: 0;
+  width: 100vw;
+  z-index: 1000;
+  background-color: white;
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1);
+}
+
 
 
 @keyframes destaquePedido {
@@ -434,10 +390,61 @@
   color: white;
   border: none;
   transition: all 0.2s ease-in-out;
+  margin-top: 40px;
 }
 
 #btn_pedidos_modo:hover{
   transform: scale(1.03);
   border: none;
   filter: brightness(1.1);
+}
+
+
+.delete-button-pedido {
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  align-self: center;
+  margin-left: 10px;
+}
+
+.delete-button-pedido:hover #lid-group {
+  transform: rotate(-28deg) translateY(2px);
+}
+
+.delete-button-pedido:active #lid-group {
+  transform: rotate(-12deg) scale(0.98);
+}
+
+.delete-button-pedido:hover .trash-svg {
+  transform: scale(1.08) rotate(3deg);
+}
+
+.delete-button-pedido:active .trash-svg {
+  transform: scale(0.96) rotate(-1deg);
+}
+
+.swal-custom-title, .swal-custom-text, .swal-confirm-button, .swal-cancel-button{
+  font-family: "MinhaFonte3", sans-serif;
+}
+
+.printer_btn{
+  background: transparent;
+  border: none;
+  width: 35px;
+  display: flex;
+  justify-content: center;
+  margin-left: 60px;
+  transition: all 0.3s ease-in-out;
+}
+
+.printer_btn:hover{
+  border: none;
+  transform: scale(1.1);
+  filter: brightness(1.05);
+}
+
+#printer_icon{
+  width: 35px;
 }

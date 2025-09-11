@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 from fastapi import FastAPI, WebSocket, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,7 +35,7 @@ load_dotenv()
 
 keys = [
     "MAPS_API_KEY", "GPT_API_KEY", "DB_PASS", "DB_NAME", "APP_ID",
-    "WHATSAPP_ACCESS_TOKEN", "FONE_ID", "CLIENT_SECRET", "WEBHOOK_VERIFY_TOKEN", "MEDIA_ID"
+    "WHATSAPP_ACCESS_TOKEN", "FONE_ID", "CLIENT_SECRET", "WEBHOOK_VERIFY_TOKEN", "MEDIA_ID", "GETNET_ACCESS_TOKEN"
 ]
 
 (
@@ -48,7 +48,8 @@ keys = [
     fone_id,
     client_secret,
     webhook_verify_token,
-    media_id
+    media_id,
+    getnet_access_token
 ) = map(os.getenv, keys)
 
 print(f"🔑 access_token: {access_token}")
@@ -59,6 +60,49 @@ historico_usuarios: Dict[str, List[dict]] = {}
 notificacoes_ativas: Dict[str, dict] = {}
 websocket_connections: List[WebSocket] = []
 last_msgs: Dict[str, str] = {}
+getnet_url_generate_payment_link = "https://api-homologacao.getnet.com.br/v1/payment-links"
+
+
+
+def generate_GetNet_payment_link (total_pedido, frete):
+    headers_payment_link = {
+    "Authorization": f"Bearer {getnet_access_token}",
+    "Content-Type": "application/json; charset=utf-8"
+    }
+    expiration = (datetime.utcnow() + timedelta(hours=1)).isoformat() + "Z"
+
+    payload = {
+        "label": "teste_pedido",
+        "expiration": expiration,
+        "max_orders": 1,
+        "order": {
+            "product_type": "physical_goods",
+            "title": "Pedido",
+            "description": "Pagamento do pedido",
+            "order_prefix": "order-",
+            "shipping_amount": int(frete*100),
+            "amount": int((total_pedido-frete)*100)
+        },
+        "payment": {
+            "credit": {
+                "enable": True,
+                "max_installments": 1,
+                "not_authenticated": False,
+                "authenticated": True
+            },
+            "debit": {
+            "enable": True,
+            "caixa_virtual_card": False,
+            "not_authenticated": False,
+            "authenticated": True
+        }
+        }
+    }
+
+    response = requests.post(url=getnet_url_generate_payment_link, headers=headers_payment_link, json=payload)
+    payment_link = (response.json()).get("url")
+    
+    return payment_link
 
 def saudacao():
     hora = datetime.now(pytz.timezone("America/Sao_Paulo")).hour
@@ -132,6 +176,9 @@ prompt_template = [{
         "Vinho Pérgola — R$ 30,00 • Opções: seco ou suave\n"
         "Outras bebidas:  • Cabaré Ice — R$ 12,00 • Smirnoff — R$ 12,00 • Energético Monster — R$ 12,00 • Schweppes — R$ 6,00\n"
         "Quando informar ao cliente os ingredientes de uma pizza, devo sempre falar o termo \"molho artesanal\" onde o ingrediente for \"molho\"\n"
+        
+        
+        
         "Sabores de pizza:\n"
         "alho: 32.00 / 42.00 - molho, muçarela, alho, azeitona e orégano\n"
         "atum 1: 34.00 / 57.00 - molho, atum, cebola, azeitona e orégano\n"
@@ -183,6 +230,7 @@ prompt_template = [{
         "ovo maltine: 35.00 / 55.00 - chocolate ao leite e ovo maltine\n"
         "prestígio: 31.00 / 43.00 - chocolate ao leite e coco\n"
         "chocolate: 29.00 / 40.00 - chocolate ao leite\n\n"
+        
         "Sabores de esfiha:\n"
         "Carne: 3.50\nCalabresa: 3.50\nQueijo: 4.00\nMilho: 4.20\nAlho: 4.20\nBauru: 4.40\n"
         "Carne c/ Queijo: 4.40\nCarne c/ Catupiry: 4.40\nCalabresa c/ Queijo: 4.40\nCalabresa c/ Cheddar: 4.40\n"
@@ -205,11 +253,13 @@ prompt_template = [{
         "Se o cliente disser que quer mudar o pedido (isso não se aplica a endereços), devo analisar se ele especificou o que deseja alterar:\n"
         "- Se ele **ainda não disse os itens**, respondo: \"Sem problemas! Vamos corrigir. O que você gostaria de mudar?\"\n"
         "- Se ele **já informou o que quer mudar**, respondo: \"Claro! Só 1 minutinho, vou verificar com a equipe se ainda é possível fazer a alteração no seu pedido. 😊\"\n"
-        "Quando o cliente disser o item que deseja (ex: 'quero uma pizza de frango 1 grande'), devo apenas confirmar de forma leve e seguir com o pedido, sem dar preço nem pedir nome, endereço ou forma de pagamento ainda. Exemplo de resposta adequada: 'Pizza de frango 1 grande, certo? 😋 Quer adicionar mais alguma coisa ou posso seguir com seu pedido?'\n"
+        "- Quando o cliente mencionar um sabor de pizza que possui variações (frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos) sem especificar a variação (ex: 'quero uma pizza de frango'), devo imediatamente listar as variações disponíveis, incluindo o nome, os preços (média e grande) e os ingredientes de cada uma, usando o termo 'molho artesanal' para o ingrediente 'molho'. A lista deve ser formatada com espaçamento entre os itens, e ao final, devo perguntar qual o cliente prefere. Exemplo de resposta: 'Temos 3 variações de frango:\n\n- Frango 1: 32,00 média / 49,00 grande - molho artesanal, frango com catupiry, azeitona e orégano\n- Frango 2: 32,00 média / 49,00 grande - molho artesanal, frango com muçarela, azeitona e orégano\n- Frango 3: 32,00 média / 49,00 grande - molho artesanal, frango com cheddar, azeitona e orégano\n\nQual você prefere? 😊"
+        "- Quando o cliente disser o item que deseja (ex: 'quero uma pizza de frango 1 grande'), devo apenas confirmar de forma leve e seguir com o pedido, sem dar preço nem pedir nome, endereço ou forma de pagamento ainda. Exemplo de resposta adequada: 'Pizza de frango 1 grande, certo? 😋 Quer adicionar mais alguma coisa ou posso seguir com seu pedido?' Se o sabor mencionado tiver variações e o cliente não especificar (ex: 'pizza de frango'), devo primeiro listar as variações disponíveis antes de confirmar.\n"
         "Nunca devo dar o preço do item sozinho. O preço será mostrado apenas ao final do pedido, com o total calculado automaticamente.\n"
         "Nunca devo pedir nome, endereço ou forma de pagamento enquanto o cliente ainda estiver escolhendo os itens. Esses dados só devem ser solicitados **depois** que o cliente disser que é só isso ou que quer fechar o pedido.\n"
         "Devo evitar respostas longas e cheias de informação quando o cliente fizer um pedido. Mantenho a resposta curta, simpática e fluida.\n"
-        "Se o cliente pedir o cardápio OU perguntar quais os sabores de pizza/esfiha OU quais bebidas/sobremesas/comida temos, responda apenas com a palavra especial: [ENVIAR_CARDAPIO_PDF]. Assim, o sistema detecta essa palavra e envia o PDF do cardápio automaticamente. Não envio nunca o cardápio em texto, apenas o PDF.\n"
+        "- Se o cliente pedir o cardápio OU perguntar quais os sabores de pizza/esfiha OU quais sobremesas/comida temos, responda apenas com a palavra especial: [ENVIAR_CARDAPIO_PDF]. Assim, o sistema detecta essa palavra e envia o PDF do cardápio automaticamente. Não envio nunca o cardápio em texto, apenas o PDF."
+        "- Se o cliente perguntar quais são as bebidas disponíveis (ex: quais bebidas têm?, tem quais sucos?), devo listar as opções de bebidas em texto, formatadas em uma lista com espaçamento, conforme o cardápio, e não enviar [ENVIAR_CARDAPIO_PDF].\n"
         "Após descobrir o sabor da pizza que o cliente deseja, pergunto qual é o tamanho, média ou grande."
         "### SOLICITAÇÃO DE ATENDENTE REAL ###"
         "- Se o cliente pedir para falar com um atendente real, uma pessoa de verdade ou usar expressões similares (ex: \"quero falar com alguém\", \"chama um atendente\", \"não quero bot\"), devo responder com gentileza: \"Beleza, já chamei um atendente pra te ajudar! 😊 É só aguardar um pouquinho, tá?\"\n"
@@ -534,6 +584,7 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
             f"🧾 Pagamento: {pagamento}\n"
             f"📍 Entrega em: {endereco}\n\n"
             f"Obrigado pelo pedido, {nome}! Em breve estaremos aí. 😄"
+            f"{generate_GetNet_payment_link(total_pedido, taxa)}"
         )
         return mensagem
     except Exception as e:
@@ -784,7 +835,7 @@ async def webhook(request: Request):
 
             try:
                 print(f"📤 Enviando pedido ao backend: {json_pedido}")
-                r = requests.post("http://localhost:3000/pedido/post", json=json_pedido)
+                r = requests.post("http://192.168.3.5:3000/pedido/post", json=json_pedido)
                 if r.status_code == 200:
                     resumo = gerar_mensagem_amigavel(json_pedido, id_pedido=pegar_ultimo_id_pedido())
                     sleep(2)

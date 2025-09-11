@@ -56,44 +56,10 @@ function AppContent() {
 
   useEffect(() => {
     fetchPedidos(); // Carrega pedidos iniciais
-    const interval = setInterval(fetchPedidos, 10000); // Aumentado para 10 segundos
+    const interval = setInterval(fetchPedidos, 10000);
 
     return () => clearInterval(interval); // Limpa intervalo ao desmontar
   }, []);
-
-  // Opcional: Configuração de WebSocket para substituir polling
-  /*
-  useEffect(() => {
-    const socket = io("http://localhost:3000");
-    socket.on("pedidoAtualizado", (pedidoAtualizado) => {
-      console.log("Pedido atualizado via WebSocket:", pedidoAtualizado);
-      if (pedidoAtualizado.status_pedido === "entregue") {
-        toast.success(
-          <span>
-            Pedido <strong>{pedidoAtualizado.id_pedido}</strong> foi marcado como entregue
-          </span>,
-          { autoClose: 4000 }
-        );
-      }
-
-      setPedidos((prevPedidos) => {
-        const novosPedidos = prevPedidos.map((p) =>
-          p.id_pedido === pedidoAtualizado.id_pedido ? pedidoAtualizado : p
-        );
-        if (!novosPedidos.some((p) => p.id_pedido === pedidoAtualizado.id_pedido)) {
-          novosPedidos.unshift(pedidoAtualizado);
-        }
-        return novosPedidos.sort((a, b) => b.id_pedido - a.id_pedido);
-      });
-
-      pedidosAnteriores.current = pedidosAnteriores.current.map((p) =>
-        p.id_pedido === pedidoAtualizado.id_pedido ? { ...pedidoAtualizado } : p
-      );
-    });
-
-    return () => socket.disconnect();
-  }, []);
-  */
 
   useEffect(() => {
     const handleKeyDown = (event) => {

@@ -1,17 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import "../Style/Pedidos.css";
-import expandir_img from "../assets/expandir_.png";
-import recolher_img from "../assets/recolher.png";
-import lixo_img from "../assets/lixo.png";
-
+import expandir_img from "../assets/folder.webp";
+import recolher_img from "../assets/open-folder.webp";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css'; // Importe o CSS
-
-
 import none_result from "../assets/nenhum-resultado-encontrado.png";
 import { Link, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { jsPDF } from "jspdf";
+import impressora_icon from "../assets/printer_.png"
 
 const MySwal = withReactContent(Swal);
 
@@ -26,10 +24,10 @@ const Pedidos = () => {
   const [itensSelecionados, setItensSelecionados] = useState([]);
   const pedidosAnteriores = useRef([]);
   const carregamentoInicial = useRef(true);
-  const [modoFiltro, setModoFiltro] = useState("OU"); // ou "E"
+  const [modoFiltro, setModoFiltro] = useState("OU");
   const [novosIDs, setNovosIDs] = useState([]);
 
-   const playSound = () => {
+  const playSound = () => {
     const audio = new Audio(bell_sound);
     audio.volume = 0.7;
     audio.play();
@@ -39,7 +37,7 @@ const Pedidos = () => {
     buscarPedidosFiltrados();
   }, [dataInicio, dataFim, nomeCliente]);
 
-   useEffect(() => {
+  useEffect(() => {
     fetch("http://localhost:3000/pedido/getAll")
       .then(res => res.json())
       .then(data => {
@@ -82,7 +80,7 @@ const Pedidos = () => {
     }
   }, [location.state]);
 
-    const fetchPedidos = () => {
+  const fetchPedidos = () => {
     fetch(`http://localhost:3000/pedido/getAll`)
       .then(res => res.json())
       .then(data => {
@@ -234,12 +232,26 @@ const Pedidos = () => {
     setItensSelecionados((prev) => prev.filter((i) => i !== item));
   };
 
+  const gerarPDF = (orderID) => {
+    const order = pedidos.find(o => o.id_pedido === orderID)
+    const doc = new jsPDF()
+    const itens_arr = order.itens
+    let y = 50
+
+    itens_arr.map(i => {
+      doc.text(`\nProduto:${i.produto}\nSabor:${i.sabor}\nQuantidade:${i.quantidade}\nObs.:${i.observacao}`, 10, y)
+      y += 10
+    })
+    doc.text(`Pedido: ${orderID}\nCliente: ${order.nome_cliente}\nEndereço de entrega: ${order.endereco_entrega}\nForma de pagamento: ${order.forma_pagamento}\nTaxa de entrega: R$${(order.taxa_entrega).replace(".", ",")}\nTotal: R$${(order.preco_total).replace(".", ",")}`, 10, 10)
+    doc.save(`Pedido_${orderID}.pdf`)
+  }
+
   return (
     <div className="page-pedidos">
       <div className="pedidos">
         <div className="topo-fixo-pedidos">
           <div className="topo-fixo-restante">
-            <h1>Histórico de pedidos</h1>
+            <h1>Pedidos</h1>
             <h2>Filtros</h2>
             <div className="filtro-datas">
               <label>
@@ -280,11 +292,8 @@ const Pedidos = () => {
                     value={itemFiltro}
                     onChange={(e) => setItemFiltro(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && adicionarItemFiltro()}
-                    placeholder="Digite um item e pressione Enter"
+                    placeholder="Digite e pressione enter"
                   />
-                  <button id="adc_item" onClick={adicionarItemFiltro}>
-                    Adicionar
-                  </button>
                 </div>
                 {itensSelecionados.length > 0 && (
                   <div className="tags-selecionadas">
@@ -297,19 +306,25 @@ const Pedidos = () => {
                   </div>
                 )}
               </div>
-              <button
-                id="btn_pedidos_modo"
-                onClick={() => setModoFiltro(modoFiltro === "OU" ? "E" : "OU")}
-              >
-                Modo: {modoFiltro === "OU" ? "1 OU 2" : "1 E 2"}
-              </button>
+              {itensSelecionados != 0 && (
+                <button
+                  id="btn_pedidos_modo"
+                  onClick={() => setModoFiltro(modoFiltro === "OU" ? "E" : "OU")}
+                >
+                  Modo: {modoFiltro === "OU" ? "1 OU 2" : "1 E 2"}
+                </button>
+              )}
+
             </div>
-            <h2 style={{ marginTop: "30px", marginBottom: "15px", fontSize: "20px" }}>
-              Total de pedidos exibidos: <strong>{pedidos.filter(pedidoPassaNoFiltro).length}</strong>
-            </h2>
+
           </div>
         </div>
         <div className="lista-pedidos">
+          <div className="counter_div_orders_list">
+            <h2 style={{ marginLeft: "110px", marginBottom: "25px", fontSize: "30px", color: "black" }}>
+              Nº de pedidos: <strong>{pedidos.filter(pedidoPassaNoFiltro).length}</strong>
+            </h2>
+          </div>
           {pedidos.filter(pedidoPassaNoFiltro).length === 0 ? (
             <div style={{ textAlign: "center", marginTop: "40px" }}>
               <img
@@ -334,11 +349,10 @@ const Pedidos = () => {
               .map((pedido) => (
                 <div
                   key={pedido.id_pedido}
-                  className={`pedido-card ${
-                    abertos[pedido.id_pedido] ? "aberto" : "fechado"
-                  } ${novosIDs.includes(pedido.id_pedido) ? "pedido-novo" : ""}`}
+                  className={`pedido-card ${abertos[pedido.id_pedido] ? "aberto" : "fechado"
+                    } ${novosIDs.includes(pedido.id_pedido) ? "pedido-novo" : ""}`}
                 >
-                  <div className="pedido-header">
+                  <div className="pedido-header" key={pedido.id_pedido}>
                     <div className="pedido_info">
                       <h2 onClick={() => togglePedido(pedido.id_pedido)}>
                         Pedido {pedido.id_pedido}{" "}
@@ -349,20 +363,61 @@ const Pedidos = () => {
                         )}
                       </h2>
                     </div>
-                    <button
-                      className="btn_deletar"
-                      onClick={() => handleDeletePedido(pedido.id_pedido)}
-                      title="Excluir pedido"
-                    >
-                      <img id="lixo_img" src={lixo_img} alt="Deletar Pedido" />
+
+                    <button className="printer_btn">
+                      <img src={impressora_icon} id="printer_icon" onClick={() => gerarPDF(pedido.id_pedido)} />
                     </button>
+
+                    <button
+                      className="delete-button-pedido"
+                      onClick={() => handleDeletePedido(pedido.id_pedido)}
+                    >
+                      <svg
+                        className="trash-svg"
+                        viewBox="0 -10 64 74"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g id="trash-can">
+                          <rect
+                            x="16"
+                            y="24"
+                            width="32"
+                            height="30"
+                            rx="3"
+                            ry="3"
+                            fill="#000000"
+                          ></rect>
+                          <g style={{ transformOrigin: '12px 18px' }} id="lid-group">
+                            <rect
+                              x="12"
+                              y="12"
+                              width="40"
+                              height="6"
+                              rx="2"
+                              ry="2"
+                              fill="#000000"
+                            ></rect>
+                            <rect
+                              x="26"
+                              y="8"
+                              width="12"
+                              height="4"
+                              rx="2"
+                              ry="2"
+                              fill="#000000"
+                            ></rect>
+                          </g>
+                        </g>
+                      </svg>
+                    </button>
+
                     <Link to={`/alterar-pedidos/${pedido.id_pedido}`}>
                       <button className="btn_alterar">Alterar</button>
                     </Link>
                     {pedido.status_pedido && (
                       <button
                         className={`status-botao ${pedido.status_pedido.replace(" ", "-")}`}
-                        onClick={() => alternarStatus(pedido.id_pedido)}
+                      // onClick={() => alternarStatus(pedido.id_pedido)}
                       >
                         {pedido.status_pedido}
                       </button>

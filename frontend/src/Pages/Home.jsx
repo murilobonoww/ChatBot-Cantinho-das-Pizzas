@@ -1,24 +1,26 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../Style/Home.css";
-import relatorios from "../Assets/relatorios_img.png";
-import historico from "../Assets/historico.png";
-import menu from "../Assets/menu5.png";
-import config from "../Assets/config.png";
-import entregadores from "../Assets/entregador2.png";
+import relatorios from "../Assets/statistics.webp";
+import historico from "../Assets/historico.webp";
+import menu from "../Assets/menu.webp";
+import config from "../Assets/control.webp";
+import entregadores from "../Assets/entregador.webp";
 import { Link } from "react-router-dom";
-import entregas_icon2 from "../Assets/icone_entregas_2.png";
-import notificacao_icone from "../Assets/notification_icon.png";
+import entregas_icon2 from "../Assets/entregas.webp";
+import notificacao_icone from "../Assets/notification_icon.webp";
+import bug_report from "../Assets/bug-report.webp"
 import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const cards = [
-  { icon: <img id="menu_img" src={historico} />, title: "Histórico de Pedidos", to: "/pedidos" },
+  { icon: <img id="menu_img" src={historico} />, title: "Pedidos", to: "/pedidos" },
   { icon: <img id="menu_img" src={entregas_icon2} />, title: "Entregas", external: true, to: "https://app.foodydelivery.com/u/0/home" },
-  { icon: <img id="menu_img" src={entregadores} />, title: "Entregadores", external: true, to: "https://app.foodydelivery.com/u/0/couriers" },
+  { icon: <img id="menu_img_entregadores" src={entregadores} />, title: "Entregadores", external: true, to: "https://app.foodydelivery.com/u/0/couriers" },
   { icon: <img id="menu_img" src={relatorios} />, title: "Faturamento", to: "/relatorios" },
-  { icon: <img id="menu_img" src={menu} />, title: "Cardápio", to: "/cardapio" },
-  { icon: <img id="menu_img" src={config} />, title: "Configurações", to: "/configuracoes" },
+  { icon: <img id="menu_img" src={menu} />, title: "Menu", to: "/cardapio" },
+  // { icon: <img id="menu_img" src={config} />, title: "Configurações", to: "/configuracoes" },
+  { icon:<img id="menu_img" src={bug_report}/> ,title: "Reportar bug", to: "https://wa.me/5548992254888"}
 ];
 
 export default function Home() {
@@ -301,7 +303,7 @@ export default function Home() {
           </ul>
         )}
       </div>
-      <h1>Cantinho das Pizzas - Sistema</h1>
+      <h1>Cantinho das Pizzas e do Açaí</h1>
       <div className="dashboard-grid">
         {cards.map((card, index) => {
           const badge = index === 0 && temPedidoNovo ? <span className="badge" /> : null;

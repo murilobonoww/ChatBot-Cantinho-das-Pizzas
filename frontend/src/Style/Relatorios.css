@@ -2,28 +2,38 @@
   margin: 0 auto;
   padding: 0 20px 20px 20px;
   font-family: Arial, sans-serif;
-  background: #121212;
-  color: #ffffff;
-  padding-bottom: 132px;
+  background: #ffffff;
+  color: #000000;
   font-family: 'MinhaFonte', sans-serif;
-  height: 100vh;
-  padding-bottom: 0;
-  overflow-y: hidden;
+  display: flex;
+  text-align: center;
 }
 
-html{
-  background-color: white;
+.relatorios_panel{
+  text-align: center;
 }
 
-.header-relatorios {
+.relatorios{
+  width: 100vw;
+}
+
+.header-relatorios-input, .header-relatorios h1 {
   text-align: center;
   margin-bottom: 20px;
 }
 
-.header-relatorios h1 {
-  font-size: 38px;
+.header-relatorios-input h1 {
+  font-size: 45px;
   user-select: none;
-  color: #ffffff;
+  color: #000000;
+  padding-top: 170px;
+}
+
+.header-relatorios h1 {
+  font-size: 45px;
+  user-select: none;
+  color: #000000;
+  padding-top: 30px;
 }
 
 .page-relatorios h2 {
@@ -34,7 +44,7 @@ html{
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 50vh;
+  padding-top: 30px;
 }
 
 .senha-gerencia {
@@ -42,7 +52,7 @@ html{
   background: #f9f9f9;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 5px rgba(0, 0, 0, 0.1);
 }
 
 .senha-gerencia p {
@@ -60,16 +70,17 @@ html{
 .input_senha_gerencia input {
   padding: 10px;
   font-size: 16px;
-  border: 1px solid #ccc;
+  border: #afafaf solid 3px;
+  border-bottom: #afafaf solid 9px;
   border-radius: 4px;
 }
 
 .input_senha_gerencia input:focus{
-outline: 2px solid rgb(144, 144, 144);
+  outline: none;
 }
 
 .input_senha_gerencia button {
-  padding: 10px 20px;
+  padding: 13px 20px;
   font-size: 16px;
   background: #FF7043;
   color: #fff;
@@ -85,20 +96,20 @@ outline: 2px solid rgb(144, 144, 144);
 
 .relatorios-container {
   display: flex;
+  justify-content: center;
   gap: 20px;
-  align-items: flex-start;
+  text-align: center;
 }
 
 .coluna-esquerda {
   flex: 1;
   max-width: 600px;
-  margin-left: 350px;
 }
 
 .coluna-direita {
   flex: 1;
   max-width: 600px;
-  margin-left: 200px;
+  text-align: center;
 }
 
 .filtros-data {
@@ -117,7 +128,8 @@ outline: 2px solid rgb(144, 144, 144);
 .inputs-relatorios {
   padding: 8px;
   font-size: 14px;
-  border: 1px solid #ccc;
+  border: 2px solid #afafaf;
+  border-bottom: 7px solid #afafaf;
   border-radius: 4px;
   font-family: 'MinhaFonte3';
 }
@@ -139,6 +151,7 @@ outline: 2px solid rgb(144, 144, 144);
 
 .filtros-rapidos {
   margin-bottom: 20px;
+  text-align: start;
 }
 
 .filtros-rapidos p {
@@ -161,7 +174,7 @@ outline: 2px solid rgb(144, 144, 144);
 .filtros-rapidos button.filtro-ativo,
 .filtros-rapidos button:hover {
   background: #FF7043;
-  color: #fff;
+  color: #ffffff;
 }
 
 .resumos {
@@ -194,7 +207,8 @@ h2 {
 .tabela-container {
   max-height: 400px; /* Altura fixa para ativar a rolagem */
   overflow-y: auto;
-  border: 1px solid #ddd;
+  border: 3px solid #afafaf;
+  border-bottom: 10px solid #afafaf;
   border-radius: 8px;
 }
 
@@ -224,14 +238,14 @@ h2 {
 }
 
 .tabela-pedidos tbody tr:hover {
-  background: #343333;
+  background: #dddddd;
 }
 
 #table_pagamento {
   text-transform: capitalize;
 }
 
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   .relatorios-container {
     flex-direction: column;
   }
@@ -242,6 +256,10 @@ h2 {
   }
 
   .tabela-container {
-    max-height: 300px; /* Altura reduzida em telas menores */
+    max-height: 300px; /* Altura reduzida em telas menores 
   }
+} */
+
+.piechart{
+  margin-top: -30px;
 }

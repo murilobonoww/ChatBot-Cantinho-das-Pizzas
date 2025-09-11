@@ -399,14 +399,62 @@ router.get("/relatorios/financeiro", (req, res) => {
 
     const ticket_medio = total_pedidos > 0 ? total_vendas / total_pedidos : 0;
 
+  // Query 2: produto mais vendido
+let most_selled_product_query = `
+  SELECT produto 
+  FROM item_pedido
+  GROUP BY produto
+  ORDER BY COUNT(produto) DESC
+  LIMIT 1;
+`;
+
+db.query(most_selled_product_query, (err, resultProduct) => {
+  if (err) {
+    console.error("❌ Erro ao buscar produto mais vendido:", err);
+    return res.status(500).json({ mensagem: "Erro ao buscar produto mais vendido" });
+  }
+
+  let mais_vendido = resultProduct.length > 0 ? resultProduct[0].produto : null;
+
+  // ✅ Query 3: sabor mais vendido desse produto
+  let most_selled_flavor_query = `
+    SELECT sabor
+    FROM item_pedido
+    WHERE produto = ?
+    GROUP BY sabor
+    ORDER BY SUM(quantidade) DESC
+    LIMIT 1;
+  `;
+
+  db.query(most_selled_flavor_query, [mais_vendido], (err, resultFlavor) => {
+    if (err) {
+      console.error("❌ Erro ao buscar sabor mais vendido:", err);
+      return res.status(500).json({ mensagem: "Erro ao buscar sabor mais vendido" });
+    }
+
+    let sabor_mais_vendido = resultFlavor.length > 0 ? resultFlavor[0].sabor : null;
+
+    mais_vendido = String(mais_vendido + " de " + sabor_mais_vendido);
+
+    // 📌 Agora envia tudo junto
     res.status(200).json({
       total_vendas,
       total_pedidos,
       ticket_medio,
-      mais_vendido: "-",
+      mais_vendido,
+      sabor_mais_vendido,
       pagamentos,
       pedidos: pedidosFormatados,
     });
+  });
+});
+
+
+  
+    // pegar o campo produto que mais se repete na tabela item_pedido, 
+    // depois pegar o sabor que mais se repete deste produto, utilizando o campo quantidade
+
+   
   });
 });
 
