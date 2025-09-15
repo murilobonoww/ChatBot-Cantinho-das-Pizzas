@@ -158,10 +158,10 @@ router.post("/pedido/post", (req, res) => {
 });
 
 router.get("/pedido/getAll", (req, res) => {
-  const { inicio, fim, cliente } = req.query;
+  const { id, inicio, fim, cliente } = req.query;
 
   let sql = `
-    SELECT 
+    SELECT
       p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, p.preco_total, 
       p.forma_pagamento, p.status_pedido, p.data_pedido,
       i.id AS id_item, i.produto, i.sabor, i.quantidade, i.observacao
@@ -171,6 +171,12 @@ router.get("/pedido/getAll", (req, res) => {
 
   const conditions = [];
   const params = [];
+
+  if (id) {
+    conditions.push(`p.id_pedido = ?`);
+    console.log(id)
+    params.push(`${id}`)
+  }
 
   if (inicio && fim) {
     conditions.push(`p.data_pedido BETWEEN ? AND ?`);

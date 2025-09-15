@@ -15,6 +15,7 @@ const MySwal = withReactContent(Swal);
 
 const Pedidos = () => {
 
+  const [id_filter, setIdFilter] = useState()
   const [pedidos, setPedidos] = useState([]);
   const [abertos, setAbertos] = useState({});
   const [dataInicio, setDataInicio] = useState("");
@@ -35,7 +36,7 @@ const Pedidos = () => {
 
   useEffect(() => {
     buscarPedidosFiltrados();
-  }, [dataInicio, dataFim, nomeCliente]);
+  }, [id_filter, dataInicio, dataFim, nomeCliente]);
 
   useEffect(() => {
     fetch("http://localhost:3000/pedido/getAll")
@@ -61,7 +62,7 @@ const Pedidos = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const filtrosAtivos = dataInicio || dataFim || nomeCliente;
+      const filtrosAtivos = id_filter || dataInicio || dataFim || nomeCliente;
       if (filtrosAtivos) {
         buscarPedidosFiltrados();
       } else {
@@ -69,7 +70,7 @@ const Pedidos = () => {
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [dataInicio, dataFim, nomeCliente]);
+  }, [id_filter, dataInicio, dataFim, nomeCliente]);
 
   const location = useLocation();
 
@@ -133,9 +134,12 @@ const Pedidos = () => {
 
   const buscarPedidosFiltrados = () => {
     const params = new URLSearchParams();
+    if (id_filter) params.append("id", id_filter)
     if (dataInicio) params.append("inicio", dataInicio);
     if (dataFim) params.append("fim", dataFim);
     if (nomeCliente) params.append("cliente", nomeCliente);
+
+    console.log(params)
 
     fetch(`http://localhost:3000/pedido/getAll?${params.toString()}`)
       .then((res) => res.json())
@@ -150,10 +154,10 @@ const Pedidos = () => {
   };
 
   useEffect(() => {
-    if (dataInicio || dataFim || nomeCliente) {
+    if (id_filter || dataInicio || dataFim || nomeCliente) {
       buscarPedidosFiltrados();
     }
-  }, [dataInicio, dataFim, nomeCliente]);
+  }, [id_filter, dataInicio, dataFim, nomeCliente]);
 
   const handleDeletePedido = (id) => {
     MySwal.fire({
@@ -260,7 +264,10 @@ const Pedidos = () => {
             <div className="filtro-datas">
               <label>
                 <div className="lbl_filtro">ID:</div>
-                <input placeholder="Digite o ID do pedido:" className="inputs_filtro"/>
+                <input placeholder="Digite o ID do pedido:"
+                className="inputs_filtro"
+                value={id_filter}
+                onChange={(e) => setIdFilter(e.target.value)}/>
               </label>
 
               <label>
