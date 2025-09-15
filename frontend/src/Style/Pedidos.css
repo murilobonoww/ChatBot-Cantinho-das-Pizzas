@@ -184,6 +184,7 @@
   font-family: 'MinhaFonte', sans-serif;
   transition: transform 0.3s ease;
   margin-left: 110px;
+  cursor: pointer;
 }
 
 .pedido-card:hover {
@@ -198,7 +199,6 @@
 }
 
 .pedido_info h2 {
-  cursor: pointer;
   font-weight: 700;
   margin: 0;
   display: flex;
@@ -404,7 +404,6 @@
   padding: 0.5rem;
   border: none;
   background: transparent;
-  cursor: pointer;
   align-self: center;
   margin-left: 10px;
 }

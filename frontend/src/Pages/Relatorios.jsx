@@ -125,15 +125,15 @@ export default function Relatorios() {
                 <div class="filtros-data">
                   <label>
                     Início
-                    <input type="date" lang="pt-BR" onChange={(e) => setInicio(e.target.value)} class="inputs-relatorios" />
+                    <input type="date" onChange={(e) => setInicio(e.target.value)} class="inputs-relatorios" />
                   </label>
 
                   <label>
                     Fim
-                    <input type="date" lang="pt-BR" onChange={(e) => setFim(e.target.value)} class="inputs-relatorios" />
+                    <input type="date" max={new Date().toISOString().split("T")[0]}  onChange={(e) => setFim(e.target.value)} class="inputs-relatorios" />
                   </label>
 
-                  <button onClick={() => buscarRelatorio()}>Buscar</button>
+                  <button id="buscar_btn" onClick={() => buscarRelatorio()}>Buscar</button>
                 </div>
 
                 <div className="filtros-rapidos">

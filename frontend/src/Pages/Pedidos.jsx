@@ -246,6 +246,10 @@ const Pedidos = () => {
     doc.save(`Pedido_${orderID}.pdf`)
   }
 
+  const filterByID = (id) => {
+    
+  }
+
   return (
     <div className="page-pedidos">
       <div className="pedidos">
@@ -254,6 +258,11 @@ const Pedidos = () => {
             <h1>Pedidos</h1>
             <h2>Filtros</h2>
             <div className="filtro-datas">
+              <label>
+                <div className="lbl_filtro">ID:</div>
+                <input placeholder="Digite o ID do pedido:" className="inputs_filtro"/>
+              </label>
+
               <label>
                 <div className="lbl_filtro">Início:</div>
                 <input
@@ -269,6 +278,7 @@ const Pedidos = () => {
                   className="inputs_filtro"
                   type="date"
                   value={dataFim}
+                  max={new Date().toISOString().split("T")[0]}
                   onChange={(e) => setDataFim(e.target.value)}
                 />
               </label>
@@ -348,13 +358,14 @@ const Pedidos = () => {
               .filter(pedidoPassaNoFiltro)
               .map((pedido) => (
                 <div
+                  onClick={() => togglePedido(pedido.id_pedido)}
                   key={pedido.id_pedido}
                   className={`pedido-card ${abertos[pedido.id_pedido] ? "aberto" : "fechado"
                     } ${novosIDs.includes(pedido.id_pedido) ? "pedido-novo" : ""}`}
                 >
                   <div className="pedido-header" key={pedido.id_pedido}>
                     <div className="pedido_info">
-                      <h2 onClick={() => togglePedido(pedido.id_pedido)}>
+                      <h2>
                         Pedido {pedido.id_pedido}{" "}
                         {abertos[pedido.id_pedido] ? (
                           <img className="e_and_r_icons" src={recolher_img} alt="Recolher" />
@@ -365,12 +376,22 @@ const Pedidos = () => {
                     </div>
 
                     <button className="printer_btn">
-                      <img src={impressora_icon} id="printer_icon" onClick={() => gerarPDF(pedido.id_pedido)} />
+                      <img src={impressora_icon} id="printer_icon" onClick={(e) => 
+                        {
+                          e.stopPropagation()
+                          gerarPDF(pedido.id_pedido)
+                        }
+                        } />
                     </button>
 
                     <button
                       className="delete-button-pedido"
-                      onClick={() => handleDeletePedido(pedido.id_pedido)}
+                      onClick={(e) => 
+                      {
+                        e.stopPropagation()
+                        handleDeletePedido(pedido.id_pedido)
+                      }
+                      }
                     >
                       <svg
                         className="trash-svg"
@@ -411,13 +432,12 @@ const Pedidos = () => {
                       </svg>
                     </button>
 
-                    <Link to={`/alterar-pedidos/${pedido.id_pedido}`}>
+                    <Link onClick={(e) => e.stopPropagation()} to={`/alterar-pedidos/${pedido.id_pedido}`}>
                       <button className="btn_alterar">Alterar</button>
                     </Link>
                     {pedido.status_pedido && (
                       <button
                         className={`status-botao ${pedido.status_pedido.replace(" ", "-")}`}
-                      // onClick={() => alternarStatus(pedido.id_pedido)}
                       >
                         {pedido.status_pedido}
                       </button>
