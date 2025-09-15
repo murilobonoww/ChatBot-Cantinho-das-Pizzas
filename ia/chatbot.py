@@ -279,10 +279,11 @@ class Notificacao(BaseModel):
 # Função de conexão com o banco
 def conectar_banco():
     return pymysql.connect(
-        host="localhost",
+        host="127.0.0.1",
         user="root",
         password=db_pass,
-        database=db_name
+        database=db_name,
+        port=3306
     )
 
 # Função para limpar notificações expiradas
