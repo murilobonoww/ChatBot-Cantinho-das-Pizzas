@@ -30,25 +30,25 @@
 
 /* Dashboard grid layout */
 .dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 20px;
   max-width: 1000px;
   margin: 0 auto;
+  justify-content: center;
 }
 
 /* Individual dashboard card */
 .dashboard-card {
-  background: white;
   border: 3px solid #afafaf;
   border-bottom: #afafaf solid 10px;
   border-radius: 16px;
   padding: 30px 20px;
   text-align: center;
-  text-decoration: none;
   color: #222;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   position: relative;
+  width: 200px;
 }
 
 /* Hover effect for dashboard cards */

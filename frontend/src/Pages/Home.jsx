@@ -19,8 +19,7 @@ const cards = [
   { icon: <img id="menu_img_entregadores" src={entregadores} />, title: "Entregadores", external: true, to: "https://app.foodydelivery.com/u/0/couriers" },
   { icon: <img id="menu_img" src={relatorios} />, title: "Faturamento", to: "/relatorios" },
   { icon: <img id="menu_img" src={menu} />, title: "Menu", to: "/cardapio" },
-  // { icon: <img id="menu_img" src={config} />, title: "Configurações", to: "/configuracoes" },
-  { icon:<img id="menu_img" src={bug_report}/> ,title: "Reportar bug", to: "https://wa.me/5548992254888"}
+  { icon: <img id="menu_img" src={bug_report} />, title: "Reportar bug", to: "https://wa.me/5548992254888" }
 ];
 
 export default function Home() {
@@ -305,29 +304,29 @@ export default function Home() {
       </div>
       <h1>Cantinho das Pizzas e do Açaí</h1>
       <div className="dashboard-grid">
-        {cards.map((card, index) => {
-          const badge = index === 0 && temPedidoNovo ? <span className="badge" /> : null;
+          {cards.map((card, index) => {
+            const badge = index === 0 && temPedidoNovo ? <span className="badge" /> : null;
 
-          return card.external ? (
-            <a
-              href={card.to}
-              target="_blank"
-              rel="noopener noreferrer"
-              key={index}
-              className="dashboard-card"
-            >
-              {badge}
-              <div className="icon">{card.icon}</div>
-              <h2>{card.title}</h2>
-            </a>
-          ) : (
-            <Link to={card.to} key={index} className="dashboard-card">
-              {badge}
-              <div className="icon">{card.icon}</div>
-              <h2>{card.title}</h2>
-            </Link>
-          );
-        })}
+            return card.external ? (
+              <a
+                href={card.to}
+                target="_blank"
+                rel="noopener noreferrer"
+                key={index}
+                className="dashboard-card"
+              >
+                {badge}
+                <div className="icon">{card.icon}</div>
+                <h2>{card.title}</h2>
+              </a>
+            ) : (
+              <Link to={card.to} key={index} className="dashboard-card">
+                {badge}
+                <div className="icon">{card.icon}</div>
+                <h2>{card.title}</h2>
+              </Link>
+            );
+          })}
       </div>
     </div>
   );

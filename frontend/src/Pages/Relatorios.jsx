@@ -147,9 +147,10 @@ export default function Relatorios() {
                 </div>
 
                 <div className="resumos">
-                  <div className="card">Total em vendas: <strong>R$ {relatorio.total_vendas?.toFixed(2) || "0,00"}</strong></div>
+                  
+                  <div className="card">Total em vendas: <strong>R$ {relatorio.total_vendas?.toFixed(2).replace(".", ",") || "0,00"}</strong></div>
                   <div className="card">Pedidos no período: <strong>{relatorio.total_pedidos || 0}</strong></div>
-                  <div className="card">Ticket médio: <strong>R$ {relatorio.ticket_medio?.toFixed(2) || "0,00"}</strong></div>
+                  <div className="card">Ticket médio: <strong>R$ {relatorio.ticket_medio?.toFixed(2).replace(".", ",") || "0,00"}</strong></div>
                   <div className="card">Mais vendido: <strong>{relatorio.mais_vendido || "-"}</strong></div>
                 </div>
 
@@ -163,7 +164,7 @@ export default function Relatorios() {
                       cy="50%"
                       outerRadius={80}
                       fill="#8884d8"
-                      label={({ percent, value }) => `${(percent * 100).toFixed(0)}% (${value.toFixed(2)})`}
+                      label={({ percent, value }) => `${(percent * 100).toFixed(0)}% (R$${value.toFixed(2).replace(".", ",")})`}
                     >
                       {pagamentosData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -193,7 +194,7 @@ export default function Relatorios() {
                         <tr key={i}>
                           <td>{p.data}</td>
                           <td>{p.cliente}</td>
-                          <td>R$ {p.valor.toFixed(2)}</td>
+                          <td>R$ {p.valor.toFixed(2).replace(".", ",")}</td>
                           <td id="table_pagamento">{p.pagamento}</td>
                           {/* <td>{p.entregador}</td> */}
                         </tr>
