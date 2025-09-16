@@ -271,3 +271,7 @@ h2 {
 #buscar_btn:hover{
   filter: brightness(1.1);
 }
+
+.txt_relatorios_not_found{
+  color: gray;
+}

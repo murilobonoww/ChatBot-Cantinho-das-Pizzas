@@ -70,7 +70,7 @@ export default function Relatorios() {
     else {
       const today = new Date();
       const end = today.toISOString().slice(0, 10);
-      const start = new Date("2000-01-01").toISOString().slice(0,10)
+      const start = new Date("2000-01-01").toISOString().slice(0, 10)
 
       setInicio(start);
       setFim(end);
@@ -155,26 +155,31 @@ export default function Relatorios() {
                   <div className="card">Mais vendido: <strong>{relatorio.mais_vendido || "-"}</strong></div>
                 </div>
 
-                <div className="piechart">
-                  <PieChart width={500} height={250}>
-                    <Pie
-                      data={pagamentosData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      label={({ percent, value }) => `${(percent * 100).toFixed(0)}% (R$${value.toFixed(2).replace(".", ",")})`}
-                    >
-                      {pagamentosData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </div>
+                {relatorio.total_vendas > 0 ? (
+                  <div className="piechart">
+                    <PieChart width={500} height={250}>
+                      <Pie
+                        data={pagamentosData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        fill="#8884d8"
+                        label={({ percent, value }) => `${(percent * 100).toFixed(0)}% (R$${value.toFixed(2).replace(".", ",")})`}
+                      >
+                        {pagamentosData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </div>
+                ): (
+                  <p className="txt_relatorios_not_found">Não encontramos vendas neste período</p>
+                )}
+
               </div>
 
               <div className="coluna-direita">
