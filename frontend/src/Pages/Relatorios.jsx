@@ -30,13 +30,10 @@ export default function Relatorios() {
 
   const COLORS = ["#009247", "#FF7043", "#8303d2"];
 
-  const buscarRelatorio = () => {
+  const buscarRelatorio = (start, end) => {
     const params = new URLSearchParams();
-    const fim_ = fim || new Date().toISOString().split("T")[0];
-    if (inicio && fim_) {
-      params.append("inicio", inicio);
-      params.append("fim", fim_);
-    }
+      params.append("inicio", start);
+      params.append("fim", end);
 
     fetch(`http://localhost:3000/relatorios/financeiro?${params.toString()}`, {
       headers: {
@@ -60,24 +57,38 @@ export default function Relatorios() {
   };
 
   const aplicarFiltroRapido = (dias) => {
-    if (filtroSelecionado === dias) {
-      setFiltroSelecionado(null);
-      setInicio("");
-      setFim("");
-      buscarRelatorio("", ""); // busca sem filtro
-    } else {
-      const hoje = new Date();
-      const dataFim = hoje.toISOString().slice(0, 10);
-      const dataInicio = new Date(hoje.setDate(hoje.getDate() - dias))
-        .toISOString()
-        .slice(0, 10);
+  setFiltroSelecionado(dias);
 
-      setInicio(dataInicio);
-      setFim(dataFim);
-      setFiltroSelecionado(dias);
-      buscarRelatorio(dataInicio, dataFim);
-    }
-  };
+  const today = new Date();
+  const end = today.toISOString().slice(0,10);
+  const start = new Date(today.setDate(today.getDate() - dias)).toISOString().slice(0,10);
+
+  setInicio(start);
+  setFim(end);
+
+  buscarRelatorio(start, end);
+};
+
+
+    // if (filtroSelecionado === dias) {
+    //   console.log(filtroSelecionado)
+    //   setFiltroSelecionado(null);
+    //   setInicio("");
+    //   setFim("");
+    //   buscarRelatorio("", "");
+    // } else {
+    //   const hoje = new Date();
+    //   const dataFim = hoje.toISOString().slice(0, 10);
+    //   const dataInicio = new Date(hoje.setDate(hoje.getDate() - dias))
+    //     .toISOString()
+    //     .slice(0, 10);
+
+    //   setInicio(dataInicio);
+    //   setFim(dataFim);
+    //   setFiltroSelecionado(dias);
+    //   buscarRelatorio(dataInicio, dataFim);
+    // }
+  
 
   const buscaManual = () => {
     setFiltroSelecionado(null);
@@ -155,7 +166,7 @@ export default function Relatorios() {
                 </div>
 
                 <div className="piechart">
-                  <PieChart width={440} height={250}>
+                  <PieChart width={500} height={250}>
                     <Pie
                       data={pagamentosData}
                       dataKey="value"
