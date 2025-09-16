@@ -32,8 +32,8 @@ export default function Relatorios() {
 
   const buscarRelatorio = (start, end) => {
     const params = new URLSearchParams();
-      params.append("inicio", start);
-      params.append("fim", end);
+    params.append("inicio", start);
+    params.append("fim", end);
 
     fetch(`http://localhost:3000/relatorios/financeiro?${params.toString()}`, {
       headers: {
@@ -57,38 +57,27 @@ export default function Relatorios() {
   };
 
   const aplicarFiltroRapido = (dias) => {
-  setFiltroSelecionado(dias);
+    if (dias !== 999) {
+      const today = new Date();
+      const end = today.toISOString().slice(0, 10);
+      const start = new Date(today.setDate(today.getDate() - dias)).toISOString().slice(0, 10);
 
-  const today = new Date();
-  const end = today.toISOString().slice(0,10);
-  const start = new Date(today.setDate(today.getDate() - dias)).toISOString().slice(0,10);
+      setInicio(start);
+      setFim(end);
+      setFiltroSelecionado(dias);
+      buscarRelatorio(start, end);
+    }
+    else {
+      const today = new Date();
+      const end = today.toISOString().slice(0, 10);
+      const start = new Date("2000-01-01").toISOString().slice(0,10)
 
-  setInicio(start);
-  setFim(end);
-
-  buscarRelatorio(start, end);
-};
-
-
-    // if (filtroSelecionado === dias) {
-    //   console.log(filtroSelecionado)
-    //   setFiltroSelecionado(null);
-    //   setInicio("");
-    //   setFim("");
-    //   buscarRelatorio("", "");
-    // } else {
-    //   const hoje = new Date();
-    //   const dataFim = hoje.toISOString().slice(0, 10);
-    //   const dataInicio = new Date(hoje.setDate(hoje.getDate() - dias))
-    //     .toISOString()
-    //     .slice(0, 10);
-
-    //   setInicio(dataInicio);
-    //   setFim(dataFim);
-    //   setFiltroSelecionado(dias);
-    //   buscarRelatorio(dataInicio, dataFim);
-    // }
-  
+      setInicio(start);
+      setFim(end);
+      setFiltroSelecionado(dias);
+      buscarRelatorio(start, end);
+    }
+  };
 
   const buscaManual = () => {
     setFiltroSelecionado(null);
@@ -128,8 +117,8 @@ export default function Relatorios() {
         {autorizado && (
           <div className="relatorios_panel">
             <div className="header-relatorios">
-            <h1 id="title_relatorios1">Faturamento</h1>
-          </div>
+              <h1 id="title_relatorios1">Faturamento</h1>
+            </div>
             <div className="relatorios-container">
 
               <div className="coluna-esquerda">
@@ -141,7 +130,7 @@ export default function Relatorios() {
 
                   <label>
                     Fim
-                    <input type="date" max={new Date().toISOString().split("T")[0]}  onChange={(e) => setFim(e.target.value)} class="inputs-relatorios" />
+                    <input type="date" max={new Date().toISOString().split("T")[0]} onChange={(e) => setFim(e.target.value)} class="inputs-relatorios" />
                   </label>
 
                   <button id="buscar_btn" onClick={() => buscarRelatorio()}>Buscar</button>
@@ -155,10 +144,11 @@ export default function Relatorios() {
                   <button className={filtroSelecionado === 30 ? "filtro-ativo" : ""} onClick={() => aplicarFiltroRapido(30)}>Últimos 30 dias</button>
                   <button className={filtroSelecionado === 90 ? "filtro-ativo" : ""} onClick={() => aplicarFiltroRapido(90)}>Últimos 3 meses</button>
                   <button className={filtroSelecionado === 365 ? "filtro-ativo" : ""} onClick={() => aplicarFiltroRapido(365)}>Últimos 12 meses</button>
+                  <button className={filtroSelecionado === 999 ? "filtro-ativo" : ""} onClick={() => aplicarFiltroRapido(999)}>Todos</button>
                 </div>
 
                 <div className="resumos">
-                  
+
                   <div className="card">Total em vendas: <strong>R$ {relatorio.total_vendas?.toFixed(2).replace(".", ",") || "0,00"}</strong></div>
                   <div className="card">Pedidos no período: <strong>{relatorio.total_pedidos || 0}</strong></div>
                   <div className="card">Ticket médio: <strong>R$ {relatorio.ticket_medio?.toFixed(2).replace(".", ",") || "0,00"}</strong></div>
