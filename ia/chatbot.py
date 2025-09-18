@@ -35,7 +35,7 @@ load_dotenv()
 
 keys = [
     "MAPS_API_KEY", "GPT_API_KEY", "DB_PASS", "DB_NAME", "APP_ID",
-    "WHATSAPP_ACCESS_TOKEN", "FONE_ID", "CLIENT_SECRET", "WEBHOOK_VERIFY_TOKEN", "MEDIA_ID", "GETNET_ACCESS_TOKEN"
+    "WHATSAPP_ACCESS_TOKEN", "FONE_ID", "CLIENT_SECRET", "WEBHOOK_VERIFY_TOKEN", "MEDIA_ID", "GETNET_ACCESS_TOKEN", "AUTH"
 ]
 
 (
@@ -49,7 +49,8 @@ keys = [
     client_secret,
     webhook_verify_token,
     media_id,
-    getnet_access_token
+    getnet_access_token,
+    auth
 ) = map(os.getenv, keys)
 
 print(f"🔑 access_token: {access_token}")
@@ -62,11 +63,28 @@ websocket_connections: List[WebSocket] = []
 last_msgs: Dict[str, str] = {}
 getnet_url_generate_payment_link = "https://api-homologacao.getnet.com.br/v1/payment-links"
 
+def setTokensToGetnet ():
+    url_ = "https://api-homologacao.getnet.com.br/auth/oauth/v2/token"
+    header_t = {
+        "Authorization": f"Basic {auth}",
+        "Content-Type": "application/x-www-form-urlencoded"}
+    
+    payload_t = {
+        "scope": "oob",
+        "grant_type": "client_credentials"}
+    
+    response = requests.post(url=url_, headers=header_t, data=payload_t)
+    if(response.status_code == 200):
+        token = (response.json()).get("access_token")
+        return token
+    else:
+        print("Erro ao gerar token", response.text)
+        return None
 
-
-def generate_GetNet_payment_link (total_pedido, frete):
+def generate_GetNet_payment_link (token, total_pedido, frete):
+    
     headers_payment_link = {
-    "Authorization": f"Bearer {getnet_access_token}",
+    "Authorization": f"Bearer {token}",
     "Content-Type": "application/json; charset=utf-8"
     }
     expiration = (datetime.utcnow() + timedelta(hours=1)).isoformat() + "Z"
@@ -563,10 +581,11 @@ def enviar_whatsapp(to, msg):
 
 def gerar_mensagem_amigavel(json_pedido, id_pedido):
     try:
+        getnetAcessToken = setTokensToGetnet()
         itens = json_pedido.get("itens", [])
         total_pedido = json_pedido.get("preco_total", 0)
         taxa = round(json_pedido.get("taxa_entrega", 0), 2)
-        paymentLink = generate_GetNet_payment_link(total_pedido, taxa)
+        paymentLink = generate_GetNet_payment_link(getnetAcessToken, total_pedido, taxa)
         
         total_pedido = str(total_pedido).replace(".",",")
         taxa = str(taxa).replace(".",",")
@@ -743,7 +762,7 @@ async def webhook(request: Request):
     try:
         value = data['entry'][0]['changes'][0]['value']
         if 'messages' not in value:
-            print("⚠️ Nenhuma mensagem nova encontrada")
+            # print("⚠️ Nenhuma mensagem nova encontrada")
             return {"message": "No new message"}
 
         msg = value['messages'][0]
