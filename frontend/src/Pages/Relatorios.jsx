@@ -202,7 +202,6 @@ export default function Relatorios() {
                           <td>{p.cliente}</td>
                           <td>R$ {p.valor.toFixed(2).replace(".", ",")}</td>
                           <td id="table_pagamento">{p.pagamento}</td>
-                          {/* <td>{p.entregador}</td> */}
                         </tr>
                       ))}
                     </tbody>

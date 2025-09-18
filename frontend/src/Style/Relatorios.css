@@ -245,21 +245,6 @@ h2 {
   text-transform: capitalize;
 }
 
-/* @media (max-width: 768px) {
-  .relatorios-container {
-    flex-direction: column;
-  }
-
-  .coluna-esquerda,
-  .coluna-direita {
-    max-width: 100%;
-  }
-
-  .tabela-container {
-    max-height: 300px; /* Altura reduzida em telas menores 
-  }
-} */
-
 .piechart{
   margin-top: -30px;
 }

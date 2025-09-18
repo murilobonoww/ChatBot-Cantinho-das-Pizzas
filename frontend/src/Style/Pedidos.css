@@ -447,3 +447,11 @@
 #printer_icon{
   width: 35px;
 }
+
+.auth_container{
+  background-color: #000000;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+  position: fixed;
+}

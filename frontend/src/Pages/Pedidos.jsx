@@ -10,6 +10,7 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { jsPDF } from "jspdf";
 import impressora_icon from "../assets/printer_.png"
+import bell_sound from "../assets/bell.mp3"
 
 const MySwal = withReactContent(Swal);
 
@@ -42,6 +43,8 @@ const Pedidos = () => {
     fetch("http://localhost:3000/pedido/getAll")
       .then(res => res.json())
       .then(data => {
+        console.log(data)
+        var dataPedidos = data
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
         setPedidos(pedidosOrdenados);
         buscarPedidosFiltrados();
@@ -103,6 +106,7 @@ const Pedidos = () => {
 
         pedidosAnteriores.current = pedidosOrdenados;
         setPedidos(pedidosOrdenados);
+        dataPedidos = data
       })
       .catch(err => console.error("Erro ao buscar pedidos:", err));
   };
@@ -250,8 +254,10 @@ const Pedidos = () => {
     doc.save(`Pedido_${orderID}.pdf`)
   }
 
-  const filterByID = (id) => {
-    
+  const setAsPrinted = (id) => {
+    fetch(`http://localhost:3000/pedido/setPrinted/${id}`,{
+      method: "PUT"
+    })
   }
 
   return (
@@ -265,9 +271,9 @@ const Pedidos = () => {
               <label>
                 <div className="lbl_filtro">ID:</div>
                 <input placeholder="Digite o ID do pedido:"
-                className="inputs_filtro"
-                value={id_filter}
-                onChange={(e) => setIdFilter(e.target.value)}/>
+                  className="inputs_filtro"
+                  value={id_filter}
+                  onChange={(e) => setIdFilter(e.target.value)} />
               </label>
 
               <label>
@@ -383,18 +389,18 @@ const Pedidos = () => {
                     </div>
 
                     <button className="printer_btn">
-                      <img src={impressora_icon} id="printer_icon" onClick={(e) => 
-                        {
-                          e.stopPropagation()
-                          gerarPDF(pedido.id_pedido)
-                        }
-                        } />
+                      <img src={impressora_icon} id="printer_icon" onClick={(e) => {
+                        e.stopPropagation()
+                        gerarPDF(pedido.id_pedido)
+                        setAsPrinted(pedido.id_pedido)
+                      }
+                      } />
                     </button>
 
                     <button
                       className="delete-button-pedido"
-                      onClick={(e) => 
-                      {
+                      style={{ }}
+                      onClick={(e) => {
                         e.stopPropagation()
                         handleDeletePedido(pedido.id_pedido)
                       }
@@ -469,10 +475,10 @@ const Pedidos = () => {
                       </p>
                       <p>
                         <strong>Taxa de Entrega:</strong> R${" "}
-                        {parseFloat(pedido.taxa_entrega).toFixed(2)}
+                        {parseFloat(pedido.taxa_entrega).toFixed(2).replace(".", ",")}
                       </p>
                       <p>
-                        <strong>Total:</strong> R$ {parseFloat(pedido.preco_total).toFixed(2)}
+                        <strong>Total:</strong> R$ {parseFloat(pedido.preco_total).toFixed(2).replace(".", ",")}
                       </p>
                       <div className="pedido-itens">
                         <h3>Itens:</h3>

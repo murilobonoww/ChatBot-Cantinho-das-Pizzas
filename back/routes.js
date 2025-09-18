@@ -163,7 +163,7 @@ router.get("/pedido/getAll", (req, res) => {
   let sql = `
     SELECT
       p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, p.preco_total, 
-      p.forma_pagamento, p.status_pedido, p.data_pedido,
+      p.forma_pagamento, p.status_pedido, p.data_pedido, p.printed,
       i.id AS id_item, i.produto, i.sabor, i.quantidade, i.observacao
     FROM pedido p
     LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk
@@ -214,6 +214,7 @@ router.get("/pedido/getAll", (req, res) => {
           forma_pagamento: row.forma_pagamento,
           status_pedido: row.status_pedido,
           data_pedido: row.data_pedido,
+          printed: row.printed,
           itens: [],
         };
       }
@@ -225,6 +226,7 @@ router.get("/pedido/getAll", (req, res) => {
           sabor: row.sabor,
           quantidade: row.quantidade,
           observacao: row.observacao,
+          printed: row.printed
         });
       }
     });
@@ -240,7 +242,7 @@ router.get("/pedido/:id", (req, res) => {
   const sql = `
     SELECT
       p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, 
-      p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido,
+      p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido, p.printed
       i.id, i.produto, i.sabor, i.quantidade, i.observacao
     FROM pedido p
     LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk
@@ -266,6 +268,7 @@ router.get("/pedido/:id", (req, res) => {
       forma_pagamento: resultados[0].forma_pagamento,
       status_pedido: resultados[0].status_pedido,
       data_pedido: resultados[0].data_pedido,
+      printed: resultados[0].printed,
       itens: [],
     };
 
@@ -277,6 +280,7 @@ router.get("/pedido/:id", (req, res) => {
           sabor: row.sabor,
           quantidade: row.quantidade,
           observacao: row.observacao,
+          printed: row.printed
         });
       }
     });
@@ -464,8 +468,24 @@ db.query(most_selled_product_query, (err, resultProduct) => {
   });
 });
 
+router.put("/pedido/setPrinted/:id", (req, res) => {
+  const id = req.params.id
+
+  db.query(
+    `UPDATE pedido SET printed = true WHERE id_pedido = ?`,
+    [id]
+  ),
+  (err) => {
+    if(err){
+      console.log("Erro ao modificar printed")
+    }
+    console.log("Printed setted to true")
+  }
+})
+
 router.put("/pedido/:id", (req, res) => {
   const id = req.params.id;
+  console.log(req.body)
   const {
     nome_cliente,
     endereco_entrega,

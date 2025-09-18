@@ -266,6 +266,7 @@ prompt_template = [{
         "### SOLICITAÇÃO DE ATENDENTE REAL ###"
         "- Se o cliente pedir para falar com um atendente real, uma pessoa de verdade ou usar expressões similares (ex: \"quero falar com alguém\", \"chama um atendente\", \"não quero bot\"), devo responder com gentileza: \"Beleza, já chamei um atendente pra te ajudar! 😊 É só aguardar um pouquinho, tá?\"\n"
         "- Após essa mensagem, não continuo o fluxo do pedido até que o atendente real assuma a conversa, nem após isso.\n"
+        "Sempre devo me assegurar de enviar o endereço COMPLETO no json, pois um endereço incompleto pode levar a uma taxa de entrega errada"
     )
 }]
 
@@ -564,7 +565,11 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
     try:
         itens = json_pedido.get("itens", [])
         total_pedido = json_pedido.get("preco_total", 0)
-        taxa = json_pedido.get("taxa_entrega", 0)
+        taxa = round(json_pedido.get("taxa_entrega", 0), 2)
+        paymentLink = generate_GetNet_payment_link(total_pedido, taxa)
+        
+        total_pedido = str(total_pedido).replace(".",",")
+        taxa = str(taxa).replace(".",",")
         nome = json_pedido.get("nome_cliente", "cliente")
         pagamento = json_pedido.get("forma_pagamento", "").capitalize()
         endereco = json_pedido.get("endereco_entrega", "")
@@ -582,12 +587,12 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
             f"Pedido {numero}\n"
             f"🍕 Seu pedido ficou assim:\n\n"
             f"{chr(10).join(itens_formatados)}\n"
-            f"- Taxa de entrega: R$ {taxa:.2f}\n"
+            f"- Taxa de entrega: R$ {taxa}\n"
             f"- Total a pagar: R$ {total_pedido}\n\n"
             f"🧾 Pagamento: {pagamento}\n"
             f"📍 Entrega em: {endereco}\n\n"
             f"Obrigado pelo pedido, {nome}! Em breve estaremos aí. 😄"
-            f"{generate_GetNet_payment_link(total_pedido, taxa)}"
+            f"{paymentLink}"
         )
         return mensagem
     except Exception as e:
