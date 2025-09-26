@@ -28,6 +28,16 @@ const Pedidos = () => {
   const carregamentoInicial = useRef(true);
   const [modoFiltro, setModoFiltro] = useState("OU");
   const [novosIDs, setNovosIDs] = useState([]);
+  const [changeOpened, setChangeOpened] = useState(false)
+  const [authOpened, setAuthOpened] = useState(false)
+  const [id_selectedOrder, setId_selectedOrder] = useState()
+
+  //form change order
+  const [newProductName, setNewProductName] = useState("")
+  const [newAmountValue, setNewAmountValue] = useState("")
+  const [newFlavor, setNewFlavor] = useState("")
+  const [newObs, setNewObs] = useState("")
+  const [pedido, setPedido] = useState({})
 
   const playSound = () => {
     const audio = new Audio(bell_sound);
@@ -44,7 +54,6 @@ const Pedidos = () => {
       .then(res => res.json())
       .then(data => {
         console.log(data)
-        var dataPedidos = data
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
         setPedidos(pedidosOrdenados);
         buscarPedidosFiltrados();
@@ -106,34 +115,8 @@ const Pedidos = () => {
 
         pedidosAnteriores.current = pedidosOrdenados;
         setPedidos(pedidosOrdenados);
-        dataPedidos = data
       })
       .catch(err => console.error("Erro ao buscar pedidos:", err));
-  };
-
-  const alternarStatus = (id) => {
-    const estados = ["aberto", "andamento", "entregue"];
-    const pedido = pedidos.find((p) => p.id_pedido === id);
-    const atual = pedido.status_pedido;
-    const proximo = estados[(estados.indexOf(atual) + 1) % estados.length];
-
-    fetch(`http://localhost:3000/pedido/${id}/status`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ novoStatus: proximo }),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Erro ao atualizar status");
-        setPedidos((prev) =>
-          prev.map((p) =>
-            p.id_pedido === id ? { ...p, status_pedido: proximo } : p
-          )
-        );
-      })
-      .catch((err) => {
-        console.error("Erro ao alterar status:", err);
-        toast.error("Erro ao alterar status do pedido.", { autoClose: 4000 });
-      });
   };
 
   const buscarPedidosFiltrados = () => {
@@ -255,14 +238,141 @@ const Pedidos = () => {
   }
 
   const setAsPrinted = (id) => {
-    fetch(`http://localhost:3000/pedido/setPrinted/${id}`,{
+    fetch(`http://localhost:3000/pedido/setPrinted/${id}`, {
       method: "PUT"
     })
   }
 
+  const options_input_time_change_order = {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }
+
+  const handleSubmitChange = (e) => {
+    e.preventDefault()
+    console.log("entrou na funcao")
+    pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.map((item) => {
+      console.log("Entrou no map!")
+      const i = {
+        novoProdutoNome: newProductName,
+        novoSabor: newFlavor,
+        novaQuant: newAmountValue,
+        novaOBS: newObs
+      }
+
+      async function changeItem() {
+        try {
+          const res = await fetch(`http://localhost:3000/item-pedido/${item.id_item}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(i)
+          })
+
+          if (res.status === 200) {
+            setChangeOpened((prev) => !prev)
+          }
+        }
+        
+        catch (err) {
+          console.log(item.id, err)
+        }
+      }
+      changeItem()
+    })
+  }
+
+  useEffect(() => {
+    pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.map((item) => {
+      setNewProductName(item.produto),
+        setNewFlavor(item.sabor),
+        setNewAmountValue(item.quantidade),
+        setNewObs(item.observacao)
+    })
+  }, [id_selectedOrder])
+
   return (
     <div className="page-pedidos">
       <div className="pedidos">
+
+        <div style={{ opacity: changeOpened || authOpened ? "100" : "0", pointerEvents: changeOpened || authOpened ? "auto" : "none" }} className="change_filter" onClick={() => changeOpened ? setChangeOpened(prev => !prev) : setAuthOpened(prev => !prev)} ></div>
+
+        <div className="auth_tela_pedidos" style={{ opacity : authOpened ? "100" : "0", pointerEvents : authOpened ? "auto" : "none" }}>
+          <h1>Ação restrita à gerência</h1>
+          <input placeholder="Digite a senha da gerência" />
+          <button onClick={} />
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div style={{ opacity: changeOpened ? "100" : "0", pointerEvents: changeOpened ? "auto" : "none" }} className="change_order_card">
+          <h1>Alterar pedido {id_selectedOrder}</h1>
+
+          <div >
+            <h2>Itens</h2>
+            {
+              pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.map((item) => {
+                return (
+                  <form onSubmit={handleSubmitChange} className="changeOrderForm">
+                    <label>Produto</label>
+                    <input
+                      className="change_order_form_inputs"
+                      type="text"
+                      value={newProductName}
+                      onChange={(e) => setNewProductName(e.target.value)}
+                    />
+
+                    <label>Sabor</label>
+                    <input
+                      className="change_order_form_inputs"
+                      type="text"
+                      value={newFlavor}
+                      onChange={(e) => setNewFlavor(e.target.value)}
+                    />
+
+                    <label>Quantidade</label>
+                    <input
+                      className="change_order_form_inputs"
+                      type="text"
+                      value={newAmountValue}
+                      onChange={(e) => setNewAmountValue(e.target.value)}
+                    />
+
+                    <label>Obs</label>
+                    <input
+                      className="change_order_form_inputs"
+                      type="text"
+                      value={newObs}
+                      onChange={(e) => setNewObs(e.target.value)}
+                    />
+
+                    <button id="btn_submit_change_order_form" type="submit">Salvar</button>
+                  </form>
+                )
+              })
+            }
+
+          </div>
+        </div>
+
+
+
+
         <div className="topo-fixo-pedidos">
           <div className="topo-fixo-restante">
             <h1>Pedidos</h1>
@@ -399,7 +509,7 @@ const Pedidos = () => {
 
                     <button
                       className="delete-button-pedido"
-                      style={{ }}
+                      style={{}}
                       onClick={(e) => {
                         e.stopPropagation()
                         handleDeletePedido(pedido.id_pedido)
@@ -445,9 +555,19 @@ const Pedidos = () => {
                       </svg>
                     </button>
 
-                    <Link onClick={(e) => e.stopPropagation()} to={`/alterar-pedidos/${pedido.id_pedido}`}>
-                      <button className="btn_alterar">Alterar</button>
-                    </Link>
+                    <button onClick={(e) => {
+                      e.stopPropagation()
+                      setAuthOpened(prev => !prev)
+                      // setChangeOpened(prev => !prev)
+                      setId_selectedOrder(pedido.id_pedido)
+                    }} className="btn_alterar">Alterar</button>
+
+
+
+                    {/* </Link> */}
+                    {/* <Link onClick={(e) => e.stopPropagation()} to={`/alterar-pedidos/${pedido.id_pedido}`}> */}
+
+
                     {pedido.status_pedido && (
                       <button
                         className={`status-botao ${pedido.status_pedido.replace(" ", "-")}`}
@@ -505,7 +625,9 @@ const Pedidos = () => {
                   )}
                 </div>
               ))
+
           )}
+
         </div>
       </div>
     </div>

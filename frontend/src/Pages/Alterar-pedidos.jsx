@@ -11,7 +11,6 @@ export default function AlterarPedidos() {
     const [erro, setErro] = useState("");
 
     useEffect(() => {
-
         fetch(`http://localhost:3000/pedido/${id}`)
             .then(res => res.json())
             .then(data => {

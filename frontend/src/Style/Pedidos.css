@@ -1,11 +1,11 @@
 .page-pedidos {
   display: flex;
   min-height: 100vh;
-  font-family: 'MinhaFonte3', sans-serif;
+  font-family: "MinhaFonte3", sans-serif;
 }
 
 @font-face {
-  font-family: 'MinhaFonte3';
+  font-family: "MinhaFonte3";
   src: url(../assets/Lexend-Regular.ttf);
 }
 
@@ -20,13 +20,13 @@
 
 /* TOPO fixo */
 .topo-fixo-pedidos {
-  font-family: MinhaFonte , sans-serif;
+  font-family: MinhaFonte, sans-serif;
   position: sticky;
   top: 0;
   background-color: #ffffff;
   z-index: 1000;
   padding: 20px 30px 15px 30px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid #dddddd19;
   left: 0;
   display: flex;
@@ -60,7 +60,7 @@
 }
 
 .inputs_filtro {
-  font-family: 'MinhaFonte3', sans-serif;
+  font-family: "MinhaFonte3", sans-serif;
   padding: 6px 10px;
   border-radius: 6px;
   border: none;
@@ -75,8 +75,8 @@
   color: #757575;
 }
 
-.inputs_filtro:focus{
-  outline:  1px solid rgb(180, 180, 180);
+.inputs_filtro:focus {
+  outline: 1px solid rgb(180, 180, 180);
 }
 
 /* Filtro itens */
@@ -84,12 +84,10 @@
   margin-top: 10px;
   width: 100%;
   max-width: 450px;
-
-  
 }
 
 #adc_item {
-  background-color: #FF7043;
+  background-color: #ff7043;
   border: none;
   color: white;
   padding: 12px 12px;
@@ -117,7 +115,6 @@
   border-radius: 6px;
   user-select: none;
 }
-
 
 .tag-item {
   background-color: #e63946;
@@ -181,7 +178,7 @@
   border: #afafaf 3px solid;
   border-bottom: #afafaf 10px solid;
   max-width: 620px;
-  font-family: 'MinhaFonte', sans-serif;
+  font-family: "MinhaFonte", sans-serif;
   transition: transform 0.3s ease;
   margin-left: 110px;
   cursor: pointer;
@@ -232,15 +229,15 @@
   height: 45px;
 }
 
-.btn_alterar{
-  font-family: 'MinhaFonte', sans-serif;
+.btn_alterar {
+  font-family: "MinhaFonte", sans-serif;
   margin-right: 15px;
   background-color: #c1c1c1;
   transition: all 0.3s ease-in-out;
   border: none;
 }
 
-.btn_alterar:hover{
+.btn_alterar:hover {
   background-color: #000000;
   color: #fff;
   transform: scale(1.1);
@@ -269,7 +266,6 @@
   /* background-color: #3498db; */
   /* background-color: #3498db; */
   background-color: #3498db;
-
 }
 
 .status-botao.despachado {
@@ -277,11 +273,11 @@
 }
 
 .status-botao.andamento {
-  background-color: #FF7043;
+  background-color: #ff7043;
 }
 
 .status-botao.entregue {
-  background-color: #2E8B57;
+  background-color: #2e8b57;
 }
 
 /* Detalhes do pedido (expandidos) */
@@ -291,7 +287,7 @@
   padding-top: 16px;
   color: #444;
   font-size: 14px;
-  font-family: 'MinhaFonte', sans-serif;
+  font-family: "MinhaFonte", sans-serif;
 }
 
 .pedido-detalhes p {
@@ -331,14 +327,14 @@
 }
 
 .lista-pedidos > div p {
-  font-family: 'MinhaFonte3', sans-serif;
+  font-family: "MinhaFonte3", sans-serif;
   font-size: 18px;
   margin-top: 16px;
   color: #777;
   user-select: none;
 }
 
-.counter_div_orders_list{
+.counter_div_orders_list {
   position: fixed;
   top: 0;
   width: 100vw;
@@ -346,8 +342,6 @@
   background-color: white;
   box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1);
 }
-
-
 
 @keyframes destaquePedido {
   0% {
@@ -384,21 +378,19 @@
   animation: destaquePedido 4s ease forwards;
 }
 
-
-#btn_pedidos_modo{
-  background-color: #FF7043;
+#btn_pedidos_modo {
+  background-color: #ff7043;
   color: white;
   border: none;
   transition: all 0.2s ease-in-out;
   margin-top: 40px;
 }
 
-#btn_pedidos_modo:hover{
+#btn_pedidos_modo:hover {
   transform: scale(1.03);
   border: none;
   filter: brightness(1.1);
 }
-
 
 .delete-button-pedido {
   padding: 0.5rem;
@@ -424,11 +416,14 @@
   transform: scale(0.96) rotate(-1deg);
 }
 
-.swal-custom-title, .swal-custom-text, .swal-confirm-button, .swal-cancel-button{
+.swal-custom-title,
+.swal-custom-text,
+.swal-confirm-button,
+.swal-cancel-button {
   font-family: "MinhaFonte3", sans-serif;
 }
 
-.printer_btn{
+.printer_btn {
   background: transparent;
   border: none;
   width: 35px;
@@ -438,20 +433,110 @@
   transition: all 0.3s ease-in-out;
 }
 
-.printer_btn:hover{
+.printer_btn:hover {
   border: none;
   transform: scale(1.1);
   filter: brightness(1.05);
 }
 
-#printer_icon{
+#printer_icon {
   width: 35px;
 }
 
-.auth_container{
+.auth_container {
   background-color: #000000;
   width: 100vw;
   height: 100vh;
   z-index: 1000;
   position: fixed;
+}
+
+.change_filter {
+  backdrop-filter: blur(5px);
+  background-color: rgba(0, 0, 0, 0.2);
+  position: fixed;
+  z-index: 1100;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  bottom: 50%;
+  width: 100vw;
+  height: 100vh;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.change_order_card {
+  background-color: rgb(255, 255, 255);
+  box-shadow: 5px 5px 5px rgba(0,0,0,0.2);
+  border-radius: 5%;
+  position: fixed;
+  z-index: 1500;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  bottom: 50%;
+  width: 700px;
+  height: 700px;
+  text-align: center;
+  align-items: center;
+  display: flex;
+  transition: all 0.2s ease-in-out;
+  user-select: none;
+  flex-direction: column;
+}
+
+.change_order_card h1{
+  padding-top: 25px;
+}
+
+.change_order_card label{
+  margin: 20px 0 5px 0;
+}
+
+.change_order_card input{
+  box-shadow: 2px 5px 5px rgba(0, 0, 0, 0.2);
+  border: none;
+  max-width: 400px;
+  height: 40px;
+  font-size: 20px;
+  border-radius: 10px;
+}
+
+.change_order_card input:focus{
+  outline: none;
+}
+
+.changeOrderForm{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 10px;
+  max-height: 500px;
+  overflow-y:auto;
+}
+
+.change_order_form_inputs{
+  width: 95%;
+}
+
+#btn_submit_change_order_form{
+  border: none;
+  width: 100px;
+  align-self: center;
+  margin-top: 30px;
+  background-color: #FF7043;
+  color: white;
+  box-shadow: 2px 3px 5px rgba(0,0, 0, 0.2);
+  transition: all 0.3s ease-in-out;
+}
+
+.change_order_form_inputs{
+  color: #898989;
+}
+
+#btn_submit_change_order_form:hover{
+  filter: brightness(1.1);
+  transform: scale(1.03);
+  box-shadow: 2px 3px 5px rgba(0,0, 0, 0.4);
 }

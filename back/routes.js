@@ -242,7 +242,7 @@ router.get("/pedido/:id", (req, res) => {
   const sql = `
     SELECT
       p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, 
-      p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido, p.printed
+      p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido,
       i.id, i.produto, i.sabor, i.quantidade, i.observacao
     FROM pedido p
     LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk
@@ -481,6 +481,42 @@ router.put("/pedido/setPrinted/:id", (req, res) => {
     }
     console.log("Printed setted to true")
   }
+})
+
+router.put("/item-pedido/:id", (req, res) => {
+  const id = req.params.id
+  console.log(req)
+
+  const {
+    novoProdutoNome : produto,
+    novoSabor : sabor,
+    novaQuant : quantidade,
+    novaOBS : obs
+  } = req.body;
+
+  db.query(
+    `UPDATE item_pedido
+    SET produto = ?, sabor = ?, quantidade = ?, observacao = ?
+    WHERE id = ?
+    `,
+    [
+      produto,
+      sabor,
+      quantidade,
+      obs,
+      id
+    ],
+    (err, resultado) => {
+      if(err){
+        console.error(err)
+        return res.status(500).json({ mensagem: "Erro ao atualizar pedido." })
+      }
+      if(resultado.affectedRows === 0){
+        return res.status(404).json({ mensagem : "Pedido não encontrado" })
+      }
+      return res.status(200).json({ mensagem : "Pedido alterado com sucesso!" })      
+    }
+  )
 })
 
 router.put("/pedido/:id", (req, res) => {
