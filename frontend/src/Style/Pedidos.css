@@ -465,6 +465,52 @@
   transition: opacity 0.3s ease-in-out;
 }
 
+.auth_tela_pedidos{
+  position: fixed;
+  z-index: 3000;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  width: 700px;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1);
+}
+
+#input_auth_tela_pedidos{
+  width: 200px;
+  text-align: center;
+  margin: 15px 0 15px 0;
+  padding: 5px;
+  border: 3px solid #afafaf;
+  outline: none;
+  font-family: 'MinhaFonte2';
+  border-radius: 5px;
+}
+
+input[type="password"]{
+  direction: ltr;
+}
+
+
+
+#btn_confirm_auth_pass{
+  background-color: #FF7043;
+  color: white;
+  border: none;
+  transition: all 0.3s ease-in-out;
+}
+
+#btn_confirm_auth_pass:hover{
+  filter: brightness(1.07);
+  transform: scale(1.03);
+}
+
 .change_order_card {
   background-color: rgb(255, 255, 255);
   box-shadow: 5px 5px 5px rgba(0,0,0,0.2);

@@ -10,7 +10,9 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { jsPDF } from "jspdf";
 import impressora_icon from "../assets/printer_.png"
+import warning_icon from "../assets/warning.webp"
 import bell_sound from "../assets/bell.mp3"
+import axios from "axios";
 
 const MySwal = withReactContent(Swal);
 
@@ -28,8 +30,6 @@ const Pedidos = () => {
   const carregamentoInicial = useRef(true);
   const [modoFiltro, setModoFiltro] = useState("OU");
   const [novosIDs, setNovosIDs] = useState([]);
-  const [changeOpened, setChangeOpened] = useState(false)
-  const [authOpened, setAuthOpened] = useState(false)
   const [id_selectedOrder, setId_selectedOrder] = useState()
 
   //form change order
@@ -38,6 +38,13 @@ const Pedidos = () => {
   const [newFlavor, setNewFlavor] = useState("")
   const [newObs, setNewObs] = useState("")
   const [pedido, setPedido] = useState({})
+  const [changeOpened, setChangeOpened] = useState(false)
+
+
+  //auth panel to change order form
+  const [authOpened, setAuthOpened] = useState(false)
+  const [authPass, setAuthPass] = useState("")
+
 
   const playSound = () => {
     const audio = new Audio(bell_sound);
@@ -273,7 +280,7 @@ const Pedidos = () => {
             setChangeOpened((prev) => !prev)
           }
         }
-        
+
         catch (err) {
           console.log(item.id, err)
         }
@@ -291,16 +298,52 @@ const Pedidos = () => {
     })
   }, [id_selectedOrder])
 
+  async function confirmAuthPass(pass) {
+    try {
+      const res = await axios.post(`http://localhost:3000/confirmAuthPass/${pass}`)
+      if (res.status === 200) {
+        setChangeOpened(true)
+        setAuthOpened(false)
+      }
+    }
+    catch (error) {
+      if (error.response) {
+
+        if (error.response.status === 404) {
+          console.log("rota não encontrada")
+        }
+
+        else if (error.response.status === 401) {
+          toast.error("Senha incorreta", { autoClose: 4000 })
+          console.log("unauthorizated")
+        }
+      }
+    }
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && authOpened) {
+      confirmAuthPass(authPass)
+    }
+  }
+
+  useEffect(() => {
+    if (authOpened === false) {
+      setAuthPass("")
+    }
+  }, [authOpened])
+
   return (
     <div className="page-pedidos">
       <div className="pedidos">
 
         <div style={{ opacity: changeOpened || authOpened ? "100" : "0", pointerEvents: changeOpened || authOpened ? "auto" : "none" }} className="change_filter" onClick={() => changeOpened ? setChangeOpened(prev => !prev) : setAuthOpened(prev => !prev)} ></div>
 
-        <div className="auth_tela_pedidos" style={{ opacity : authOpened ? "100" : "0", pointerEvents : authOpened ? "auto" : "none" }}>
-          <h1>Ação restrita à gerência</h1>
-          <input placeholder="Digite a senha da gerência" />
-          <button onClick={} />
+        <div className="auth_tela_pedidos" style={{ opacity: authOpened ? "100" : "0", pointerEvents: authOpened ? "auto" : "none" }}>
+          <img src={warning_icon} style={{ width: "50px" }} />
+          <h1 id="title_auth_tela_pedidos">Ação restrita à gerência</h1>
+          <input placeholder="Digite a senha da gerência" type="password" value={authPass} onChange={(e) => setAuthPass(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} autoFocus id="input_auth_tela_pedidos" />
+          <button id="btn_confirm_auth_pass" onClick={() => confirmAuthPass(authPass)}>Entrar</button>
         </div>
 
 

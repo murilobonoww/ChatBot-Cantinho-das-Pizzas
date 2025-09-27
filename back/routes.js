@@ -6,6 +6,17 @@ const dotenv = require("dotenv");
 dotenv.config();
 const axios = require("axios");
 
+
+router.post("/confirmAuthPass/:pass", (req, res) => {
+  const pass = req.params.pass;
+  const gerenciaPass = process.env.SENHA_GERENCIA;
+  if (pass === gerenciaPass) {
+    res.status(200).json({ message: "autorizado" });
+  } else {
+    res.status(401).json({ error: "senha incorreta" });
+  }
+});
+
 function formatarEndereco(endereco) {
   if (!endereco || typeof endereco !== "string") return "";
   return endereco
@@ -147,12 +158,10 @@ router.post("/pedido/post", (req, res) => {
         `📦 Pedido #${id_pedido} registrado com sucesso. (ainda não enviado pra foody)`
       );
       enviarParaFoody(pedido, id_pedido, latitude, longitude); // ← envia para a Foody de forma assíncrona
-      res
-        .status(200)
-        .json({
-          mensagem: "✅ Pedido registrado e enviado para a Foody com sucesso!",
-          id_pedido,
-        });
+      res.status(200).json({
+        mensagem: "✅ Pedido registrado e enviado para a Foody com sucesso!",
+        id_pedido,
+      });
     });
   });
 });
@@ -174,8 +183,8 @@ router.get("/pedido/getAll", (req, res) => {
 
   if (id) {
     conditions.push(`p.id_pedido = ?`);
-    console.log(id)
-    params.push(`${id}`)
+    console.log(id);
+    params.push(`${id}`);
   }
 
   if (inicio && fim) {
@@ -226,7 +235,7 @@ router.get("/pedido/getAll", (req, res) => {
           sabor: row.sabor,
           quantidade: row.quantidade,
           observacao: row.observacao,
-          printed: row.printed
+          printed: row.printed,
         });
       }
     });
@@ -280,7 +289,7 @@ router.get("/pedido/:id", (req, res) => {
           sabor: row.sabor,
           quantidade: row.quantidade,
           observacao: row.observacao,
-          printed: row.printed
+          printed: row.printed,
         });
       }
     });
@@ -409,8 +418,7 @@ router.get("/relatorios/financeiro", (req, res) => {
 
     const ticket_medio = total_pedidos > 0 ? total_vendas / total_pedidos : 0;
 
-  // Query 2: produto mais vendido
-let most_selled_product_query = `
+    let most_selled_product_query = `
   SELECT produto 
   FROM item_pedido
   GROUP BY produto
@@ -418,16 +426,18 @@ let most_selled_product_query = `
   LIMIT 1;
 `;
 
-db.query(most_selled_product_query, (err, resultProduct) => {
-  if (err) {
-    console.error("❌ Erro ao buscar produto mais vendido:", err);
-    return res.status(500).json({ mensagem: "Erro ao buscar produto mais vendido" });
-  }
+    db.query(most_selled_product_query, (err, resultProduct) => {
+      if (err) {
+        console.error("❌ Erro ao buscar produto mais vendido:", err);
+        return res
+          .status(500)
+          .json({ mensagem: "Erro ao buscar produto mais vendido" });
+      }
 
-  let mais_vendido = resultProduct.length > 0 ? resultProduct[0].produto : null;
+      let mais_vendido =
+        resultProduct.length > 0 ? resultProduct[0].produto : null;
 
-  // ✅ Query 3: sabor mais vendido desse produto
-  let most_selled_flavor_query = `
+      let most_selled_flavor_query = `
     SELECT sabor
     FROM item_pedido
     WHERE produto = ?
@@ -436,62 +446,58 @@ db.query(most_selled_product_query, (err, resultProduct) => {
     LIMIT 1;
   `;
 
-  db.query(most_selled_flavor_query, [mais_vendido], (err, resultFlavor) => {
-    if (err) {
-      console.error("❌ Erro ao buscar sabor mais vendido:", err);
-      return res.status(500).json({ mensagem: "Erro ao buscar sabor mais vendido" });
-    }
+      db.query(
+        most_selled_flavor_query,
+        [mais_vendido],
+        (err, resultFlavor) => {
+          if (err) {
+            console.error("❌ Erro ao buscar sabor mais vendido:", err);
+            return res
+              .status(500)
+              .json({ mensagem: "Erro ao buscar sabor mais vendido" });
+          }
 
-    let sabor_mais_vendido = resultFlavor.length > 0 ? resultFlavor[0].sabor : null;
+          let sabor_mais_vendido =
+            resultFlavor.length > 0 ? resultFlavor[0].sabor : null;
 
-    mais_vendido = String(mais_vendido + " de " + sabor_mais_vendido);
+          mais_vendido = String(mais_vendido + " de " + sabor_mais_vendido);
 
-    // 📌 Agora envia tudo junto
-    res.status(200).json({
-      total_vendas,
-      total_pedidos,
-      ticket_medio,
-      mais_vendido,
-      sabor_mais_vendido,
-      pagamentos,
-      pedidos: pedidosFormatados,
+          res.status(200).json({
+            total_vendas,
+            total_pedidos,
+            ticket_medio,
+            mais_vendido,
+            sabor_mais_vendido,
+            pagamentos,
+            pedidos: pedidosFormatados,
+          });
+        }
+      );
     });
   });
 });
 
+router.put("/pedido/setPrinted/:id", (req, res) => {
+  const id = req.params.id;
 
-  
-    // pegar o campo produto que mais se repete na tabela item_pedido, 
-    // depois pegar o sabor que mais se repete deste produto, utilizando o campo quantidade
-
-   
-  });
+  db.query(`UPDATE pedido SET printed = true WHERE id_pedido = ?`, [id]),
+    (err) => {
+      if (err) {
+        console.log("Erro ao modificar printed");
+      }
+      console.log("Printed setted to true");
+    };
 });
 
-router.put("/pedido/setPrinted/:id", (req, res) => {
-  const id = req.params.id
-
-  db.query(
-    `UPDATE pedido SET printed = true WHERE id_pedido = ?`,
-    [id]
-  ),
-  (err) => {
-    if(err){
-      console.log("Erro ao modificar printed")
-    }
-    console.log("Printed setted to true")
-  }
-})
-
 router.put("/item-pedido/:id", (req, res) => {
-  const id = req.params.id
-  console.log(req)
+  const id = req.params.id;
+  console.log(req);
 
   const {
-    novoProdutoNome : produto,
-    novoSabor : sabor,
-    novaQuant : quantidade,
-    novaOBS : obs
+    novoProdutoNome: produto,
+    novoSabor: sabor,
+    novaQuant: quantidade,
+    novaOBS: obs,
   } = req.body;
 
   db.query(
@@ -499,29 +505,23 @@ router.put("/item-pedido/:id", (req, res) => {
     SET produto = ?, sabor = ?, quantidade = ?, observacao = ?
     WHERE id = ?
     `,
-    [
-      produto,
-      sabor,
-      quantidade,
-      obs,
-      id
-    ],
+    [produto, sabor, quantidade, obs, id],
     (err, resultado) => {
-      if(err){
-        console.error(err)
-        return res.status(500).json({ mensagem: "Erro ao atualizar pedido." })
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ mensagem: "Erro ao atualizar pedido." });
       }
-      if(resultado.affectedRows === 0){
-        return res.status(404).json({ mensagem : "Pedido não encontrado" })
+      if (resultado.affectedRows === 0) {
+        return res.status(404).json({ mensagem: "Pedido não encontrado" });
       }
-      return res.status(200).json({ mensagem : "Pedido alterado com sucesso!" })      
+      return res.status(200).json({ mensagem: "Pedido alterado com sucesso!" });
     }
-  )
-})
+  );
+});
 
 router.put("/pedido/:id", (req, res) => {
   const id = req.params.id;
-  console.log(req.body)
+  console.log(req.body);
   const {
     nome_cliente,
     endereco_entrega,
@@ -680,13 +680,19 @@ router.get("/pedido/foody/:uid", async (req, res) => {
 
     res.status(200).json(resposta);
   } catch (error) {
-    console.error(`❌ Erro ao buscar pedido #${uid} na Foody:`, error?.response?.data || error.message);
-    res.status(500).json({ mensagem: "Erro ao buscar pedido na Foody Delivery" });
+    console.error(
+      `❌ Erro ao buscar pedido #${uid} na Foody:`,
+      error?.response?.data || error.message
+    );
+    res
+      .status(500)
+      .json({ mensagem: "Erro ao buscar pedido na Foody Delivery" });
   }
 });
 
 router.post("/cardapio", async (req, res) => {
-  const { section, nome, ingredientes, preco, preco_25, preco_35, tamanho } = req.body;
+  const { section, nome, ingredientes, preco, preco_25, preco_35, tamanho } =
+    req.body;
 
   const validSections = ["pizzas", "esfihas", "bebidas", "doces"];
   if (!validSections.includes(section)) {
@@ -697,13 +703,19 @@ router.post("/cardapio", async (req, res) => {
     return res.status(400).json({ mensagem: "Nome ou sabor é obrigatório" });
   }
   if (section === "pizzas" && (!ingredientes || !preco_25 || !preco_35)) {
-    return res.status(400).json({ mensagem: "Ingredientes, preço 25cm e preço 35cm são obrigatórios" });
+    return res
+      .status(400)
+      .json({
+        mensagem: "Ingredientes, preço 25cm e preço 35cm são obrigatórios",
+      });
   }
   if ((section === "esfihas" || section === "doces") && !preco) {
     return res.status(400).json({ mensagem: "Preço é obrigatório" });
   }
   if (section === "bebidas" && (!tamanho || !preco)) {
-    return res.status(400).json({ mensagem: "Tamanho e preço são obrigatórios para bebidas" });
+    return res
+      .status(400)
+      .json({ mensagem: "Tamanho e preço são obrigatórios para bebidas" });
   }
 
   try {
@@ -740,7 +752,9 @@ router.post("/cardapio", async (req, res) => {
     await tempConnection.query(sql, values);
     await tempConnection.end();
 
-    res.status(201).json({ mensagem: `Item adicionado com sucesso à seção ${section}` });
+    res
+      .status(201)
+      .json({ mensagem: `Item adicionado com sucesso à seção ${section}` });
   } catch (err) {
     console.error(`❌ Erro ao adicionar item na seção ${section}:`, err);
     res.status(500).json({ mensagem: "Erro ao adicionar item ao cardápio" });
@@ -749,7 +763,8 @@ router.post("/cardapio", async (req, res) => {
 
 router.put("/cardapio/:id", async (req, res) => {
   const { id } = req.params;
-  const { section, nome, ingredientes, preco, preco_25, preco_35, tamanho } = req.body;
+  const { section, nome, ingredientes, preco, preco_25, preco_35, tamanho } =
+    req.body;
 
   const validSections = ["pizzas", "esfihas", "bebidas", "doces"];
   if (!validSections.includes(section)) {
@@ -760,13 +775,19 @@ router.put("/cardapio/:id", async (req, res) => {
     return res.status(400).json({ mensagem: "Nome ou sabor é obrigatório" });
   }
   if (section === "pizzas" && (!ingredientes || !preco_25 || !preco_35)) {
-    return res.status(400).json({ mensagem: "Ingredientes, preço 25cm e preço 35cm são obrigatórios" });
+    return res
+      .status(400)
+      .json({
+        mensagem: "Ingredientes, preço 25cm e preço 35cm são obrigatórios",
+      });
   }
   if ((section === "esfihas" || section === "doces") && !preco) {
     return res.status(400).json({ mensagem: "Preço é obrigatório" });
   }
   if (section === "bebidas" && (!tamanho || !preco)) {
-    return res.status(400).json({ mensagem: "Tamanho e preço são obrigatórios para bebidas" });
+    return res
+      .status(400)
+      .json({ mensagem: "Tamanho e preço são obrigatórios para bebidas" });
   }
 
   try {
@@ -809,7 +830,9 @@ router.put("/cardapio/:id", async (req, res) => {
 
     await tempConnection.end();
     console.log(`✅ Item #${id} atualizado com sucesso na seção ${section}`);
-    res.status(200).json({ mensagem: `Item atualizado com sucesso na seção ${section}` });
+    res
+      .status(200)
+      .json({ mensagem: `Item atualizado com sucesso na seção ${section}` });
   } catch (err) {
     console.error(`❌ Erro ao atualizar item #${id} na seção ${section}:`, err);
     res.status(500).json({ mensagem: "Erro ao atualizar item no cardápio" });
@@ -820,13 +843,21 @@ router.delete("/cardapio", async (req, res) => {
   const { section, ids } = req.body;
 
   const validSections = ["pizzas", "esfihas", "bebidas", "doces"];
-  if (!validSections.includes(section) || !Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({ mensagem: "Seção inválida ou lista de IDs vazia" });
+  if (
+    !validSections.includes(section) ||
+    !Array.isArray(ids) ||
+    ids.length === 0
+  ) {
+    return res
+      .status(400)
+      .json({ mensagem: "Seção inválida ou lista de IDs vazia" });
   }
 
   try {
     // Sanitizar IDs para números inteiros
-    const sanitizedIds = ids.map(id => parseInt(id)).filter(id => !isNaN(id));
+    const sanitizedIds = ids
+      .map((id) => parseInt(id))
+      .filter((id) => !isNaN(id));
     if (sanitizedIds.length === 0) {
       return res.status(400).json({ mensagem: "Nenhum ID válido fornecido" });
     }
@@ -845,18 +876,27 @@ router.delete("/cardapio", async (req, res) => {
     await tempConnection.end();
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ mensagem: "Nenhum item encontrado para exclusão" });
+      return res
+        .status(404)
+        .json({ mensagem: "Nenhum item encontrado para exclusão" });
     }
 
-    console.log(`✅ ${result.affectedRows} item(s) deletado(s) da seção ${section}`);
-    res.status(200).json({ mensagem: `Item(s) deletado(s) com sucesso da seção ${section}` });
+    console.log(
+      `✅ ${result.affectedRows} item(s) deletado(s) da seção ${section}`
+    );
+    res
+      .status(200)
+      .json({
+        mensagem: `Item(s) deletado(s) com sucesso da seção ${section}`,
+      });
   } catch (err) {
     console.error(`❌ Erro ao deletar itens da seção ${section}:`, err);
-    res.status(500).json({ mensagem: err.message || "Erro ao deletar itens do cardápio" });
+    res
+      .status(500)
+      .json({ mensagem: err.message || "Erro ao deletar itens do cardápio" });
   }
 });
 
 module.exports = router;
-
 
 module.exports = router;
