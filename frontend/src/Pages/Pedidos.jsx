@@ -343,7 +343,8 @@ const Pedidos = () => {
     <div className="page-pedidos">
       <div className="pedidos">
 
-        <div style={{ opacity: changeOpened || authOpened || authOpenedDelete ? "100" : "0", pointerEvents: changeOpened || authOpened || authOpenedDelete ? "auto" : "none" }} className="change_filter" onClick={() => changeOpened ? setChangeOpened(prev => !prev) : setAuthOpened(prev => !prev)} ></div>
+        <div style={{ opacity: changeOpened || authOpened ? "100" : "0", pointerEvents: changeOpened || authOpened ? "auto" : "none" }} className="change_filter" onClick={() => changeOpened ? setChangeOpened(prev => !prev) : setAuthOpened(prev => !prev)} ></div>
+        <div style={{ opacity: deleteOpened || authOpenedDelete ? "100" : "0", pointerEvents: changeOpened || authOpenedDelete ? "auto" : "none" }} className="change_filter" onClick={() => deleteOpened ? setDeleteOpened(prev => !prev) : setAuthOpenedDelete(prev => !prev)} ></div>
 
         <div className="auth_tela_pedidos" style={{ opacity: authOpened ? "100" : "0", pointerEvents: authOpened ? "auto" : "none" }}>
           <img src={warning_icon} style={{ width: "50px" }} />
