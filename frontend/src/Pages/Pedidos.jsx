@@ -41,9 +41,11 @@ const Pedidos = () => {
   const [changeOpened, setChangeOpened] = useState(false)
 
 
-  //auth panel to change order form
+  //auth panel to change/delete order
   const [authOpened, setAuthOpened] = useState(false)
   const [authPass, setAuthPass] = useState("")
+  const [authOpenedDelete, setAuthOpenedDelete] = useState(false)
+  const [deleteOpened, setDeleteOpened] = useState(false)
 
 
   const playSound = () => {
@@ -298,12 +300,16 @@ const Pedidos = () => {
     })
   }, [id_selectedOrder])
 
-  async function confirmAuthPass(pass) {
+  async function confirmAuthPass(pass, method) {
     try {
       const res = await axios.post(`http://localhost:3000/confirmAuthPass/${pass}`)
-      if (res.status === 200) {
+      if (res.status === 200 && method === "change") {
         setChangeOpened(true)
         setAuthOpened(false)
+      }
+      else if (res.status === 200 && method === "delete"){
+        setAuthOpenedDelete(false)
+        handleDeletePedido(id_selectedOrder)
       }
     }
     catch (error) {
@@ -328,22 +334,29 @@ const Pedidos = () => {
   }
 
   useEffect(() => {
-    if (authOpened === false) {
+    if (authOpened === false || authOpenedDelete === false) {
       setAuthPass("")
     }
-  }, [authOpened])
+  }, [authOpened, authOpenedDelete])
 
   return (
     <div className="page-pedidos">
       <div className="pedidos">
 
-        <div style={{ opacity: changeOpened || authOpened ? "100" : "0", pointerEvents: changeOpened || authOpened ? "auto" : "none" }} className="change_filter" onClick={() => changeOpened ? setChangeOpened(prev => !prev) : setAuthOpened(prev => !prev)} ></div>
+        <div style={{ opacity: changeOpened || authOpened || authOpenedDelete ? "100" : "0", pointerEvents: changeOpened || authOpened || authOpenedDelete ? "auto" : "none" }} className="change_filter" onClick={() => changeOpened ? setChangeOpened(prev => !prev) : setAuthOpened(prev => !prev)} ></div>
 
         <div className="auth_tela_pedidos" style={{ opacity: authOpened ? "100" : "0", pointerEvents: authOpened ? "auto" : "none" }}>
           <img src={warning_icon} style={{ width: "50px" }} />
           <h1 id="title_auth_tela_pedidos">Ação restrita à gerência</h1>
           <input placeholder="Digite a senha da gerência" type="password" value={authPass} onChange={(e) => setAuthPass(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} autoFocus id="input_auth_tela_pedidos" />
-          <button id="btn_confirm_auth_pass" onClick={() => confirmAuthPass(authPass)}>Entrar</button>
+          <button id="btn_confirm_auth_pass" onClick={() => confirmAuthPass(authPass, "change")}>Entrar</button>
+        </div>
+
+        <div className="auth_tela_pedidos" style={{ opacity: authOpenedDelete ? "100" : "0", pointerEvents: authOpenedDelete ? "auto" : "none" }}>
+          <img src={warning_icon} style={{ width: "50px" }} />
+          <h1 id="title_auth_tela_pedidos">Ação restrita à gerência</h1>
+          <input placeholder="Digite a senha da gerência" type="password" value={authPass} onChange={(e) => setAuthPass(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} autoFocus id="input_auth_tela_pedidos" />
+          <button id="btn_confirm_auth_pass" onClick={() => confirmAuthPass(authPass, "delete")}>Entrar</button>
         </div>
 
 
@@ -555,7 +568,8 @@ const Pedidos = () => {
                       style={{}}
                       onClick={(e) => {
                         e.stopPropagation()
-                        handleDeletePedido(pedido.id_pedido)
+                        setAuthOpenedDelete(prev => !prev)
+                        setId_selectedOrder(pedido.id_pedido)
                       }
                       }
                     >
