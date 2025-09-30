@@ -39,6 +39,7 @@ const Pedidos = () => {
   const [newObs, setNewObs] = useState("")
   const [pedido, setPedido] = useState({})
   const [changeOpened, setChangeOpened] = useState(false)
+  const [itemsToEdit, setItemsToEdit] = useState([])
 
 
   //auth panel to change/delete order
@@ -258,21 +259,51 @@ const Pedidos = () => {
     hour12: false
   }
 
-  const handleSubmitChange = (e) => {
+  // const handleSubmitChange = (e, items) => {
+  //   e.preventDefault()
+  //   pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.map((item) => {
+  //     const i = {
+  //       novoProdutoNome: newProductName,
+  //       novoSabor: newFlavor,
+  //       novaQuant: newAmountValue,
+  //       novaOBS: newObs
+  //     }
+
+  //     async function changeItem() {
+  //       try {
+  //         const res = await fetch(`http://localhost:3000/item-pedido/${item.id_item}`, {
+  //           method: "PUT",
+  //           headers: { "Content-Type": "application/json" },
+  //           body: JSON.stringify(i)
+  //         })
+
+  //         if (res.status === 200) {
+  //           setChangeOpened((prev) => !prev)
+  //         }
+  //       }
+
+  //       catch (err) {
+  //         console.log(item.id, err)
+  //       }
+  //     }
+  //     changeItem()
+  //   })
+  // }
+
+  const handleSubmitChange = (e, items) => {
     e.preventDefault()
-    console.log("entrou na funcao")
-    pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.map((item) => {
-      console.log("Entrou no map!")
+    console.log(items)
+    items.map((item) => {
       const i = {
-        novoProdutoNome: newProductName,
-        novoSabor: newFlavor,
-        novaQuant: newAmountValue,
-        novaOBS: newObs
+        novoProdutoNome: item.produto,
+        novoSabor: item.sabor,
+        novaQuant: item.quantidade,
+        novaOBS: item.obs
       }
 
       async function changeItem() {
         try {
-          const res = await fetch(`http://localhost:3000/item-pedido/${item.id_item}`, {
+          const res = await fetch(`http://localhost:3000/item-pedido/${item.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(i)
@@ -307,7 +338,7 @@ const Pedidos = () => {
         setChangeOpened(true)
         setAuthOpened(false)
       }
-      else if (res.status === 200 && method === "delete"){
+      else if (res.status === 200 && method === "delete") {
         setAuthOpenedDelete(false)
         handleDeletePedido(id_selectedOrder)
       }
@@ -339,12 +370,25 @@ const Pedidos = () => {
     }
   }, [authOpened, authOpenedDelete])
 
+  useEffect(() => {
+    const selected = pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder);
+    if (selected) {
+      setItemsToEdit(selected.itens.map(item => ({
+        id: item.id_item,
+        produto: item.produto,
+        sabor: item.sabor,
+        quantidade: item.quantidade,
+        obs: item.observacao
+      })))
+    }
+  }, [id_selectedOrder])
+
   return (
     <div className="page-pedidos">
       <div className="pedidos">
 
         <div style={{ opacity: changeOpened || authOpened ? "100" : "0", pointerEvents: changeOpened || authOpened ? "auto" : "none" }} className="change_filter" onClick={() => changeOpened ? setChangeOpened(prev => !prev) : setAuthOpened(prev => !prev)} ></div>
-        <div style={{ opacity: deleteOpened || authOpenedDelete ? "100" : "0", pointerEvents: changeOpened || authOpenedDelete ? "auto" : "none" }} className="change_filter" onClick={() => deleteOpened ? setDeleteOpened(prev => !prev) : setAuthOpenedDelete(prev => !prev)} ></div>
+        <div style={{ opacity: deleteOpened || authOpenedDelete ? "100" : "0", pointerEvents: deleteOpened || authOpenedDelete ? "auto" : "none" }} className="change_filter" onClick={() => deleteOpened ? setDeleteOpened(prev => !prev) : setAuthOpenedDelete(prev => !prev)} ></div>
 
         <div className="auth_tela_pedidos" style={{ opacity: authOpened ? "100" : "0", pointerEvents: authOpened ? "auto" : "none" }}>
           <img src={warning_icon} style={{ width: "50px" }} />
@@ -380,49 +424,80 @@ const Pedidos = () => {
         <div style={{ opacity: changeOpened ? "100" : "0", pointerEvents: changeOpened ? "auto" : "none" }} className="change_order_card">
           <h1>Alterar pedido {id_selectedOrder}</h1>
 
-          <div >
+          <div>
             <h2>Itens</h2>
-            {
-              pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.map((item) => {
-                return (
-                  <form onSubmit={handleSubmitChange} className="changeOrderForm">
-                    <label>Produto</label>
-                    <input
-                      className="change_order_form_inputs"
-                      type="text"
-                      value={newProductName}
-                      onChange={(e) => setNewProductName(e.target.value)}
-                    />
+            <form onSubmit={(e) => handleSubmitChange(e, itemsToEdit)}>
+              <div style={{
+                height: pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.length > 1 ? "450px" : "360px",
+                overflowY: pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.length > 1 ? "auto" : "hidden",
+                borderBottom: pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.length > 1 ? "1px solid gray" : "none"
+              }}>
+                {
+                  itemsToEdit.map((item, index) => {
+                    return (
+                      <div className="changeOrderForm" key={index} style={{ marginRight: pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.length > 1 ? "10px" : "0" }}>
+                        <label>Produto</label>
+                        <input
+                          className="change_order_form_inputs"
+                          type="text"
+                          value={item.produto}
+                          onChange={(e) => {
+                            setItemsToEdit(prev => {
+                              const copy = [...prev]
+                              copy[index] = { ...copy[index], produto: e.target.value }
+                              return copy;
+                            })
+                          }}
+                        />
 
-                    <label>Sabor</label>
-                    <input
-                      className="change_order_form_inputs"
-                      type="text"
-                      value={newFlavor}
-                      onChange={(e) => setNewFlavor(e.target.value)}
-                    />
+                        <label>Sabor</label>
+                        <input
+                          className="change_order_form_inputs"
+                          type="text"
+                          value={item.sabor}
+                          onChange={(e) => {
+                            setItemsToEdit(prev => {
+                              const copy = [...prev]
+                              copy[index] = { ...copy[index], sabor: e.target.value }
+                              return copy
+                            })
+                          }}
+                        />
 
-                    <label>Quantidade</label>
-                    <input
-                      className="change_order_form_inputs"
-                      type="text"
-                      value={newAmountValue}
-                      onChange={(e) => setNewAmountValue(e.target.value)}
-                    />
+                        <label>Quantidade</label>
+                        <input
+                          className="change_order_form_inputs"
+                          type="text"
+                          value={item.quantidade}
+                          onChange={(e) => {
+                            setItemsToEdit(prev => {
+                              const copy = [...prev]
+                              copy[index] = { ...copy[index], quantidade: e.target.value }
+                              return copy
+                            })
+                          }}
+                        />
 
-                    <label>Obs</label>
-                    <input
-                      className="change_order_form_inputs"
-                      type="text"
-                      value={newObs}
-                      onChange={(e) => setNewObs(e.target.value)}
-                    />
-
-                    <button id="btn_submit_change_order_form" type="submit">Salvar</button>
-                  </form>
-                )
-              })
-            }
+                        <label>Obs</label>
+                        <input
+                          className="change_order_form_inputs"
+                          type="text"
+                          value={item.obs}
+                          onChange={(e) => {
+                            setItemsToEdit(prev => {
+                              const copy = [...prev]
+                              copy[index] = { ...copy[index], obs: e.target.value }
+                              return copy
+                            })
+                          }}
+                        />
+                      </div>
+                    )
+                  })
+                }
+              </div>
+              <button id="btn_submit_change_order_form" type="submit">Salvar</button>
+            </form>
 
           </div>
         </div>
