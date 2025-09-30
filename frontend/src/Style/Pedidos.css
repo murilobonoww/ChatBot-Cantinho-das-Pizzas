@@ -392,6 +392,11 @@
   filter: brightness(1.1);
 }
 
+.trash-svg:hover rect {
+  fill: red;
+}
+
+
 .delete-button-pedido {
   padding: 0.5rem;
   border: none;
