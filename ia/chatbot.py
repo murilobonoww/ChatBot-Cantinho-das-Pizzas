@@ -166,6 +166,7 @@ prompt_template = [{
         '      "produto": "pizza",\n'
         '      "sabor": "frango 2",\n'
         '      "quantidade": 1,\n'
+        '      "preco": 45,\n'
         '      "observacao": "25cm"\n'
         '    }\n'
         '  ]\n'
@@ -583,11 +584,12 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
     try:
         getnetAcessToken = setTokensToGetnet()
         itens = json_pedido.get("itens", [])
+        print(f"ITEEEEEENNNNNSSSS:\n\n\n\n\n\n\n\n\n\n\n\n\n\n{itens}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
         total_pedido = json_pedido.get("preco_total", 0)
         taxa = round(json_pedido.get("taxa_entrega", 0), 2)
         paymentLink = generate_GetNet_payment_link(getnetAcessToken, total_pedido, taxa)
         
-        total_pedido = str(total_pedido).replace(".",",")
+        total_pedido = str(total_pedido).replace(".",",") 
         taxa = str(taxa).replace(".",",")
         nome = json_pedido.get("nome_cliente", "cliente")
         pagamento = json_pedido.get("forma_pagamento", "").capitalize()
@@ -595,10 +597,11 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
 
         itens_formatados = []
         for item in itens:
+            preco = item.get("preco", None)
             sabor = item.get("sabor", "sabor desconhecido")
             qtd = item.get("quantidade", 1)
             obs = item.get("observacao", "")
-            linha = f"- {qtd}x {sabor} ({obs})"
+            linha = f"- {qtd}x {sabor} ({obs}) - R${str(preco).replace('.', ',')}"
             itens_formatados.append(linha)
 
         numero = f"*{id_pedido}*" if id_pedido else ""
@@ -610,7 +613,7 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
             f"- Total a pagar: R$ {total_pedido}\n\n"
             f"🧾 Pagamento: {pagamento}\n"
             f"📍 Entrega em: {endereco}\n\n"
-            f"Obrigado pelo pedido, {nome}! Em breve estaremos aí. 😄"
+            f"Obrigado pelo pedido, {nome}! Em breve estaremos aí. 😄\n"
             f"{paymentLink}"
         )
         return mensagem
