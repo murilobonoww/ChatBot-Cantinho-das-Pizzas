@@ -716,7 +716,7 @@ const Pedidos = () => {
                               <strong>Quantidade:</strong> {item.quantidade}
                             </p>
                             <p>
-                              <strong>Preço:</strong> {item.precoo}
+                              <strong>Preço: R$</strong> {item.preco?.toFixed(2).replace(".",",")}
                             </p>
                             {item.observacao && (
                               <p className="pedido-observacao">

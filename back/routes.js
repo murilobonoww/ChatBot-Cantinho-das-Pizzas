@@ -134,7 +134,7 @@ router.post("/pedido/post", (req, res) => {
     const id_pedido = resultado.insertId;
 
     const sqlItem = `
-      INSERT INTO item_pedido (pedido_id_fk, produto, sabor, quantidade, observacao)
+      INSERT INTO item_pedido (pedido_id_fk, produto, sabor, quantidade, observacao, preco)
       VALUES ?
     `;
 
@@ -144,6 +144,7 @@ router.post("/pedido/post", (req, res) => {
       item.sabor,
       item.quantidade,
       item.observacao || "",
+      item.preco
     ]);
 
     db.query(sqlItem, [valoresItens], (err2) => {
@@ -173,7 +174,7 @@ router.get("/pedido/getAll", (req, res) => {
     SELECT
       p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, p.preco_total, 
       p.forma_pagamento, p.status_pedido, p.data_pedido, p.printed,
-      i.id AS id_item, i.produto, i.sabor, i.quantidade, i.observacao, i.precoo
+      i.id AS id_item, i.produto, i.sabor, i.quantidade, i.observacao, i.preco
     FROM pedido p
     LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk
   `;
@@ -235,7 +236,7 @@ router.get("/pedido/getAll", (req, res) => {
           sabor: row.sabor,
           quantidade: row.quantidade,
           observacao: row.observacao,
-          precoo: row.precoo
+          preco: row.preco
         });
       }
     });
