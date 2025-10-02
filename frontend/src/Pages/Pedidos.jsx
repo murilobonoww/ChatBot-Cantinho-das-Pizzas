@@ -259,37 +259,6 @@ const Pedidos = () => {
     hour12: false
   }
 
-  // const handleSubmitChange = (e, items) => {
-  //   e.preventDefault()
-  //   pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.map((item) => {
-  //     const i = {
-  //       novoProdutoNome: newProductName,
-  //       novoSabor: newFlavor,
-  //       novaQuant: newAmountValue,
-  //       novaOBS: newObs
-  //     }
-
-  //     async function changeItem() {
-  //       try {
-  //         const res = await fetch(`http://localhost:3000/item-pedido/${item.id_item}`, {
-  //           method: "PUT",
-  //           headers: { "Content-Type": "application/json" },
-  //           body: JSON.stringify(i)
-  //         })
-
-  //         if (res.status === 200) {
-  //           setChangeOpened((prev) => !prev)
-  //         }
-  //       }
-
-  //       catch (err) {
-  //         console.log(item.id, err)
-  //       }
-  //     }
-  //     changeItem()
-  //   })
-  // }
-
   const handleSubmitChange = (e, items) => {
     e.preventDefault()
     console.log(items)
@@ -745,6 +714,9 @@ const Pedidos = () => {
                             </p>
                             <p>
                               <strong>Quantidade:</strong> {item.quantidade}
+                            </p>
+                            <p>
+                              <strong>Preço:</strong> {item.precoo}
                             </p>
                             {item.observacao && (
                               <p className="pedido-observacao">

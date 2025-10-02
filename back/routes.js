@@ -173,7 +173,7 @@ router.get("/pedido/getAll", (req, res) => {
     SELECT
       p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, p.preco_total, 
       p.forma_pagamento, p.status_pedido, p.data_pedido, p.printed,
-      i.id AS id_item, i.produto, i.sabor, i.quantidade, i.observacao
+      i.id AS id_item, i.produto, i.sabor, i.quantidade, i.observacao, i.precoo
     FROM pedido p
     LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk
   `;
@@ -235,7 +235,7 @@ router.get("/pedido/getAll", (req, res) => {
           sabor: row.sabor,
           quantidade: row.quantidade,
           observacao: row.observacao,
-          printed: row.printed,
+          precoo: row.precoo
         });
       }
     });
