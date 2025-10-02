@@ -584,28 +584,33 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
     try:
         getnetAcessToken = setTokensToGetnet()
         itens = json_pedido.get("itens", [])
-        print(f"ITEEEEEENNNNNSSSS:\n\n\n\n\n\n\n\n\n\n\n\n\n\n{itens}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
         total_pedido = json_pedido.get("preco_total", 0)
+        total = json_pedido.get("taxa_entrega")
         taxa = round(json_pedido.get("taxa_entrega", 0), 2)
         paymentLink = generate_GetNet_payment_link(getnetAcessToken, total_pedido, taxa)
         
-        total_pedido = str(total_pedido).replace(".",",") 
-        taxa = str(taxa).replace(".",",")
+        total_pedido = str(total_pedido).replace(".",",")
         nome = json_pedido.get("nome_cliente", "cliente")
         pagamento = json_pedido.get("forma_pagamento", "").capitalize()
         endereco = json_pedido.get("endereco_entrega", "")
 
         itens_formatados = []
         for item in itens:
+            total += item.get("preco")
             preco = item.get("preco", None)
             sabor = item.get("sabor", "sabor desconhecido")
             qtd = item.get("quantidade", 1)
+            
             if "pizza" in item.get("produto"):
                 obs = "G" if "35" in str(item.get("observacao")) else "M"
             else:
                 obs = item.get("observacao", "")
-            linha = f"- {qtd}x {sabor} ({obs}) - R${str(preco).replace('.', ',')}"
+            linha = f"- {qtd}x {sabor} ({obs}) - R$ {f'{total:.2f}'.replace('.', ',')} "
             itens_formatados.append(linha)
+        
+        preco = f"{preco:.2f}".replace('.', ',')
+        total = f"{total:.2f}".replace('.', ',')
+        taxa = f"{taxa:.2f}".replace('.', ',')
 
         numero = f"*{id_pedido}*" if id_pedido else ""
         mensagem = (
@@ -613,7 +618,7 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
             f"🍕 Seu pedido ficou assim:\n\n"
             f"{chr(10).join(itens_formatados)}\n"
             f"- Taxa de entrega: R$ {taxa}\n"
-            f"- Total a pagar: R$ {total_pedido}\n\n"
+            f"- Total a pagar: R$ {total}\n\n"
             f"🧾 Pagamento: {pagamento}\n"
             f"📍 Entrega em: {endereco}\n\n"
             f"Obrigado pelo pedido, {nome}! Em breve estaremos aí. 😄\n"
@@ -868,7 +873,7 @@ async def webhook(request: Request):
 
             try:
                 print(f"📤 Enviando pedido ao backend: {json_pedido}")
-                r = requests.post("http://192.168.3.5:3000/pedido/post", json=json_pedido)
+                r = requests.post("http://192.168.3.13:3000/pedido/post", json=json_pedido)
                 if r.status_code == 200:
                     resumo = gerar_mensagem_amigavel(json_pedido, id_pedido=pegar_ultimo_id_pedido())
                     sleep(2)
