@@ -587,7 +587,6 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
         total_pedido = json_pedido.get("preco_total", 0)
         total = json_pedido.get("taxa_entrega")
         taxa = round(json_pedido.get("taxa_entrega", 0), 2)
-        paymentLink = generate_GetNet_payment_link(getnetAcessToken, total_pedido, taxa)
         
         total_pedido = str(total_pedido).replace(".",",")
         nome = json_pedido.get("nome_cliente", "cliente")
@@ -868,8 +867,16 @@ async def webhook(request: Request):
                 })
 
             try:
+                itens = json_pedido.get("itens")
+                total = json_pedido.get("taxa_entrega")
+                
+                for i in itens:
+                    total += i.get("preco")
+                json_pedido["preco_total"] = total
+                
                 print(f"📤 Enviando pedido ao backend: {json_pedido}")
-                r = requests.post("http://192.168.3.13:3000/pedido/post", json=json_pedido)
+                
+                r = requests.post("http://192.168.3.5:3000/pedido/post", json=json_pedido)
                 if r.status_code == 200:
                     resumo = gerar_mensagem_amigavel(json_pedido, id_pedido=pegar_ultimo_id_pedido())
                     sleep(2)
