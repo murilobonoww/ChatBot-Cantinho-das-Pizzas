@@ -605,24 +605,20 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
                 obs = "G" if "35" in str(item.get("observacao")) else "M"
             else:
                 obs = item.get("observacao", "")
-            linha = f"- {qtd}x {sabor} ({obs}) - R$ {f'{total:.2f}'.replace('.', ',')} "
+            linha = f"- {qtd}x {sabor} ({obs}) - R$ {f'{preco:.2f}'.replace('.', ',')} "
             itens_formatados.append(linha)
         
-        preco = f"{preco:.2f}".replace('.', ',')
-        total = f"{total:.2f}".replace('.', ',')
-        taxa = f"{taxa:.2f}".replace('.', ',')
-
         numero = f"*{id_pedido}*" if id_pedido else ""
         mensagem = (
             f"Pedido {numero}\n"
             f"🍕 Seu pedido ficou assim:\n\n"
             f"{chr(10).join(itens_formatados)}\n"
-            f"- Taxa de entrega: R$ {taxa}\n"
-            f"- Total a pagar: R$ {total}\n\n"
+            f"- Taxa de entrega: R$ {f'{taxa:.2f}'.replace('.',',')}\n"
+            f"- Total a pagar: R$ {f'{total:.2f}'.replace('.',',')}\n\n"
             f"🧾 Pagamento: {pagamento}\n"
             f"📍 Entrega em: {endereco}\n\n"
             f"Obrigado pelo pedido, {nome}! Em breve estaremos aí. 😄\n"
-            f"{paymentLink}"
+            f"{generate_GetNet_payment_link(getnetAcessToken, total, taxa)}"
         )
         return mensagem
     except Exception as e:
