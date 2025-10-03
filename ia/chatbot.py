@@ -498,7 +498,14 @@ def calcular_distancia_km(endereco_destino):
 
 def calcular_taxa_entrega(endereco_destino):
     distancia = calcular_distancia_km(endereco_destino)
-    taxa = distancia * 3 if distancia else 0
+    
+    if distancia <= 1:
+        taxa = distancia * 4 if distancia else 0
+    elif distancia > 1 and distancia <= 3:
+        taxa = distancia * 3 if distancia else 0
+    else:
+        taxa = distancia * 2
+    
     return round(taxa, 2)
 
 def enviar_msg(msg, lista_msgs=[]):
