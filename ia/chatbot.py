@@ -113,7 +113,7 @@ def generate_GetNet_payment_link (token, total_pedido, frete):
             "caixa_virtual_card": False,
             "not_authenticated": False,
             "authenticated": True
-        }
+            }
         }
     }
 
@@ -579,6 +579,25 @@ def enviar_whatsapp(to, msg):
     except Exception as e:
         print(f"🔥 Exceção ao tentar enviar mensagem: {e}")
         return False
+    
+def verify_payment(id_pedido):
+    while True:
+        res = requests.get("https://api-homologacao.getnet.com.br/v1/payment-links/{link_id}",
+        headers={   "Authorization": f"Bearer {auth}"   }        
+)
+        if(res.status_code == 200):
+            data = res.json()
+            status_link = data.get("status")
+            if status_link == "ACTIVE":
+                print(f"pedido {id_pedido} ainda não foi pago, cofirmando novamente em 5 segundos...")
+                sleep(5)
+            elif status_link == "SUCCESSFULL":
+                print(f"pagamento do pedido {id_pedido} confirmado!")
+                return True
+            elif status_link == "SUSPENDED" or status_link == "EXPIRED":
+                print(f"Link de pagamento do pedido {id_pedido} foi suspenso ou expirado :(")
+                return False
+        
 
 def gerar_mensagem_amigavel(json_pedido, id_pedido):
     try:
@@ -589,7 +608,6 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
         taxa = round(json_pedido.get("taxa_entrega", 0), 2)
         
         total_pedido = str(total_pedido).replace(".",",")
-        nome = json_pedido.get("nome_cliente", "cliente")
         pagamento = json_pedido.get("forma_pagamento", "").capitalize()
         endereco = json_pedido.get("endereco_entrega", "")
 
@@ -615,18 +633,19 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
                 
             itens_formatados.append(linha)
         
-        numero = f"*{id_pedido}*" if id_pedido else ""
+        
         mensagem = (
-            f"Pedido {numero}\n"
+            f"Pedido *{id_pedido}*\n"
             f"🍕 Seu pedido ficou assim:\n\n"
             f"{chr(10).join(itens_formatados)}\n"
             f"- Taxa de entrega: R$ {f'{taxa:.2f}'.replace('.',',')}\n"
             f"- Total a pagar: R$ {f'{total:.2f}'.replace('.',',')}\n\n"
             f"🧾 Pagamento: {pagamento}\n"
             f"📍 Entrega em: {endereco}\n\n"
-            f"Obrigado pelo pedido, {nome}! Em breve estaremos aí. 😄\n"
+            f"Assim que seu pagamento for confirmado começaremos o preparo do seu pedido😊\n"
             f"{generate_GetNet_payment_link(getnetAcessToken, total, taxa)}"
         )
+        # verify_payment(id_pedido)
         return mensagem
     except Exception as e:
         return f"⚠️ Erro ao montar resumo amigável: {str(e)}"
@@ -882,18 +901,17 @@ async def webhook(request: Request):
                     total += i.get("preco")
                 json_pedido["preco_total"] = total
                 
-                print(f"📤 Enviando pedido ao backend: {json_pedido}")
-                
-                r = requests.post("http://192.168.3.5:3000/pedido/post", json=json_pedido)
-                if r.status_code == 200:
-                    resumo = gerar_mensagem_amigavel(json_pedido, id_pedido=pegar_ultimo_id_pedido())
-                    sleep(2)
-                    if not enviar_whatsapp(from_num, resumo):
-                        print(f"❌ Falha ao enviar resumo do pedido para {from_num}")
-                    print("✅ Pedido enviado ao backend!")
-                else:
-                    print(f"❌ Erro ao enviar pedido: {r.status_code} {r.text}")
-                    enviar_whatsapp(from_num, "⚠️ Erro ao processar o pedido. Tente novamente!")
+                resumo = gerar_mensagem_amigavel(json_pedido, id_pedido=pegar_ultimo_id_pedido())
+                enviar_whatsapp(from_num, resumo)  
+                if verify_payment(id_pedido=pegar_ultimo_id_pedido()):
+                    enviar_whatsapp(from_num, "Seu pagamento foi confirmado. Em breve estaremos aí!🛵🍕")
+                    print(f"📤 Enviando pedido ao backend: {json_pedido}")
+                    r = requests.post("http://192.168.3.5:3000/pedido/post", json=json_pedido)
+                    if r.status_code == 200:
+                        print("✅ Pedido enviado ao backend!")
+                    else:
+                        print(f"❌ Erro ao enviar pedido: {r.status_code} {r.text}")
+                        enviar_whatsapp(from_num, "⚠️ Erro ao processar o pedido. Tente novamente!")
             except Exception as e:
                 print(f"❌ Erro de conexão com o backend: {e}")
                 enviar_whatsapp(from_num, "⚠️ Erro ao conectar com o sistema. Tente novamente!")
