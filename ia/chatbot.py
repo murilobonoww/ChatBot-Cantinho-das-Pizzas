@@ -496,8 +496,11 @@ def calcular_distancia_km(endereco_destino):
         print("❌ Erro ao calcular distância:", e)
         return None
 
-def calcular_taxa_entrega(endereco_destino):
-    distancia = calcular_distancia_km(endereco_destino)
+def calcular_taxa_entrega(endereco_destino=None, km=None):
+    if endereco_destino != None:
+        distancia = calcular_distancia_km(endereco_destino)
+    else:
+        distancia = km
     
     if distancia <= 1:
         taxa = distancia * 4 if distancia else 0
@@ -884,10 +887,15 @@ async def webhook(request: Request):
                     print("🚫 Endereço fora do raio de entrega")
                     enviar_whatsapp(from_num, "🚫 Fora do nosso raio de entrega (15 km).")
                     return {"message": "FORA_RAIO"}
-
-                taxa = round(distancia_km * 3, 2)
+                
+                taxa = calcular_taxa_entrega(distancia_km)
+                    
                 json_pedido["taxa_entrega"] = taxa
-                json_pedido["preco_total"] = round(json_pedido.get("preco_total", 0) + taxa, 2)
+                total = json_pedido.get("taxa_entrega")
+                
+                for i in itens:
+                    total += i.get("preco")
+                json_pedido["preco_total"] = round(total, 2)
                 print(f"💰 Taxa de entrega calculada: R${taxa}")
 
                 lat, lng = pegar_coordenadas(endereco)
@@ -902,11 +910,6 @@ async def webhook(request: Request):
 
             try:
                 itens = json_pedido.get("itens")
-                total = json_pedido.get("taxa_entrega")
-                
-                for i in itens:
-                    total += i.get("preco")
-                json_pedido["preco_total"] = total
                 
                 resumo = gerar_mensagem_amigavel(json_pedido, id_pedido=pegar_ultimo_id_pedido())
                 enviar_whatsapp(from_num, resumo)  
