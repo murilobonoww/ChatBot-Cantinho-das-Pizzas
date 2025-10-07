@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../Style/Home.css";
-import relatorios from "../Assets/statistics.webp";
-import historico from "../Assets/historico.webp";
-import menu from "../Assets/menu.webp";
-import config from "../Assets/control.webp";
-import entregadores from "../Assets/entregador.webp";
+import relatorios from "../assets/statistics.webp";
+import historico from "../assets/historico.webp";
+import menu from "../assets/menu.webp";
+import config from "../assets/control.webp";
+import entregadores from "../assets/entregador.webp";
 import { Link } from "react-router-dom";
-import entregas_icon2 from "../Assets/entregas.webp";
-import notificacao_icone from "../Assets/notification_icon.webp";
-import bug_report from "../Assets/bug-report.webp"
+import entregas_icon2 from "../assets/entregas.webp";
+import notificacao_icone from "../assets/notification_icon.webp";
+import bug_report from "../assets/bug-report.webp"
 import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

@@ -888,7 +888,7 @@ async def webhook(request: Request):
                     enviar_whatsapp(from_num, "🚫 Fora do nosso raio de entrega (15 km).")
                     return {"message": "FORA_RAIO"}
                 
-                taxa = calcular_taxa_entrega(distancia_km)
+                taxa = calcular_taxa_entrega(endereco_destino=None, km=distancia_km)
                     
                 json_pedido["taxa_entrega"] = taxa
                 total = json_pedido.get("taxa_entrega")
