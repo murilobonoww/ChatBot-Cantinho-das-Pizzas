@@ -202,7 +202,7 @@ prompt_template = [{
         
         
         "Sabores de pizza:\n"
-        "teste: 0.00/ 0.00 - teste\n"
+        "teste: 1.00/ 1.00 - teste\n"
         "alho: 32.00 / 42.00 - molho, muçarela, alho, azeitona e orégano\n"
         "atum 1: 34.00 / 57.00 - molho, atum, cebola, azeitona e orégano\n"
         "atum 2: 35.00 / 55.00 - molho, atum, muçarela, cebola, tomate picado, azeitona e orégano\n"
