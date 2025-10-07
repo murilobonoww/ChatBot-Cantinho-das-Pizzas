@@ -113,6 +113,9 @@ def generate_GetNet_payment_link (token, total_pedido, frete):
             "caixa_virtual_card": False,
             "not_authenticated": False,
             "authenticated": True
+            },
+            "pix": {
+                "enable": True
             }
         }
     }
