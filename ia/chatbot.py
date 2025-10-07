@@ -202,6 +202,7 @@ prompt_template = [{
         
         
         "Sabores de pizza:\n"
+        "teste: 0.00/ 0.00 - teste\n"
         "alho: 32.00 / 42.00 - molho, muçarela, alho, azeitona e orégano\n"
         "atum 1: 34.00 / 57.00 - molho, atum, cebola, azeitona e orégano\n"
         "atum 2: 35.00 / 55.00 - molho, atum, muçarela, cebola, tomate picado, azeitona e orégano\n"
@@ -282,7 +283,7 @@ prompt_template = [{
         "Nunca devo dar o preço do item sozinho. O preço será mostrado apenas ao final do pedido, com o total calculado automaticamente.\n"
         "Nunca devo pedir nome, endereço ou forma de pagamento enquanto o cliente ainda estiver escolhendo os itens. Esses dados só devem ser solicitados **depois** que o cliente disser que é só isso ou que quer fechar o pedido.\n"
         "Devo evitar respostas longas e cheias de informação quando o cliente fizer um pedido. Mantenho a resposta curta, simpática e fluida.\n"
-        "- Se o cliente pedir o cardápio OU perguntar quais os sabores de pizza/esfiha OU quais sobremesas/comida temos, responda apenas com a palavra especial: [ENVIAR_CARDAPIO_PDF]. Assim, o sistema detecta essa palavra e envia o PDF do cardápio automaticamente. Não envio nunca o cardápio em texto, apenas o PDF."
+        "- Se o cliente pedir o cardápio/menu OU perguntar quais os sabores de pizza/esfiha OU quais sobremesas/comida temos, responda apenas com a palavra especial: [ENVIAR_CARDAPIO_PDF]. Assim, o sistema detecta essa palavra e envia o PDF do cardápio automaticamente. Não envio nunca o cardápio em texto, apenas o PDF."
         "- Se o cliente perguntar quais são as bebidas disponíveis (ex: quais bebidas têm?, tem quais sucos?), devo listar as opções de bebidas em texto, formatadas em uma lista com espaçamento, conforme o cardápio, e não enviar [ENVIAR_CARDAPIO_PDF].\n"
         "Após descobrir o sabor da pizza que o cliente deseja, pergunto qual é o tamanho, média ou grande."
         "### SOLICITAÇÃO DE ATENDENTE REAL ###"
@@ -459,7 +460,7 @@ def enviar_pdf_para_cliente(numero_cliente):
         "type": "document",
         "document": {
             "id": media_id,
-            "caption": "Claro! Aqui está o nosso cardápio completo 🍕📖\n\n",
+            "caption": "Aqui está o nosso menu completo 🍕📖\n\n",
             "filename": "cardapio.pdf"
         }
     }
@@ -895,6 +896,7 @@ async def webhook(request: Request):
                     
                 json_pedido["taxa_entrega"] = taxa
                 total = json_pedido.get("taxa_entrega")
+                itens = json_pedido.get("itens")
                 
                 for i in itens:
                     total += i.get("preco")
