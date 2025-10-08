@@ -19,6 +19,7 @@ import uuid
 import uvicorn
 from typing import Dict, List
 from pydantic import BaseModel
+from rabbitmq import publish_message
 
 app = FastAPI()
 
@@ -95,7 +96,7 @@ def generate_GetNet_payment_link (token, total_pedido, frete):
         "max_orders": 1,
         "order": {
             "product_type": "physical_goods",
-            "title": "Pedido",
+            "title": "Pedido",  
             "description": "Pagamento do pedido",
             "order_prefix": "order-",
             "shipping_amount": int(frete*100),
@@ -121,7 +122,9 @@ def generate_GetNet_payment_link (token, total_pedido, frete):
     }
 
     response = requests.post(url=getnet_url_generate_payment_link, headers=headers_payment_link, json=payload)
+    link_id = (response.json()).get("link_id")
     payment_link = (response.json()).get("url")
+    publish_message("fila_pagamentos", {"orderID": pegar_ultimo_id_pedido(), "link": payment_link, "link_id": link_id})
     
     return payment_link
 
@@ -593,25 +596,6 @@ def enviar_whatsapp(to, msg):
     except Exception as e:
         print(f"🔥 Exceção ao tentar enviar mensagem: {e}")
         return False
-    
-def verify_payment(id_pedido):
-    while True:
-        res = requests.get("https://api-homologacao.getnet.com.br/v1/payment-links/{link_id}",
-        headers={   "Authorization": f"Bearer {auth}"   }        
-)
-        if(res.status_code == 200):
-            data = res.json()
-            status_link = data.get("status")
-            if status_link == "ACTIVE":
-                print(f"pedido {id_pedido} ainda não foi pago, cofirmando novamente em 5 segundos...")
-                sleep(5)
-            elif status_link == "SUCCESSFULL":
-                print(f"pagamento do pedido {id_pedido} confirmado!")
-                return True
-            elif status_link == "SUSPENDED" or status_link == "EXPIRED":
-                print(f"Link de pagamento do pedido {id_pedido} foi suspenso ou expirado :(")
-                return False
-        
 
 def gerar_mensagem_amigavel(json_pedido, id_pedido):
     try:
@@ -659,7 +643,6 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
             f"Assim que seu pagamento for confirmado começaremos o preparo do seu pedido😊\n"
             f"{generate_GetNet_payment_link(getnetAcessToken, total, taxa)}"
         )
-        # verify_payment(id_pedido)
         return mensagem
     except Exception as e:
         return f"⚠️ Erro ao montar resumo amigável: {str(e)}"
@@ -917,16 +900,17 @@ async def webhook(request: Request):
                 itens = json_pedido.get("itens")
                 
                 resumo = gerar_mensagem_amigavel(json_pedido, id_pedido=pegar_ultimo_id_pedido())
-                enviar_whatsapp(from_num, resumo)  
-                if verify_payment(id_pedido=pegar_ultimo_id_pedido()):
-                    enviar_whatsapp(from_num, "Seu pagamento foi confirmado. Em breve estaremos aí!🛵🍕")
-                    print(f"📤 Enviando pedido ao backend: {json_pedido}")
-                    r = requests.post("http://192.168.3.5:3000/pedido/post", json=json_pedido)
-                    if r.status_code == 200:
-                        print("✅ Pedido enviado ao backend!")
-                    else:
-                        print(f"❌ Erro ao enviar pedido: {r.status_code} {r.text}")
-                        enviar_whatsapp(from_num, "⚠️ Erro ao processar o pedido. Tente novamente!")
+                enviar_whatsapp(from_num, resumo) 
+                 
+                # if verify_payment(id_pedido=pegar_ultimo_id_pedido()):
+                #     enviar_whatsapp(from_num, "Seu pagamento foi confirmado. Em breve estaremos aí!🛵🍕")
+                #     print(f"📤 Enviando pedido ao backend: {json_pedido}")
+                #     r = requests.post("http://192.168.3.5:3000/pedido/post", json=json_pedido)
+                #     if r.status_code == 200:
+                #         print("✅ Pedido enviado ao backend!")
+                #     else:
+                #         print(f"❌ Erro ao enviar pedido: {r.status_code} {r.text}")
+                #         enviar_whatsapp(from_num, "⚠️ Erro ao processar o pedido. Tente novamente!")
             except Exception as e:
                 print(f"❌ Erro de conexão com o backend: {e}")
                 enviar_whatsapp(from_num, "⚠️ Erro ao conectar com o sistema. Tente novamente!")
