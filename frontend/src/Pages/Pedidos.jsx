@@ -240,8 +240,20 @@ const Pedidos = () => {
     let y = 50
 
     itens_arr.map(i => {
-      doc.text(`\nProduto:${i.produto}\nSabor:${i.sabor}\nQuantidade:${i.quantidade}\nObs.:${i.observacao}`, 10, y)
-      y += 10
+
+      if(i.produto === "pizza" || i.produto === "esfiha"){
+        doc.text(`${i.quantidade} x ${i.produto} de ${i.sabor} - ${i.observacao} (R$${i.preco})`, 10, y)
+        y += 10
+      }
+      else if(i.produto === "bebida"){
+        doc.text(`${i.quantidade} x ${i.sabor} - ${i.observacao} (R$${i.preco})`, 10, y)
+        y += 10
+      }
+      else{
+        doc.text(`\nProduto:${i.produto}\nSabor:${i.sabor}\nQuantidade:${i.quantidade}\nObs.:${i.observacao}`, 10, y)
+        y += 10
+      }
+      
     })
     doc.text(`Pedido: ${orderID}\nCliente: ${order.nome_cliente}\nEndereço de entrega: ${order.endereco_entrega}\nForma de pagamento: ${order.forma_pagamento}\nTaxa de entrega: R$${(order.taxa_entrega).replace(".", ",")}\nTotal: R$${(order.preco_total).replace(".", ",")}`, 10, 10)
     doc.save(`Pedido_${orderID}.pdf`)
