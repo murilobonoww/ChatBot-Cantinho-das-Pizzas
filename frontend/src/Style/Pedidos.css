@@ -190,7 +190,7 @@
 
 .pedido-card:hover {
   transform: translateY(-4px);
-  background-color: rgb(246, 246, 246);
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.15);
 }
 
 /* Cabeçalho do pedido */
