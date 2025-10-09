@@ -103,6 +103,12 @@
   z-index: 1100;
 }
 
+.notification-icon-container:hover #not_icon,
+.notification-icon-container:hover .notification-badge {
+  transform: scale(1.1);
+  font-size: 14px;
+}
+
 /* Notification badge */
 .notification-badge {
   position: absolute;
@@ -118,6 +124,7 @@
   justify-content: center;
   font-size: 12px;
   font-weight: bold;
+  transition: all 0.15s ease-in-out;
 }
 
 /* Notification icon */
@@ -133,12 +140,6 @@
   position: fixed;
 }
 
-/* Notification icon hover effect */
-#not_icon:hover {
-  transform: scale(1.1);
-}
-
-/* Notification icon when clicked */
 #not_icon.clicked {
   opacity: 30%;
 }
@@ -147,7 +148,6 @@
   outline: none;
 }
 
-/* Sidebar */
 .sidebar {
   user-select: none;
   position: fixed;
@@ -165,12 +165,10 @@
   overflow-y: auto;
 }
 
-/* Sidebar when open */
 .sidebar.open {
   right: 0;
 }
 
-/* Sidebar heading */
 .sidebar h2 {
   font-size: 1.5em;
   margin-bottom: 20px;
@@ -178,7 +176,6 @@
   font-family: MinhaFonte3, sans-serif;
 }
 
-/* Clear all notifications button */
 .limpar-button {
   margin-bottom: 15px;
   padding: 8px 12px;
@@ -190,12 +187,10 @@
   font-family: MinhaFonte3, sans-serif;
 }
 
-/* Hover effect for clear button */
 .limpar-button:hover {
   background-color: #b05e24;
 }
 
-/* Notification list */
 .notification-list {
   list-style: none;
   padding: 5px 0 0 0;
