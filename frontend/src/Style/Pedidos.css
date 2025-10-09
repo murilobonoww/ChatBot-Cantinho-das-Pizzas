@@ -171,12 +171,16 @@
 
 /* Cartão de pedido */
 .pedido-card {
-  background: #fff;
+  background: #f6f6f6;
   border-radius: 5px;
   padding: 40px 20px 40px 20px;
   margin-bottom: 24px;
-  border: #afafaf 3px solid;
-  border-bottom: #afafaf 10px solid;
+
+  /* border: #afafaf 3px solid;
+  border-bottom: #afafaf 10px solid; */
+
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1);
+
   max-width: 620px;
   font-family: "MinhaFonte", sans-serif;
   transition: transform 0.3s ease;
@@ -297,7 +301,7 @@
 
 .pedido-itens {
   margin-top: 12px;
-  background-color: #f8f9fa;
+  background-color: #fdfefe;
   padding: 12px 14px;
   border-radius: 8px;
 }
