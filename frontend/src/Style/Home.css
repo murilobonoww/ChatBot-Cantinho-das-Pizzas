@@ -55,6 +55,8 @@
 .dashboard-card:hover {
   transform: translateY(-5px);
   background-color: rgb(239, 239, 239);
+  border: 3px solid black;
+  border-bottom: 10px solid black;
 }
 
 /* Icon styling within cards */
