@@ -396,8 +396,9 @@
   filter: brightness(1.1);
 }
 
-.trash-svg:hover rect {
-  fill: red;
+
+.delete-button-pedido:hover .trash-svg rect{
+  fill:red;
 }
 
 
