@@ -389,23 +389,6 @@ const Pedidos = () => {
           <button id="btn_confirm_auth_pass" onClick={() => confirmAuthPass(authPass, "delete")}>Entrar</button>
         </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <div style={{ opacity: changeOpened ? "100" : "0", pointerEvents: changeOpened ? "auto" : "none" }} className="change_order_card">
           <h1>Alterar pedido {id_selectedOrder}</h1>
 

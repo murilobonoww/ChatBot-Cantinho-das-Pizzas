@@ -126,7 +126,7 @@ def generate_GetNet_payment_link (token, total_pedido, frete, json_pedido):
     response = requests.post(url=getnet_url_generate_payment_link, headers=headers_payment_link, json=payload)
     link_id = (response.json()).get("link_id")
     payment_link = (response.json()).get("url")
-    publish_message("fila_pagamentos", {"orderID": pegar_ultimo_id_pedido(), "link": payment_link, "link_id": link_id, "json_pedido": json_pedido})
+    publish_message("fila_pagamentos", {"orderID": pegar_ultimo_id_pedido()+1, "link": payment_link, "link_id": link_id, "json_pedido": json_pedido})
     
     return payment_link
 
@@ -791,11 +791,9 @@ async def webhook_verify(request: Request):
 async def webhook(request: Request):
     print("📥 Recebido POST no webhook")
     data = await request.json()
-    last_msg_text = ""
     try:
         value = data['entry'][0]['changes'][0]['value']
         if 'messages' not in value:
-            # print("⚠️ Nenhuma mensagem nova encontrada")
             return {"message": "No new message"}
 
         msg = value['messages'][0]
@@ -804,8 +802,8 @@ async def webhook(request: Request):
         
         text = msg.get('text', {}).get('body', '').lower()
         
-        
         print(f"📨 Mensagem recebida de {from_num}: {text}, ID: {msg_id}")
+        print(f"\n\n\n\n\n\n\n Text: {text} \n\n\n\n\n\n\n\n\n")
 
         if from_num in last_msgs:
             if last_msgs[from_num]['text'] == text:
@@ -908,7 +906,12 @@ async def webhook(request: Request):
                 itens = json_pedido.get("itens")
                 
                 resumo = gerar_mensagem_amigavel(json_pedido, id_pedido=pegar_ultimo_id_pedido()+1)
-                enviar_whatsapp(from_num, resumo) 
+                enviar_whatsapp(from_num, resumo)
+                res = requests.post("http://192.168.3.5:3000/pedido/post", json=json_pedido)
+                if res.status_code == 200:
+                    print("Pedido enviado ao back-end!")
+                else:
+                    print(res.status_code, f"Erro ao enviar pedido ao back-end: {res}")
 
             except Exception as e:
                 print(f"❌ Erro de conexão com o backend: {e}")

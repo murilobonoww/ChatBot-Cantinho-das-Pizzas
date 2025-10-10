@@ -7,7 +7,7 @@ import os
 
 load_dotenv()
 
-auth = os.getenv("AUTH")
+auths = os.getenv("AUTH")
 
 def verify_payment(ch, method, properties, body):
     
@@ -17,11 +17,17 @@ def verify_payment(ch, method, properties, body):
         link = data["link"]
         link_id = data["link_id"]
         json_pedido = data["json_pedido"]
+        
     
         while True:
-            res = requests.get(f"https://api-homologacao.getnet.com.br/v1/payment-links/{link_id}",
-            headers = { "Authorization": f"Bearer {auth}" }
-            )
+            url_ = f"https://api-homologacao.getnet.com.br/v1/payment-links/{link_id}"
+            
+            headers_ = {
+                "Authorization": f"Bearer {auths}",
+                "Content-Type": "application/json; charset=utf-8"
+            }
+            
+            res = requests.get(url=url_, headers=headers_)
         
             if res.status_code == 200:
                 data_req = res.json()
@@ -44,6 +50,7 @@ def verify_payment(ch, method, properties, body):
                     break
             else:
                 print(res.status_code, res)
+                print(url_, auths, link_id)
                 
     except Exception as e:
         print(f"Erro ao verificar pagamento: {e}")

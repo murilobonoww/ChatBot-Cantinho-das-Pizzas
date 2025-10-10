@@ -5,10 +5,11 @@ import historico from "../assets/historico.webp";
 import menu from "../assets/menu.webp";
 import config from "../assets/control.webp";
 import entregadores from "../assets/entregador.webp";
-import { Link } from "react-router-dom";
+import { data, Link } from "react-router-dom";
 import entregas_icon2 from "../assets/entregas.webp";
 import notificacao_icone from "../assets/notification_icon.webp";
 import bug_report from "../assets/bug-report.webp"
+import bell_sound from "../assets/bell.mp3"
 import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -30,6 +31,52 @@ export default function Home() {
   const socketRef = useRef(null);
   const reconnectIntervalRef = useRef(null);
   const processedEventsRef = useRef(new Set());
+  const pedidosAnteriores = useRef([]);
+  const carregamentoInicial = useRef(true);
+
+
+  const playSound = () => {
+    const audio = new Audio(bell_sound);
+    audio.volume = 0.7;
+    audio.play();
+  }
+
+  useEffect(() => {
+    const fetchPedidos = async () => {
+      console.log("Executando fetchPedidos!")
+      try {
+        const res = await axios.get('http://localhost:3000/pedido/getAll')
+        const pedidos_atualizados = res.data
+
+        if (carregamentoInicial.current === true) {
+          carregamentoInicial.current = false
+        }
+        else {
+          if (pedidos_atualizados.length > pedidosAnteriores.current.length) {
+            console.log("NOVO PEDIDOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+            playSound()
+          }
+        }
+
+
+
+        pedidosAnteriores.current = pedidos_atualizados
+
+
+
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    fetchPedidos()
+
+    const intervalFetch = setInterval(fetchPedidos, 5000)
+    return () => clearInterval(intervalFetch)
+  }, [])
+
+
+
+
 
   // Function to format timestamp to HH:mm
   const formatarHora = (timestamp) => {
@@ -304,29 +351,29 @@ export default function Home() {
       </div>
       <h1>Cantinho das Pizzas e do Açaí</h1>
       <div className="dashboard-grid">
-          {cards.map((card, index) => {
-            const badge = index === 0 && temPedidoNovo ? <span className="badge" /> : null;
+        {cards.map((card, index) => {
+          const badge = index === 0 && temPedidoNovo ? <span className="badge" /> : null;
 
-            return card.external ? (
-              <a
-                href={card.to}
-                target="_blank"
-                rel="noopener noreferrer"
-                key={index}
-                className="dashboard-card"
-              >
-                {badge}
-                <div className="icon">{card.icon}</div>
-                <h2>{card.title}</h2>
-              </a>
-            ) : (
-              <Link to={card.to} key={index} className="dashboard-card">
-                {badge}
-                <div className="icon">{card.icon}</div>
-                <h2>{card.title}</h2>
-              </Link>
-            );
-          })}
+          return card.external ? (
+            <a
+              href={card.to}
+              target="_blank"
+              rel="noopener noreferrer"
+              key={index}
+              className="dashboard-card"
+            >
+              {badge}
+              <div className="icon">{card.icon}</div>
+              <h2>{card.title}</h2>
+            </a>
+          ) : (
+            <Link to={card.to} key={index} className="dashboard-card">
+              {badge}
+              <div className="icon">{card.icon}</div>
+              <h2>{card.title}</h2>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
