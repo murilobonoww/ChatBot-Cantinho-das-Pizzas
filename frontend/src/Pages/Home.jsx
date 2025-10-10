@@ -33,6 +33,7 @@ export default function Home() {
   const processedEventsRef = useRef(new Set());
   const pedidosAnteriores = useRef([]);
   const carregamentoInicial = useRef(true);
+  const [toggle_badge, setToggle_badge] = useState(false);
 
 
   const playSound = () => {
@@ -53,16 +54,16 @@ export default function Home() {
         }
         else {
           if (pedidos_atualizados.length > pedidosAnteriores.current.length) {
-            console.log("NOVO PEDIDOOOOOOOOOOOOOOOOOOOOOOOOOOO")
             playSound()
+            toast.info("Novo pedido!", {
+              className: "custom-info-toast",
+              progressClassName: "custom-info-progress"
+            })
+            setToggle_badge(true)
           }
         }
 
-
-
         pedidosAnteriores.current = pedidos_atualizados
-
-
 
       } catch (error) {
         console.log(error)
@@ -352,7 +353,7 @@ export default function Home() {
       <h1>Cantinho das Pizzas e do Açaí</h1>
       <div className="dashboard-grid">
         {cards.map((card, index) => {
-          const badge = index === 0 && temPedidoNovo ? <span className="badge" /> : null;
+          const badge = index === 0 && toggle_badge ? <span className="badge" /> : null;
 
           return card.external ? (
             <a

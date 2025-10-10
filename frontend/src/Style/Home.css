@@ -169,6 +169,18 @@
   font-family: MinhaFonte3, sans-serif;
 }
 
+
+.custom-info-toast .Toastify__toast-icon svg {
+  fill: orange;
+}
+
+.custom-info-progress{
+  background: orange;
+}
+
+
+
+
 .limpar-button {
   margin-bottom: 15px;
   padding: 8px 12px;
