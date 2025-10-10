@@ -117,10 +117,6 @@ const Pedidos = () => {
           const idsNovos = novosPedidos.map(p => p.id_pedido);
           setNovosIDs(idsNovos);
           playSound();
-
-          setTimeout(() => {
-            setNovosIDs([]);
-          }, 4000);
         }
 
         pedidosAnteriores.current = pedidosOrdenados;
@@ -364,6 +360,14 @@ const Pedidos = () => {
     }
   }, [id_selectedOrder])
 
+  const manage_new_order_icon_advice_toggle = (id_pedido) => {
+    if(abertos[pedido.id_pedido]){
+      setNovosIDs(prev => prev.filter(item => item !== id_pedido))
+    }
+
+    //com o if de cima, se os pedidos forem abertos uma única vez serão removidos da lista de NOVOS PEDIDOS
+  }
+
   return (
     <div className="page-pedidos">
       <div className="pedidos">
@@ -594,7 +598,10 @@ const Pedidos = () => {
               .filter(pedidoPassaNoFiltro)
               .map((pedido) => (
                 <div
-                  onClick={() => togglePedido(pedido.id_pedido)}
+                  onClick={() => {
+                    togglePedido(pedido.id_pedido)
+                    manage_new_order_icon_advice_toggle(id_pedido)
+                  }}
                   key={pedido.id_pedido}
                   className={`pedido-card ${abertos[pedido.id_pedido] ? "aberto" : "fechado"
                     } ${novosIDs.includes(pedido.id_pedido) ? "pedido-novo" : ""}`}
@@ -672,14 +679,8 @@ const Pedidos = () => {
                     <button onClick={(e) => {
                       e.stopPropagation()
                       setAuthOpened(prev => !prev)
-                      // setChangeOpened(prev => !prev)
                       setId_selectedOrder(pedido.id_pedido)
                     }} className="btn_alterar">Alterar</button>
-
-
-
-                    {/* </Link> */}
-                    {/* <Link onClick={(e) => e.stopPropagation()} to={`/alterar-pedidos/${pedido.id_pedido}`}> */}
 
 
                     {pedido.status_pedido && (
@@ -689,6 +690,9 @@ const Pedidos = () => {
                         {pedido.status_pedido}
                       </button>
                     )}
+
+                    <img id="warning_icon_new_order" src={warning_icon}/>
+
                   </div>
                   {abertos[pedido.id_pedido] && (
                     <div className="pedido-detalhes">

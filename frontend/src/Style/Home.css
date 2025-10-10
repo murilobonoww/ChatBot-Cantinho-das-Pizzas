@@ -51,41 +51,37 @@
   width: 200px;
 }
 
-/* Hover effect for dashboard cards */
+
 .dashboard-card:hover {
   transform: translateY(-5px);
-  background-color: rgb(239, 239, 239);
   border: 3px solid black;
   border-bottom: 10px solid black;
 }
 
-/* Icon styling within cards */
 .dashboard-card .icon {
   font-size: 40px;
   margin-bottom: 12px;
 }
 
-/* Distinct colors for each card type */
 .dashboard-card:nth-child(1) .icon {
-  color: #a83232; /* Red - Histórico de Pedidos */
+  color: #a83232;
 }
 .dashboard-card:nth-child(2) .icon {
-  color: #b08800; /* Mustard - Entregas */
+  color: #b08800;
 }
 .dashboard-card:nth-child(3) .icon {
-  color: #228b58; /* Green - Entregadores */
+  color: #228b58;
 }
 .dashboard-card:nth-child(4) .icon {
-  color: #7a4fc3; /* Purple - Faturamento */
+  color: #7a4fc3;
 }
 .dashboard-card:nth-child(5) .icon {
-  color: #d06f2c; /* Orange - Cardápio */
+  color: #d06f2c;
 }
 .dashboard-card:nth-child(6) .icon {
-  color: #3a3a3a; /* Gray - Configurações */
+  color: #3a3a3a;
 }
 
-/* Card title styling */
 .dashboard-card h2 {
   font-size: 17px;
   margin: 0;
@@ -94,7 +90,6 @@
   user-select: none;
 }
 
-/* Notification icon container */
 .notification-icon-container {
   position: fixed;
   top: 20px;
@@ -109,7 +104,6 @@
   font-size: 14px;
 }
 
-/* Notification badge */
 .notification-badge {
   position: absolute;
   top: -5px;
@@ -127,7 +121,6 @@
   transition: all 0.15s ease-in-out;
 }
 
-/* Notification icon */
 #not_icon {
   max-width: 50px;
   cursor: pointer;

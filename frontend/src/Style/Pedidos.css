@@ -72,7 +72,7 @@
   vertical-align: middle;
   display: inline-block;
   height: 30px;
-  color: #757575;
+  color: #757575 !important;
 }
 
 .inputs_filtro:focus {
@@ -164,7 +164,7 @@
   flex-grow: 1;
   overflow-y: auto;
   padding-right: 12px;
-  padding: 40px 40px 40px 0;
+  padding: 20px 40px 40px 0;
   background-color: #ffffff;
   margin-top: 80px;
 }
@@ -347,39 +347,31 @@
   box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1);
 }
 
-@keyframes destaquePedido {
-  0% {
-    background-color: #fff9e6; /* amarelo clarinho */
-    border-color: #ffeb3b; /* amarelo forte */
+.pedido-card.fechado.pedido-novo #warning_icon_new_order{
+  opacity: 100%;
+  animation: new_order 3s ease-in-out infinite;
+}
+
+@keyframes new_order {
+  0%{
+    transform: scale(1);
   }
-  16% {
-    background-color: #fff3b0; /* amarelo médio */
-    border-color: #fbc02d; /* amarelo escuro */
+
+  50%{
+    transform: scale(1.1);
   }
-  33% {
-    background-color: #fff9e6;
-    border-color: #ffeb3b;
-  }
-  50% {
-    background-color: #fff3b0;
-    border-color: #fbc02d;
-  }
-  66% {
-    background-color: #fff9e6;
-    border-color: #ffeb3b;
-  }
-  83% {
-    background-color: #fff3b0;
-    border-color: #fbc02d;
-  }
-  100% {
-    background-color: transparent;
-    border-color: transparent;
+
+  100%{
+    transform: scale(1);
   }
 }
 
-.pedido-novo {
-  animation: destaquePedido 4s ease forwards;
+
+
+#warning_icon_new_order{
+  width: 45px;
+  opacity: 0;
+  margin-left: 25px;
 }
 
 #btn_pedidos_modo {
