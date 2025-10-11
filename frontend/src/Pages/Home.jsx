@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../Style/Home.css";
-import relatorios from "../assets/statistics.webp";
-import historico from "../assets/historico.webp";
-import menu from "../assets/menu.webp";
-import config from "../assets/control.webp";
-import entregadores from "../assets/entregador.webp";
+import relatorios from "/assets/statistics.webp";
+import historico from "/assets/historico.webp";
+import menu from "/assets/menu.webp";
+import config from "/assets/control.webp";
+import entregadores from "/assets/entregador.webp";
 import { data, Link } from "react-router-dom";
-import entregas_icon2 from "../assets/entregas.webp";
-import notificacao_icone from "../assets/notification_icon.webp";
-import bug_report from "../assets/bug-report.webp"
-import bell_sound from "../assets/bell.mp3"
+import entregas_icon2 from "/assets/entregas.webp";
+import notificacao_icone from "/assets/notification_icon.webp";
+import bug_report from "/assets/bug-report.webp"
+import bell_sound from "/assets/bell.mp3"
 import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

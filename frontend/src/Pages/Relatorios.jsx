@@ -4,7 +4,7 @@ import "../Style/Relatorios.css";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 // import toast from "react-hot-toast";
 import axios from "axios";
-import bell_sound from "../assets/bell.mp3"
+import bell_sound from "/assets/bell.mp3"
 import { Toaster } from "react-hot-toast";
 import { toast } from "react-toastify";
 

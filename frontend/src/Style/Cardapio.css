@@ -68,7 +68,7 @@ html {
 
 @font-face {
   font-family: "MinhaFonte2";
-  src: url("/src/assets/Lexend-SemiBold.ttf") format("truetype");
+  src: url("/assets/Lexend-SemiBold.ttf") format("truetype");
   font-weight: bold;
   font-style: normal;
 }

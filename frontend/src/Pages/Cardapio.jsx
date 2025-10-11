@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import 'react-toastify/dist/ReactToastify.css';
-import bell_sound from "../assets/bell.mp3"
+import bell_sound from "/assets/bell.mp3"
 
 export default function Cardapio() {
   const [cardapio, setCardapio] = useState({ pizzas: [], esfihas: [], bebidas: [], doces: [] });

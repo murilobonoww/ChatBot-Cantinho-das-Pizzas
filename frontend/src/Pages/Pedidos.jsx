@@ -1,17 +1,17 @@
 import React, { useEffect, useState, useRef } from "react";
 import "../Style/Pedidos.css";
-import expandir_img from "../assets/folder.webp";
-import recolher_img from "../assets/open-folder.webp";
+import expandir_img from "/assets/folder.webp";
+import recolher_img from "/assets/open-folder.webp";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css'; // Importe o CSS
-import none_result from "../assets/nenhum-resultado-encontrado.png";
+import none_result from "/assets/nenhum-resultado-encontrado.png";
 import { Link, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { jsPDF } from "jspdf";
-import impressora_icon from "../assets/printer_.png"
-import warning_icon from "../assets/warning.webp"
-import bell_sound from "../assets/bell.mp3"
+import impressora_icon from "/assets/printer_.png"
+import warning_icon from "/assets/warning.webp"
+import bell_sound from "/assets/bell.mp3"
 import axios from "axios";
 
 const MySwal = withReactContent(Swal);
@@ -72,8 +72,6 @@ const Pedidos = () => {
         if (localStorage.getItem("pedidos") !== null) {
           const pedidos_ = localStorage.getItem("pedidos")
           const parsed_pedidos_ = JSON.parse(pedidos_)
-
-          console.log("useeffect!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n", parsed_pedidos_)
 
           //data = array de pedidos atual
           //parsed_pedidos = array de pedidos salvo de quando o componente tava aberto
