@@ -51,4 +51,18 @@ input:focus {
   position: absolute;
   top: 10px;
   color: #afafaf;
+  transition: all 0.3s ease-in-out;
+}
+
+#info_btn_login_page:hover{
+  transform: scale(1.1);
+  color: black;
+}
+
+.custom-info-toast .Toastify__toast-icon svg {
+  fill: #ff7043;
+}
+
+.custom-info-progress{
+  background: #ff7043;
 }

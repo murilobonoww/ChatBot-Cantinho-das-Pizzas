@@ -23,7 +23,10 @@ const Login = () => {
   return (
     <div>
       <div className='login_container'>
-        <button id='info_btn_login_page' onClick={() => toast.info("Não possui o código? Solicite para alguém da sua equipe", {autoClose:5000})}>?</button>
+        <button id='info_btn_login_page' onClick={() => toast.info("Não possui o código? Solicite a alguém da sua equipe", {
+          className: "custom-info-toast",
+          progressClassName: "custom-info-progress"
+        }, { autoClose: 5000 })}>?</button>
         <h1 id='login_page_title'>Insira o código de verificação</h1>
         <form onSubmit={handleSubmit}>
           <input type='password' autoFocus placeholder='Digite e pressione enter' onChange={(e) => setCode(e.target.value)} />
