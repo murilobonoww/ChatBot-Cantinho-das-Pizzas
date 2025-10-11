@@ -1,0 +1,54 @@
+body {
+  font-family: "MinhaFonte2", sans-serif;
+  user-select: none;
+}
+
+input {
+  font-family: "MinhaFonte2", sans-serif;
+  padding: 10px;
+  font-size: 20px;
+  border: 3px solid #afafaf;
+  border-bottom: 10px solid #afafaf;
+}
+
+input:focus {
+  outline: none;
+}
+
+.login_container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: -50px;
+}
+
+#login_page_title {
+  margin-bottom: 30px;
+}
+
+.login_page_btn_submit{
+    border: none;
+    margin-left: 20px;
+    color: white;
+    background-color: #ff7043;
+    padding: 15px 45px;
+    transition: all 0.3s ease-in-out;
+}
+
+.login_page_btn_submit:hover{
+    transform: scale(1.03);
+    filter: brightness(1.1);
+}
+
+#info_btn_login_page {
+  right: 20px;
+  border: none;
+  background-color: transparent;
+  font-size: 30px;
+  padding: 10px;
+  position: absolute;
+  top: 10px;
+  color: #afafaf;
+}

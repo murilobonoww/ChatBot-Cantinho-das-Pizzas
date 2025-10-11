@@ -15,7 +15,7 @@ const SECRET_KEY = process.env.JWT_SECRET;
 // impede ataques de força bruta, botando limite de tentativas pra inserir a senha
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 6, 
+  max: 60, 
   message: { error: "Muitas tentativas. Tente novamente mais tarde." }
 })
 
