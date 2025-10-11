@@ -10,6 +10,7 @@ import Relatorios from "./Pages/Relatorios";
 import Cardapio from "./Pages/Cardapio";
 import AlterarPedidos from "./Pages/Alterar-pedidos";
 
+
 function AppContent() {
   const [pedidos, setPedidos] = useState([]);
   const [abertos, setAbertos] = useState({});
@@ -63,7 +64,7 @@ function AppContent() {
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-    if (event.key === "Escape") {
+      if (event.key === "Escape") {
         navigate("/");
       }
     };
@@ -90,10 +91,11 @@ function AppContent() {
 }
 
 function App() {
+
   return (
-    <Router>
-      <AppContent />
-    </Router>
+      <Router>
+        <AppContent />
+      </Router>
   );
 }
 

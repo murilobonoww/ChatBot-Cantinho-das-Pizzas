@@ -31,6 +31,7 @@ const Pedidos = () => {
   const [modoFiltro, setModoFiltro] = useState("OU");
   const [novosIDs, setNovosIDs] = useState([]);
   const [id_selectedOrder, setId_selectedOrder] = useState()
+  const [novospedidos_localstorage, set_novospedidos_localstorage] = useState([]);
 
   //form change order
   const [newProductName, setNewProductName] = useState("")
@@ -67,6 +68,27 @@ const Pedidos = () => {
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
         setPedidos(pedidosOrdenados);
         buscarPedidosFiltrados();
+
+        if (localStorage.getItem("pedidos") !== null) {
+          const pedidos_ = localStorage.getItem("pedidos")
+          const parsed_pedidos_ = JSON.parse(pedidos_)
+
+          console.log("useeffect!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n", parsed_pedidos_)
+
+          //data = array de pedidos atual
+          //parsed_pedidos = array de pedidos salvo de quando o componente tava aberto
+          if(data !== parsed_pedidos_){
+
+            const ids_de_pedidos_antigos = parsed_pedidos_.map((p) => p.id_pedido)
+
+            const ids_de_pedidos_atuais = data.map((p) => {
+              if(!ids_de_pedidos_antigos.some(id => id === p.id_pedido)){
+                setNovosIDs(prev => [...prev, p.id_pedido])
+              }
+            })
+          }
+
+        }
       })
       .catch(err => console.error("Erro ao buscar pedidos:", err));
   }, []);
@@ -110,6 +132,8 @@ const Pedidos = () => {
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
         const idsAnteriores = pedidosAnteriores.current.map(p => p.id_pedido);
         const novosPedidos = pedidosOrdenados.filter(p => !idsAnteriores.includes(p.id_pedido));
+
+        localStorage.setItem("pedidos", JSON.stringify(pedidosOrdenados))
 
         if (carregamentoInicial.current) {
           carregamentoInicial.current = false;
@@ -237,19 +261,19 @@ const Pedidos = () => {
 
     itens_arr.map(i => {
 
-      if(i.produto === "pizza" || i.produto === "esfiha"){
+      if (i.produto === "pizza" || i.produto === "esfiha") {
         doc.text(`${i.quantidade} x ${i.produto} de ${i.sabor} - ${i.observacao} (R$${i.preco})`, 10, y)
         y += 10
       }
-      else if(i.produto === "bebida"){
+      else if (i.produto === "bebida") {
         doc.text(`${i.quantidade} x ${i.sabor} - ${i.observacao} (R$${i.preco})`, 10, y)
         y += 10
       }
-      else{
+      else {
         doc.text(`\nProduto:${i.produto}\nSabor:${i.sabor}\nQuantidade:${i.quantidade}\nObs.:${i.observacao}`, 10, y)
         y += 10
       }
-      
+
     })
     doc.text(`Pedido: ${orderID}\nCliente: ${order.nome_cliente}\nEndereço de entrega: ${order.endereco_entrega}\nForma de pagamento: ${order.forma_pagamento}\nTaxa de entrega: R$${(order.taxa_entrega).replace(".", ",")}\nTotal: R$${(order.preco_total).replace(".", ",")}`, 10, 10)
     doc.save(`Pedido_${orderID}.pdf`)
@@ -360,14 +384,6 @@ const Pedidos = () => {
     }
   }, [id_selectedOrder])
 
-  const manage_new_order_icon_advice_toggle = (id_pedido) => {
-    if(abertos[pedido.id_pedido]){
-      setNovosIDs(prev => prev.filter(item => item !== id_pedido))
-    }
-
-    //com o if de cima, se os pedidos forem abertos uma única vez serão removidos da lista de NOVOS PEDIDOS
-  }
-
   return (
     <div className="page-pedidos">
       <div className="pedidos">
@@ -469,9 +485,6 @@ const Pedidos = () => {
 
           </div>
         </div>
-
-
-
 
         <div className="topo-fixo-pedidos">
           <div className="topo-fixo-restante">
@@ -583,7 +596,6 @@ const Pedidos = () => {
                 <div
                   onClick={() => {
                     togglePedido(pedido.id_pedido)
-                    manage_new_order_icon_advice_toggle(id_pedido)
                   }}
                   key={pedido.id_pedido}
                   className={`pedido-card ${abertos[pedido.id_pedido] ? "aberto" : "fechado"
@@ -604,6 +616,7 @@ const Pedidos = () => {
                     <button className="printer_btn">
                       <img src={impressora_icon} id="printer_icon" onClick={(e) => {
                         e.stopPropagation()
+                        setNovosIDs(prev => prev.filter(item => item !== pedido.id_pedido))
                         gerarPDF(pedido.id_pedido)
                         setAsPrinted(pedido.id_pedido)
                       }
@@ -674,7 +687,7 @@ const Pedidos = () => {
                       </button>
                     )}
 
-                    <img id="warning_icon_new_order" src={warning_icon}/>
+                    <img id="warning_icon_new_order" src={warning_icon} />
 
                   </div>
                   {abertos[pedido.id_pedido] && (
@@ -715,7 +728,7 @@ const Pedidos = () => {
                               <strong>Quantidade:</strong> {item.quantidade}
                             </p>
                             <p>
-                              <strong>Preço: R$</strong> {item.preco?.toFixed(2).replace(".",",")}
+                              <strong>Preço: R$</strong> {item.preco?.toFixed(2).replace(".", ",")}
                             </p>
                             {item.observacao && (
                               <p className="pedido-observacao">

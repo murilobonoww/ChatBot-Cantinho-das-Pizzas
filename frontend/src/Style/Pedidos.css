@@ -347,7 +347,8 @@
   box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1);
 }
 
-.pedido-card.fechado.pedido-novo #warning_icon_new_order{
+.pedido-card.fechado.pedido-novo #warning_icon_new_order,
+.pedido-card.aberto.pedido-novo #warning_icon_new_order{
   opacity: 100%;
   animation: new_order 3s ease-in-out infinite;
 }

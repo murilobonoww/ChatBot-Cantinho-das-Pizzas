@@ -14,6 +14,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import Appp from "../App"
+
 const cards = [
   { icon: <img id="menu_img" src={historico} />, title: "Pedidos", to: "/pedidos" },
   { icon: <img id="menu_img" src={entregas_icon2} />, title: "Entregas", external: true, to: "https://app.foodydelivery.com/u/0/home" },
@@ -23,7 +25,7 @@ const cards = [
   { icon: <img id="menu_img" src={bug_report} />, title: "Reportar bug", to: "https://wa.me/5548992254888" }
 ];
 
-export default function Home() {
+export default function Home({ enviarListaDeNovosIDs }) {
   const [temPedidoNovo, setTemPedidoNovo] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [notificacoes, setNotificacoes] = useState([]);
@@ -34,6 +36,7 @@ export default function Home() {
   const pedidosAnteriores = useRef([]);
   const carregamentoInicial = useRef(true);
   const [toggle_badge, setToggle_badge] = useState(false);
+  const [ids_novos_pedidos, setIds_novos_pedidos] = useState([]);
 
 
   const playSound = () => {
