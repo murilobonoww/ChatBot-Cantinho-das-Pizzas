@@ -66,3 +66,24 @@ input:focus {
 .custom-info-progress{
   background: #ff7043;
 }
+
+#img_btn_toggle_show_pass_login_page{
+  width: 30px;
+  height: 30px;
+  background-color: transparent;
+}
+
+#btn_toggle_show_pass_login_page{
+  background-color: transparent;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.login_form{
+  display: flex;
+  align-items: center;
+}
