@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { data, Link } from "react-router-dom";
 import "../Style/Relatorios.css";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-import toast from "react-hot-toast";
+// import toast from "react-hot-toast";
+import axios from "axios";
+import bell_sound from "../assets/bell.mp3"
 import { Toaster } from "react-hot-toast";
+import { toast } from "react-toastify";
 
 export default function Relatorios() {
   const [relatorio, setRelatorio] = useState({});
@@ -12,8 +15,47 @@ export default function Relatorios() {
   const [senha, setSenha] = useState("");
   const [autorizado, setAutorizado] = useState(false);
   const [filtroSelecionado, setFiltroSelecionado] = useState(null);
+  const carregamentoInicial = useRef(true);
+  const last_time_data = useRef([]);
 
   const senhaInputRef = useRef(null);
+
+  const playSound = () => {
+    const audio = new Audio(bell_sound)
+    audio.volume = 0.7
+    audio.play()
+  }
+
+  useEffect(() => {
+    const fetchPedidos = async () => {
+      try {
+        const res = await axios.get('http://localhost:3000/pedido/getAll')
+        const data = res.data
+        if (carregamentoInicial.current === true) {
+          console.log("carregamento inicial")
+          carregamentoInicial.current = false
+        }
+        else {
+          console.log("carregamento nao inicial", last_time_data, data)
+          if (data.length > last_time_data.current.length) {
+            playSound()
+            toast.info("Novo pedido!",
+                {className: "custom-info-toast",
+                progressClassName: "custom-info-progress"}
+            )
+            console.log("NOVO PEDIDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+          }
+        }
+        last_time_data.current = data
+      } catch (error) {
+        console.log("algo deu errado no fetchpedidos :( ", error)
+      }
+    }
+
+    fetchPedidos()
+    const interval = setInterval(fetchPedidos, 5000);
+    return () => clearInterval(interval);
+  }, [])
 
   useEffect(() => {
     if (autorizado && relatorio.total_vendas === undefined) {
@@ -176,7 +218,7 @@ export default function Relatorios() {
                       <Legend />
                     </PieChart>
                   </div>
-                ): (
+                ) : (
                   <p className="txt_relatorios_not_found">Não encontramos vendas neste período</p>
                 )}
 

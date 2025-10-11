@@ -148,6 +148,14 @@
   transform: scale(1.05);
 }
 
+.custom-info-toast .Toastify__toast-icon svg {
+  fill: orange;
+}
+
+.custom-info-progress{
+  background: orange;
+}
+
 
 .filtros-rapidos {
   margin-bottom: 20px;
