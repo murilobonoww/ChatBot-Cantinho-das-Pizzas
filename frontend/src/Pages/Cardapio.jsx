@@ -3,7 +3,9 @@ import "../Style/Cardapio.css";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
+import axios from "axios";
 import 'react-toastify/dist/ReactToastify.css';
+import bell_sound from "../assets/bell.mp3"
 
 export default function Cardapio() {
   const [cardapio, setCardapio] = useState({ pizzas: [], esfihas: [], bebidas: [], doces: [] });
@@ -15,6 +17,8 @@ export default function Cardapio() {
   const [editItemId, setEditItemId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedItems, setSelectedItems] = useState({ section: null, ids: [] });
+  const carregamentoInicial = useRef(true)
+  const last_time_data = useRef([]);
   const [newItem, setNewItem] = useState({
     section: "pizzas",
     nome: "",
@@ -26,6 +30,44 @@ export default function Cardapio() {
   });
   const InputRef = useRef(null);
   const topoFixoRef = useRef(null);
+
+  const playSound = () => {
+    const audio = new Audio(bell_sound)
+    audio.volume = 0.7
+    audio.play()
+  }
+
+  useEffect(() => {
+    const fetchPedidos = async () => {
+      try {
+        const res = await axios.get('http://localhost:3000/pedido/getAll')
+        const data = res.data
+        if (carregamentoInicial.current === true) {
+          console.log("carregamento inicial")
+          carregamentoInicial.current = false
+        }
+        else {
+          console.log("carregamento nao inicial", last_time_data, data)
+          if (data.length > last_time_data.current.length) {
+            playSound()
+            toast.info("Novo pedido!",
+              {
+                className: "custom-info-toast",
+                progressClassName: "custom-info-progress"
+              }
+            )
+          }
+        }
+        last_time_data.current = data
+      } catch (error) {
+        console.log("algo deu errado no fetchpedidos :( ", error)
+      }
+    }
+
+    fetchPedidos()
+    const interval = setInterval(fetchPedidos, 5000);
+    return () => clearInterval(interval);
+  }, [])
 
   useEffect(() => {
     fetch("http://localhost:3000/cardapio")

@@ -40,10 +40,11 @@ export default function Relatorios() {
           if (data.length > last_time_data.current.length) {
             playSound()
             toast.info("Novo pedido!",
-                {className: "custom-info-toast",
-                progressClassName: "custom-info-progress"}
+              {
+                className: "custom-info-toast",
+                progressClassName: "custom-info-progress"
+              }
             )
-            console.log("NOVO PEDIDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
           }
         }
         last_time_data.current = data

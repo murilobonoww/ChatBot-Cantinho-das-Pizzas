@@ -365,6 +365,14 @@ mark {
   transform: scale(0.96) rotate(-1deg);
 }
 
+.custom-info-toast .Toastify__toast-icon svg {
+  fill: orange;
+}
+
+.custom-info-progress{
+  background: orange;
+}
+
 .delete-checkbox {
   margin-right: 10px;
   width: 18px;
