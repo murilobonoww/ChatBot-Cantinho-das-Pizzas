@@ -5,20 +5,28 @@ const routes = require("./routes");
 const connection = require("./db");
 const axios = require("axios");
 const app = express();
+const helmet = require("helmet");
+const cookieParser = require("cookie-parser");
+
 
 const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "*"
   },
 });
 
 global.io = io;
 
-app.use(cors());
+app.use(helmet());
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 app.use(routes);
 
 const PORT = process.env.PORT || 3000;
@@ -31,7 +39,6 @@ connection.connect((err) => {
   console.log("✅ Conectado ao banco de dados MySQL com sucesso!");
 });
 
-// Função para mapear status da Foody API para português
 function mapearStatusFoody(status) {
   const mapeamento = {
     open: "aberto",
@@ -93,7 +100,6 @@ async function consultarStatusFoody(uid_foody) {
   }
 }
 
-// Função para atualizar status no banco
 async function atualizarStatusPedido(id_pedido, novoStatus) {
   console.log(`🔄 Atualizando status do pedido ${id_pedido} para ${novoStatus}...`);
   return new Promise((resolve, reject) => {
@@ -172,7 +178,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// Iniciar o servidor
 server.listen(PORT, () => {
   console.log(`🚀 Backend rodando em http://localhost:${PORT}`);
 });

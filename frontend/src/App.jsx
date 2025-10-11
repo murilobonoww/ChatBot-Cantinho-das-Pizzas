@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, RouterProvider } from "react-router-dom";
 import { io } from "socket.io-client";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Home from "./Pages/Home";
 import Pedidos from "./Pages/Pedidos";
-import Entregadores from "./Pages/Motoboys";
 import Relatorios from "./Pages/Relatorios";
 import Cardapio from "./Pages/Cardapio";
-import AlterarPedidos from "./Pages/Alterar-pedidos";
+import PrivateRoute from "./Pages/PrivateRoute";
+import Login from "./Pages/Login";
 
 
 function AppContent() {
@@ -76,15 +76,41 @@ function AppContent() {
     <>
       <ToastContainer />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+
+
+
+        <Route path="/" element={
+          <PrivateRoute>
+            <Home />
+          </PrivateRoute>
+        } />
+
+
         <Route
           path="/pedidos"
-          element={<Pedidos pedidos={pedidos} setPedidos={setPedidos} />}
+          element={
+            <PrivateRoute>
+              <Pedidos pedidos={pedidos} setPedidos={setPedidos} />
+            </PrivateRoute>
+          }
         />
-        <Route path="/entregadores" element={<Entregadores />} />
-        <Route path="/relatorios" element={<Relatorios />} />
-        <Route path="/cardapio" element={<Cardapio />} />
-        <Route path="/alterar-pedidos/:id" element={<AlterarPedidos />} />
+
+
+        <Route path="/relatorios" element={
+          <PrivateRoute>
+            <Relatorios />
+          </PrivateRoute>
+        } />
+
+
+        <Route path="/cardapio" element={
+          <PrivateRoute>
+            <Cardapio />
+          </PrivateRoute>
+        } />
+
+
       </Routes>
     </>
   );
@@ -93,9 +119,9 @@ function AppContent() {
 function App() {
 
   return (
-      <Router>
-        <AppContent />
-      </Router>
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 

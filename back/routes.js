@@ -1,11 +1,55 @@
 const express = require("express");
 const router = express.Router();
-const db = require("./db"); // conexão com MySQL (connection.js)
+const db = require("./db");
 const { resolvePath } = require("react-router-dom");
 const dotenv = require("dotenv");
 dotenv.config();
 const axios = require("axios");
+const jwt = require("jsonwebtoken")
+const bcrypt = require("bcrypt");
+const rateLimit = require("express-rate-limit");
 
+const CODE_HASH = process.env.COMPANY_CODE_HASH;
+const SECRET_KEY = process.env.JWT_SECRET;
+
+// impede ataques de força bruta, botando limite de tentativas pra inserir a senha
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 6, 
+  message: { error: "Muitas tentativas. Tente novamente mais tarde." }
+})
+
+function verifyToken(req, res, next){
+  const token = req.cookies?.token || req.headers["authorization"]?.split(" ")[1];
+  if(!token) return res.status(401).json({ error: "Token ausente" });
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if(err) return res.status(403).json({ error: "Token inválido" });
+    req.user = decoded;
+    next();
+  })
+}
+
+router.post("/login", limiter, async (req, res) => {
+  const { code } = req.body;
+
+  if(!code) return res.status(400).json({ error: "código obrigatório" });
+
+  const ok = await bcrypt.compare(code, CODE_HASH);
+
+  if(!ok) return res.status(401).json({ error: "código incorreto" });
+
+  const token = jwt.sign({ acesso: "allowed" }, SECRET_KEY, { expiresIn: "10h" });
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    maxAge: 4 * 60 * 60 * 1000
+  });
+
+  res.json({ ok: true })
+})
 
 router.post("/confirmAuthPass/:pass", (req, res) => {
   const pass = req.params.pass;
