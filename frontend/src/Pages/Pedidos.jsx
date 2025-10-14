@@ -75,12 +75,12 @@ const Pedidos = () => {
 
           //data = array de pedidos atual
           //parsed_pedidos = array de pedidos salvo de quando o componente tava aberto
-          if(data !== parsed_pedidos_){
+          if (data !== parsed_pedidos_) {
 
             const ids_de_pedidos_antigos = parsed_pedidos_.map((p) => p.id_pedido)
 
             const ids_de_pedidos_atuais = data.map((p) => {
-              if(!ids_de_pedidos_antigos.some(id => id === p.id_pedido)){
+              if (!ids_de_pedidos_antigos.some(id => id === p.id_pedido)) {
                 setNovosIDs(prev => [...prev, p.id_pedido])
               }
             })
@@ -382,6 +382,16 @@ const Pedidos = () => {
     }
   }, [id_selectedOrder])
 
+  const abreviar_nome_completo = (nome_completo) => {
+
+    const array_de_partes_do_nome = nome_completo.trim().split(/\s+/)
+    const primeiroNome = array_de_partes_do_nome[0]
+    const primeiroSobrenome = array_de_partes_do_nome[1] ? array_de_partes_do_nome[1][0] + "." : ""
+
+    const nomeCompleto = primeiroNome + " " + primeiroSobrenome
+    return nomeCompleto
+  }
+
   return (
     <div className="page-pedidos">
       <div className="pedidos">
@@ -565,7 +575,7 @@ const Pedidos = () => {
         </div>
         <div className="lista-pedidos">
           <div className="counter_div_orders_list">
-            <h2 style={{ marginLeft: "110px", marginBottom: "25px", fontSize: "30px", color: "black" }}>
+            <h2 style={{ marginTop: "30px", marginLeft: "110px", marginBottom: "25px", fontSize: "30px", color: "black" }}>
               Nº de pedidos: <strong>{pedidos.filter(pedidoPassaNoFiltro).length}</strong>
             </h2>
           </div>
@@ -599,16 +609,40 @@ const Pedidos = () => {
                   className={`pedido-card ${abertos[pedido.id_pedido] ? "aberto" : "fechado"
                     } ${novosIDs.includes(pedido.id_pedido) ? "pedido-novo" : ""}`}
                 >
+
                   <div className="pedido-header" key={pedido.id_pedido}>
-                    <div className="pedido_info">
+                    {/* <div className="pedido_info">
                       <h2>
                         Pedido {pedido.id_pedido}{" "}
+                      </h2>
+                      <h2 id="img_folder_pedido_card">
                         {abertos[pedido.id_pedido] ? (
                           <img className="e_and_r_icons" src={recolher_img} alt="Recolher" />
                         ) : (
                           <img className="e_and_r_icons" src={expandir_img} alt="Expandir" />
                         )}
+                        </h2>
+                        <h2 id="client_name_pedido_card">
+                         {pedido.nome_cliente}
                       </h2>
+                    </div> */}
+
+                    <div className="pedido_info">
+                      <h2>
+                        #{pedido.id_pedido}{" "}
+                      </h2>
+                      {/* <h2 id="img_folder_pedido_card">
+                        {abertos[pedido.id_pedido] ? (
+                          <img className="e_and_r_icons" src={recolher_img} alt="Recolher" />
+                        ) : (
+                          <img className="e_and_r_icons" src={expandir_img} alt="Expandir" />
+                        )}
+                        </h2> */}
+
+                      <pre id="client_name_pedido_card">
+                        •  {abreviar_nome_completo(pedido.nome_cliente)}
+
+                      </pre>
                     </div>
 
                     <button className="printer_btn">
@@ -676,7 +710,10 @@ const Pedidos = () => {
                       setId_selectedOrder(pedido.id_pedido)
                     }} className="btn_alterar">Alterar</button>
 
+                    <img id="warning_icon_new_order" src={warning_icon} />
 
+                  </div>
+                  <div className="pedido_card_second_line">
                     {pedido.status_pedido && (
                       <button
                         className={`status-botao ${pedido.status_pedido.replace(" ", "-")}`}
@@ -685,9 +722,9 @@ const Pedidos = () => {
                       </button>
                     )}
 
-                    <img id="warning_icon_new_order" src={warning_icon} />
-
                   </div>
+
+
                   {abertos[pedido.id_pedido] && (
                     <div className="pedido-detalhes">
                       <p>

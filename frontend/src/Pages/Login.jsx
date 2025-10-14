@@ -30,7 +30,7 @@ const Login = () => {
           className: "custom-info-toast",
           progressClassName: "custom-info-progress"
         }, { autoClose: 5000 })}>?</button>
-        <h1 id='login_page_title'>Insira o código de verificação</h1>
+        <h1 id='login_page_title'>Insira o código de login</h1>
         <form className='login_form' onSubmit={handleSubmit}>
 
           <input type={show ? 'text' : 'password'} autoFocus placeholder='Digite e pressione enter' onChange={(e) => setCode(e.target.value)}/>

@@ -37,6 +37,16 @@
   color: #000000;
 }
 
+#img_folder_pedido_card{
+  height: 22px;
+}
+
+#client_name_pedido_card{
+  font-family: 'MinhaFonte';
+  color: #515050;
+  font-size: 18px;
+}
+
 .topo-fixo-pedidos h2 {
   margin-top: 16px;
   margin-bottom: 10px;
@@ -166,14 +176,15 @@
   padding-right: 12px;
   padding: 20px 40px 40px 0;
   background-color: #ffffff;
-  margin-top: 80px;
+  margin-top: 110px;
+
 }
 
 /* Cartão de pedido */
 .pedido-card {
   background: #f6f6f6;
   border-radius: 5px;
-  padding: 40px 20px 40px 20px;
+  padding: 20px;
   margin-bottom: 24px;
 
   /* border: #afafaf 3px solid;
@@ -193,13 +204,12 @@
   box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.15);
 }
 
-/* Cabeçalho do pedido */
 .pedido-header {
   display: flex;
   align-items: center;
 }
 
-.pedido_info h2 {
+.pedido_info{
   font-weight: 700;
   margin: 0;
   display: flex;
@@ -207,6 +217,12 @@
   gap: 8px;
   user-select: none;
 }
+
+#nome_cliente_pedido_info{
+  color: #6b6b6b;
+  font-family: 'MinhaFonte3';
+  font-size: 18px;
+} 
 
 .e_and_r_icons {
   width: 22px;
@@ -248,40 +264,39 @@
   border: none;
 }
 
+
 /* Botão status */
 .status-botao {
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 0 20px;
+  border-radius: 15px;
   border: none;
-  color: white;
-  user-select: none;
-  min-width: 110px;
+  color: rgb(79, 79, 79);
+  width: 110px;
   text-align: center;
   text-transform: capitalize;
   transition: all 0.3s ease-in-out;
   font-size: 1rem;
+  height: 30px;
 }
 
 .status-botao.aberto {
-  background-color: #f1c40f;
+  background-color: #cacaca;
 }
 
 .status-botao.aceito {
-  /* background-color: #3498db; */
-  /* background-color: #3498db; */
-  background-color: #3498db;
+  background-color: #cacaca;
 }
 
 .status-botao.despachado {
-  background-color: #643708;
+  background-color: #cacaca;
 }
 
 .status-botao.andamento {
-  background-color: #ff7043;
+  background-color: #cacaca;
 }
 
 .status-botao.entregue {
-  background-color: #2e8b57;
+  background-color: #cacaca;
 }
 
 /* Detalhes do pedido (expandidos) */
@@ -430,7 +445,7 @@
   width: 35px;
   display: flex;
   justify-content: center;
-  margin-left: 60px;
+  margin-left: 30px;
   transition: all 0.3s ease-in-out;
 }
 
