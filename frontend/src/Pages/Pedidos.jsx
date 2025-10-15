@@ -383,7 +383,6 @@ const Pedidos = () => {
   }, [id_selectedOrder])
 
   const abreviar_nome_completo = (nome_completo) => {
-
     const array_de_partes_do_nome = nome_completo.trim().split(/\s+/)
     const primeiroNome = array_de_partes_do_nome[0]
     const primeiroSobrenome = array_de_partes_do_nome[1] ? array_de_partes_do_nome[1][0] + "." : ""
@@ -611,48 +610,35 @@ const Pedidos = () => {
                 >
 
                   <div className="pedido-header" key={pedido.id_pedido}>
-                    {/* <div className="pedido_info">
-                      <h2>
-                        Pedido {pedido.id_pedido}{" "}
-                      </h2>
-                      <h2 id="img_folder_pedido_card">
-                        {abertos[pedido.id_pedido] ? (
-                          <img className="e_and_r_icons" src={recolher_img} alt="Recolher" />
-                        ) : (
-                          <img className="e_and_r_icons" src={expandir_img} alt="Expandir" />
-                        )}
-                        </h2>
-                        <h2 id="client_name_pedido_card">
-                         {pedido.nome_cliente}
-                      </h2>
-                    </div> */}
-
                     <div className="pedido_info">
                       <h2>
                         #{pedido.id_pedido}{" "}
                       </h2>
-                      {/* <h2 id="img_folder_pedido_card">
-                        {abertos[pedido.id_pedido] ? (
-                          <img className="e_and_r_icons" src={recolher_img} alt="Recolher" />
-                        ) : (
-                          <img className="e_and_r_icons" src={expandir_img} alt="Expandir" />
-                        )}
-                        </h2> */}
 
                       <pre id="client_name_pedido_card">
-                        •  {abreviar_nome_completo(pedido.nome_cliente)}
-
+                        •  {abreviar_nome_completo(pedido.nome_cliente)}        <span style={{fontFamily: "MinhaFonte3", color: "#9a9898"}}>{formatarDataHora(pedido.data_pedido)}</span>
                       </pre>
                     </div>
 
-                    <button className="printer_btn">
-                      <img src={impressora_icon} id="printer_icon" onClick={(e) => {
-                        e.stopPropagation()
-                        setNovosIDs(prev => prev.filter(item => item !== pedido.id_pedido))
-                        gerarPDF(pedido.id_pedido)
-                        setAsPrinted(pedido.id_pedido)
-                      }
-                      } />
+                    <button className="printer_btn" onClick={(e) => {
+                      e.stopPropagation()
+                      setNovosIDs(prev => prev.filter(item => item !== pedido.id_pedido))
+                      gerarPDF(pedido.id_pedido)
+                      setAsPrinted(pedido.id_pedido)
+                    }
+                    }>Imprimir
+                    </button>
+
+                    <button className="editBtn_h" onClick={(e) => {
+                      e.stopPropagation()
+                      setAuthOpened(prev => !prev)
+                      setId_selectedOrder(pedido.id_pedido)
+                    }}>
+                      <svg width="1em" height="1em" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet">
+                        <path
+                          d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"
+                        ></path>
+                      </svg>
                     </button>
 
                     <button
@@ -703,12 +689,6 @@ const Pedidos = () => {
                         </g>
                       </svg>
                     </button>
-
-                    <button onClick={(e) => {
-                      e.stopPropagation()
-                      setAuthOpened(prev => !prev)
-                      setId_selectedOrder(pedido.id_pedido)
-                    }} className="btn_alterar">Alterar</button>
 
                     <img id="warning_icon_new_order" src={warning_icon} />
 

@@ -385,7 +385,8 @@
 #warning_icon_new_order{
   width: 45px;
   opacity: 0;
-  margin-left: 25px;
+  padding-left: 35px;
+  padding-right: 10px;
 }
 
 #btn_pedidos_modo {
@@ -414,6 +415,17 @@
   background: transparent;
   align-self: center;
   margin-left: 10px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.delete-button-pedido svg{
+  width: 60px;
+  height: 60px;
+  padding-bottom: 10px;
 }
 
 .delete-button-pedido:hover #lid-group {
@@ -442,7 +454,6 @@
 .printer_btn {
   background: transparent;
   border: none;
-  width: 35px;
   display: flex;
   justify-content: center;
   margin-left: 30px;
@@ -450,13 +461,7 @@
 }
 
 .printer_btn:hover {
-  border: none;
-  transform: scale(1.1);
-  filter: brightness(1.05);
-}
-
-#printer_icon {
-  width: 35px;
+  text-decoration: underline;
 }
 
 .auth_container {
@@ -601,4 +606,74 @@ input[type="password"]{
   filter: brightness(1.1);
   transform: scale(1.03);
   box-shadow: 2px 3px 5px rgba(0,0, 0, 0.4);
+}
+
+.editBtn_h {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  border: none;
+  background-color: #FF7043;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.123);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+  flex-shrink: 0;
+}
+
+.editBtn_h::before {
+  content: "";
+  width: 200%;
+  height: 200%;
+  position: absolute;
+  z-index: 1;
+  transform: scale(0);
+  transition: all 0.3s;
+  border-radius: 50%;
+  filter: blur(10px);
+}
+
+.editBtn_h:hover::before {
+  transform: scale(1);
+}
+
+.editBtn_h:hover {
+  transform: scale(1.05);
+  filter: brightness(1);
+}
+
+.editBtn_h svg {
+  fill: white;
+  z-index: 3;
+  transition: all 0.2s;
+  transform-origin: bottom;
+}
+
+.editBtn_h:hover svg {
+  transform: rotate(-15deg) translateX(5px);
+}
+
+.editBtn_h::after {
+  content: "";
+  width: 20px;
+  height: 1.5px;
+  position: absolute;
+  bottom: 18px;
+  left: -5px;
+  background-color: white;
+  border-radius: 2px;
+  z-index: 2;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s ease-out;
+}
+
+.editBtn_h:hover::after {
+  transform: scaleX(1);
+  left: 0px;
+  transform-origin: right;
 }
