@@ -572,194 +572,205 @@ const Pedidos = () => {
 
           </div>
         </div>
-        <div className="lista-pedidos">
-          <div className="counter_div_orders_list">
-            <h2 style={{ marginTop: "30px", marginLeft: "110px", marginBottom: "25px", fontSize: "30px", color: "black" }}>
-              Nº de pedidos: <strong>{pedidos.filter(pedidoPassaNoFiltro).length}</strong>
-            </h2>
-          </div>
-          {pedidos.filter(pedidoPassaNoFiltro).length === 0 ? (
-            <div style={{ textAlign: "center", marginTop: "40px" }}>
-              <img
-                src={none_result}
-                alt="Nenhum resultado encontrado"
-                style={{ maxWidth: "400px", opacity: 0.6 }}
-              />
-              <p
-                style={{
-                  fontFamily: "MinhaFonte3",
-                  fontSize: "18px",
-                  marginTop: "16px",
-                  color: "#777",
-                }}
-              >
-                Nenhum pedido encontrado.
-              </p>
-            </div>
-          ) : (
-            pedidos
-              .filter(pedidoPassaNoFiltro)
-              .map((pedido) => (
-                <div
-                  onClick={() => {
-                    togglePedido(pedido.id_pedido)
+
+        <div className="divisoes_orders">
+          <h1>Pedidos</h1>
+          <ul className="ul_divisoes_orders">
+            <li style={{ fontFamily: 'MinhaFonte', color: '#343434', textDecoration: 'underline' }} >Todos</li>
+            <li>Novos</li>
+            <li>Em andamento</li>
+            <li>Entregues</li>
+          </ul>
+        </div>
+
+        <div className="container_pedidos_">
+          <div className="lista-pedidos">
+            {/* aqui temos basicamente uma div apenas como "banner" alaranjado no topo da ui */}
+            {/* <div className="counter_div_orders_list"/>  */}
+
+
+            {pedidos.filter(pedidoPassaNoFiltro).length === 0 ? (
+              <div style={{ textAlign: "center", marginTop: "40px" }}>
+                <img
+                  src={none_result}
+                  alt="Nenhum resultado encontrado"
+                  style={{ maxWidth: "400px", opacity: 0.6 }}
+                />
+                <p
+                  style={{
+                    fontFamily: "MinhaFonte3",
+                    fontSize: "18px",
+                    marginTop: "16px",
+                    color: "#777",
                   }}
-                  key={pedido.id_pedido}
-                  className={`pedido-card ${abertos[pedido.id_pedido] ? "aberto" : "fechado"
-                    } ${novosIDs.includes(pedido.id_pedido) ? "pedido-novo" : ""}`}
                 >
+                  Nenhum pedido encontrado.
+                </p>
+              </div>
+            ) : (
+              pedidos
+                .filter(pedidoPassaNoFiltro)
+                .map((pedido) => (
+                  <div
+                    onClick={() => {
+                      togglePedido(pedido.id_pedido)
+                    }}
+                    key={pedido.id_pedido}
+                    className={`pedido-card ${abertos[pedido.id_pedido] ? "aberto" : "fechado"
+                      } ${novosIDs.includes(pedido.id_pedido) ? "pedido-novo" : ""}`}
+                  >
 
-                  <div className="pedido-header" key={pedido.id_pedido}>
-                    <div className="pedido_info">
-                      <h2>
-                        #{pedido.id_pedido}{" "}
-                      </h2>
+                    <div className="pedido-header" key={pedido.id_pedido}>
+                      <div className="pedido_info">
+                        <h2>
+                          #{pedido.id_pedido}{" "}
+                        </h2>
 
-                      <pre id="client_name_pedido_card">
-                        •  {abreviar_nome_completo(pedido.nome_cliente)}        <span style={{fontFamily: "MinhaFonte3", color: "#9a9898"}}>{formatarDataHora(pedido.data_pedido)}</span>
-                      </pre>
-                    </div>
-
-                    <button className="printer_btn" onClick={(e) => {
-                      e.stopPropagation()
-                      setNovosIDs(prev => prev.filter(item => item !== pedido.id_pedido))
-                      gerarPDF(pedido.id_pedido)
-                      setAsPrinted(pedido.id_pedido)
-                    }
-                    }>Imprimir
-                    </button>
-
-                    <button className="editBtn_h" onClick={(e) => {
-                      e.stopPropagation()
-                      setAuthOpened(prev => !prev)
-                      setId_selectedOrder(pedido.id_pedido)
-                    }}>
-                      <svg width="1em" height="1em" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet">
-                        <path
-                          d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"
-                        ></path>
-                      </svg>
-                    </button>
-
-                    <button
-                      className="delete-button-pedido"
-                      style={{}}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setAuthOpenedDelete(prev => !prev)
-                        setId_selectedOrder(pedido.id_pedido)
-                      }
-                      }
-                    >
-                      <svg
-                        className="trash-svg"
-                        viewBox="0 -10 64 74"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g id="trash-can">
-                          <rect
-                            x="16"
-                            y="24"
-                            width="32"
-                            height="30"
-                            rx="3"
-                            ry="3"
-                            fill="#000000"
-                          ></rect>
-                          <g style={{ transformOrigin: '12px 18px' }} id="lid-group">
-                            <rect
-                              x="12"
-                              y="12"
-                              width="40"
-                              height="6"
-                              rx="2"
-                              ry="2"
-                              fill="#000000"
-                            ></rect>
-                            <rect
-                              x="26"
-                              y="8"
-                              width="12"
-                              height="4"
-                              rx="2"
-                              ry="2"
-                              fill="#000000"
-                            ></rect>
-                          </g>
-                        </g>
-                      </svg>
-                    </button>
-
-                    <img id="warning_icon_new_order" src={warning_icon} />
-
-                  </div>
-                  <div className="pedido_card_second_line">
-                    {pedido.status_pedido && (
-                      <button
-                        className={`status-botao ${pedido.status_pedido.replace(" ", "-")}`}
-                      >
-                        {pedido.status_pedido}
-                      </button>
-                    )}
-
-                  </div>
-
-
-                  {abertos[pedido.id_pedido] && (
-                    <div className="pedido-detalhes">
-                      <p>
-                        <strong>Data do Pedido:</strong> {formatarDataHora(pedido.data_pedido)}
-                      </p>
-                      <p>
-                        <strong>Cliente:</strong> {pedido.nome_cliente}
-                      </p>
-                      <p>
-                        <strong>Endereço:</strong> {pedido.endereco_entrega}
-                      </p>
-                      <p>
-                        <strong>Pagamento:</strong> {pedido.forma_pagamento}
-                      </p>
-                      <p>
-                        <strong>Status:</strong> {pedido.status_pedido}
-                      </p>
-                      <p>
-                        <strong>Taxa de Entrega:</strong> R${" "}
-                        {parseFloat(pedido.taxa_entrega).toFixed(2).replace(".", ",")}
-                      </p>
-                      <p>
-                        <strong>Total:</strong> R$ {parseFloat(pedido.preco_total).toFixed(2).replace(".", ",")}
-                      </p>
-                      <div className="pedido-itens">
-                        <h3>Itens:</h3>
-                        {pedido.itens.map((item, index) => (
-                          <div key={index} className="pedido-item">
-                            <p>
-                              <strong>Produto:</strong> {item.produto}
-                            </p>
-                            <p>
-                              <strong>Sabor:</strong> {item.sabor}
-                            </p>
-                            <p>
-                              <strong>Quantidade:</strong> {item.quantidade}
-                            </p>
-                            <p>
-                              <strong>Preço: R$</strong> {item.preco?.toFixed(2).replace(".", ",")}
-                            </p>
-                            {item.observacao && (
-                              <p className="pedido-observacao">
-                                <strong>Obs.:</strong> {item.observacao}
-                              </p>
-                            )}
-                          </div>
-                        ))}
+                        <pre id="client_name_pedido_card">
+                          •  {abreviar_nome_completo(pedido.nome_cliente)}        <span style={{ fontFamily: "MinhaFonte3", color: "#9a9898" }}>{formatarDataHora(pedido.data_pedido)}</span>
+                        </pre>
                       </div>
+
+                      <button className="printer_btn" onClick={(e) => {
+                        e.stopPropagation()
+                        setNovosIDs(prev => prev.filter(item => item !== pedido.id_pedido))
+                        gerarPDF(pedido.id_pedido)
+                        setAsPrinted(pedido.id_pedido)
+                      }
+                      }>Imprimir
+                      </button>
+
+                      <button className="editBtn_h" onClick={(e) => {
+                        e.stopPropagation()
+                        setAuthOpened(prev => !prev)
+                        setId_selectedOrder(pedido.id_pedido)
+                      }}>
+                        <svg width="1em" height="1em" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet">
+                          <path
+                            d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"
+                          ></path>
+                        </svg>
+                      </button>
+
+                      <button
+                        className="delete-button-pedido"
+                        style={{}}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setAuthOpenedDelete(prev => !prev)
+                          setId_selectedOrder(pedido.id_pedido)
+                        }
+                        }
+                      >
+                        <svg
+                          className="trash-svg"
+                          viewBox="0 -10 64 74"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g id="trash-can">
+                            <rect
+                              x="16"
+                              y="24"
+                              width="32"
+                              height="30"
+                              rx="3"
+                              ry="3"
+                              fill="#000000"
+                            ></rect>
+                            <g style={{ transformOrigin: '12px 18px' }} id="lid-group">
+                              <rect
+                                x="12"
+                                y="12"
+                                width="40"
+                                height="6"
+                                rx="2"
+                                ry="2"
+                                fill="#000000"
+                              ></rect>
+                              <rect
+                                x="26"
+                                y="8"
+                                width="12"
+                                height="4"
+                                rx="2"
+                                ry="2"
+                                fill="#000000"
+                              ></rect>
+                            </g>
+                          </g>
+                        </svg>
+                      </button>
+
+                      <img id="warning_icon_new_order" src={warning_icon} />
+
                     </div>
-                  )}
-                </div>
-              ))
+                    <div className="pedido_card_second_line">
+                      {pedido.status_pedido && (
+                        <button
+                          className={`status-botao ${pedido.status_pedido.replace(" ", "-")}`}
+                        >
+                          {pedido.status_pedido}
+                        </button>
+                      )}
 
-          )}
+                    </div>
 
+
+                    {abertos[pedido.id_pedido] && (
+                      <div className="pedido-detalhes">
+                        <p>
+                          <strong>Cliente:</strong> {pedido.nome_cliente}
+                        </p>
+                        <p>
+                          <strong>Endereço:</strong> {pedido.endereco_entrega}
+                        </p>
+                        <p>
+                          <strong>Pagamento:</strong> {pedido.forma_pagamento}
+                        </p>
+                        <p>
+                          <strong>Status:</strong> {pedido.status_pedido}
+                        </p>
+                        <p>
+                          <strong>Taxa de Entrega:</strong> R${" "}
+                          {parseFloat(pedido.taxa_entrega).toFixed(2).replace(".", ",")}
+                        </p>
+                        <p>
+                          <strong>Total:</strong> R$ {parseFloat(pedido.preco_total).toFixed(2).replace(".", ",")}
+                        </p>
+                        <div className="pedido-itens">
+                          <h3>Itens:</h3>
+                          {pedido.itens.map((item, index) => (
+                            <div key={index} className="pedido-item">
+                              <p>
+                                <strong>Produto:</strong> {item.produto}
+                              </p>
+                              <p>
+                                <strong>Sabor:</strong> {item.sabor}
+                              </p>
+                              <p>
+                                <strong>Quantidade:</strong> {item.quantidade}
+                              </p>
+                              <p>
+                                <strong>Preço: R$</strong> {item.preco?.toFixed(2).replace(".", ",")}
+                              </p>
+                              {item.observacao && (
+                                <p className="pedido-observacao">
+                                  <strong>Obs.:</strong> {item.observacao}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+
+            )}
+          </div>
+          {/* fim de lista-pedidos */}
+
+          <div className="filtros_div_"></div>
         </div>
       </div>
     </div>
