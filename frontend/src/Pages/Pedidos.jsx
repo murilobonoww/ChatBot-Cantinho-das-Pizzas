@@ -126,18 +126,18 @@ const Pedidos = () => {
   }, [location.state]);
 
   const fetchPedidos = () => {
-    fetch(`http://localhost:3000/pedido/getAll`) 
+    fetch(`http://localhost:3000/pedido/getAll`)
       .then(res => res.json())
       .then(data => {
         let pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
 
-        if(secao_pedido_filtro === "Novos"){
+        if (secao_pedido_filtro === "Novos") {
           pedidosOrdenados = pedidosOrdenados.filter((p) => novosIDs.includes(p.id_pedido))
         }
-        else if(secao_pedido_filtro === "Em andamento"){
+        else if (secao_pedido_filtro === "Em andamento") {
           pedidosOrdenados = pedidosOrdenados.filter((p) => p.status_pedido === "aberto" || p.status_pedido === "aceito" || p.status_pedido === "despachado" || p.status_pedido === "andamento")
         }
-        else if(secao_pedido_filtro === "Entregues"){
+        else if (secao_pedido_filtro === "Entregues") {
           pedidosOrdenados = pedidosOrdenados.filter((p) => p.status_pedido === "entregue")
         }
 
@@ -177,13 +177,13 @@ const Pedidos = () => {
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
         let pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados
 
-        if(secao_pedido_filtro === "Novos"){
+        if (secao_pedido_filtro === "Novos") {
           pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados.filter((p) => novosIDs.includes(p.id_pedido))
         }
-        else if(secao_pedido_filtro === "Em andamento"){
+        else if (secao_pedido_filtro === "Em andamento") {
           pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados.filter((p) => p.status_pedido === "aberto" || p.status_pedido === "aceito" || p.status_pedido === "despachado" || p.status_pedido === "andamento")
         }
-        if(secao_pedido_filtro === "Entregues"){
+        if (secao_pedido_filtro === "Entregues") {
           pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados.filter((p) => p.status_pedido === "entregue")
         }
         setPedidos(pedidosOrdenadosFiltradosPorSecao);
@@ -600,21 +600,33 @@ const Pedidos = () => {
         <div className="divisoes_orders">
           <h1>Pedidos</h1>
           <ul className="ul_divisoes_orders">
-            <button onClick={() => {
-              setSecao_pedido_filtro("Todos")
-              console.log(secao_pedido_filtro)
-              }} ><li>Todos</li></button>
-            <button onClick={() => setSecao_pedido_filtro("Novos")} ><li>Novos</li></button>
-            <button onClick={() => setSecao_pedido_filtro("Em andamento")} ><li>Em andamento</li></button>
-            <button onClick={() => setSecao_pedido_filtro("Entregues")} ><li>Entregues</li></button>
+            <li>
+              <button className={secao_pedido_filtro === "Todos" ? "btn_divisoes_oders_active" : "btn_divisoes_oders"} onClick={() => setSecao_pedido_filtro("Todos")} >Todos</button>
+              <div className="underline_divisoes_orders" style={{opacity: secao_pedido_filtro === "Todos" ? "100" : "0"}} />
+            </li>
+
+
+            <li>
+              <button className={secao_pedido_filtro === "Novos" ? "btn_divisoes_oders_active" : "btn_divisoes_oders"} onClick={() => setSecao_pedido_filtro("Novos")} ><li>Novos</li></button>
+              <div className="underline_divisoes_orders" style={{opacity: secao_pedido_filtro === "Novos" ? "100" : "0"}} />
+            </li>
+
+
+            <li>
+              <button className={secao_pedido_filtro === "Em andamento" ? "btn_divisoes_oders_active" : "btn_divisoes_oders"} onClick={() => setSecao_pedido_filtro("Em andamento")} ><li>Em andamento</li></button>
+              <div className="underline_divisoes_orders" style={{opacity: secao_pedido_filtro === "Em andamento" ? "100" : "0"}} />
+            </li>
+
+
+            <li>
+              <button className={secao_pedido_filtro === "Entregues" ? "btn_divisoes_oders_active" : "btn_divisoes_oders"} onClick={() => setSecao_pedido_filtro("Entregues")} ><li>Entregues</li></button>
+              <div className="underline_divisoes_orders" style={{opacity: secao_pedido_filtro === "Entregues" ? "100" : "0"}} />
+            </li>
           </ul>
         </div>
 
         <div className="container_pedidos_">
           <div className="lista-pedidos">
-            {/* aqui temos basicamente uma div apenas como "banner" alaranjado no topo da ui */}
-            {/* <div className="counter_div_orders_list"/>  */}
-
             {pedidos.filter(pedidoPassaNoFiltro).length === 0 ? (
               <div style={{ textAlign: "center", marginTop: "40px" }}>
                 <img

@@ -73,7 +73,7 @@
 .inputs_filtro {
   font-family: "MinhaFonte3", sans-serif;
   padding: 6px 10px;
-  border-radius: 6px;
+  /* border-radius: 6px;*/
   border: none;
   border: 3px solid #afafaf;
   border-bottom: 7px solid #afafaf;
@@ -172,7 +172,7 @@
   overflow-y:visible;
   padding-right: 12px;
   background-color: #ffffff;
-  margin-top: 90px;
+  margin-top: 100px;
   margin-left: 270px;
 }
 
@@ -675,7 +675,8 @@ input[type="password"]{
   align-items: center;
   width: 100vw;
   background-color: white;
-  border-bottom: 1px solid #afafaf;
+  /* border-bottom: 1px solid #afafaf; */
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.1);
   position: fixed;
   top: 0;
   z-index: 7001;
@@ -693,9 +694,19 @@ input[type="password"]{
 .ul_divisoes_orders{
   display: flex;
   list-style: none;
-  gap: 100px;
   color: #afafaf;
-  margin-left: 199px;
+  margin-left: 105px;
+}
+
+.btn_divisoes_oders {
+  background-color: transparent;
+  width: 200px;
+}
+
+.btn_divisoes_oders_active {
+  background-color: transparent;
+  font-family: 'MinhaFonte';
+  width: 200px;
 }
 
 /* style={{ fontFamily: 'MinhaFonte', color: '#343434', textDecoration: 'underline' }} */
@@ -703,4 +714,17 @@ input[type="password"]{
 .container_pedidos_{
   display: flex;
   width: 100vw;
+}
+
+.underline_divisoes_orders{
+  background-color: black;
+  width: 50px;
+  height: 5px;
+  border-radius: 5px;
+}
+
+.ul_divisoes_orders li{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
