@@ -32,6 +32,7 @@ const Pedidos = () => {
   const [novosIDs, setNovosIDs] = useState([]);
   const [id_selectedOrder, setId_selectedOrder] = useState()
   const [novospedidos_localstorage, set_novospedidos_localstorage] = useState([]);
+  const [secao_pedido_filtro, setSecao_pedido_filtro] = useState("Todos")
 
   //form change order
   const [newProductName, setNewProductName] = useState("")
@@ -58,7 +59,7 @@ const Pedidos = () => {
 
   useEffect(() => {
     buscarPedidosFiltrados();
-  }, [id_filter, dataInicio, dataFim, nomeCliente]);
+  }, [id_filter, dataInicio, dataFim, nomeCliente, secao_pedido_filtro]);
 
   useEffect(() => {
     fetch("http://localhost:3000/pedido/getAll")
@@ -67,6 +68,7 @@ const Pedidos = () => {
         console.log(data)
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
         setPedidos(pedidosOrdenados);
+        console.log("1111111111111111111111111")
         buscarPedidosFiltrados();
 
         if (localStorage.getItem("pedidos") !== null) {
@@ -112,7 +114,7 @@ const Pedidos = () => {
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [id_filter, dataInicio, dataFim, nomeCliente]);
+  }, [id_filter, dataInicio, dataFim, nomeCliente, secao_pedido_filtro]);
 
   const location = useLocation();
 
@@ -124,12 +126,21 @@ const Pedidos = () => {
   }, [location.state]);
 
   const fetchPedidos = () => {
-    fetch(`http://localhost:3000/pedido/getAll`)
+    fetch(`http://localhost:3000/pedido/getAll`) 
       .then(res => res.json())
       .then(data => {
-        const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
+        let pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
+
+        if(secao_pedido_filtro === "Novos"){
+          pedidosOrdenados = pedidosOrdenados.filter((p) => novosIDs.includes(p.id_pedido))
+        }
+        if(secao_pedido_filtro === "Em andamento"){
+          pedidosOrdenados = pedidosOrdenados.filter((p) => novosIDs.includes(p.id_pedido))
+        }
+
         const idsAnteriores = pedidosAnteriores.current.map(p => p.id_pedido);
         const novosPedidos = pedidosOrdenados.filter(p => !idsAnteriores.includes(p.id_pedido));
+        console.log("22222222222222222222")
 
         localStorage.setItem("pedidos", JSON.stringify(pedidosOrdenados))
 
@@ -142,6 +153,7 @@ const Pedidos = () => {
         }
 
         pedidosAnteriores.current = pedidosOrdenados;
+
         setPedidos(pedidosOrdenados);
       })
       .catch(err => console.error("Erro ao buscar pedidos:", err));
@@ -155,12 +167,18 @@ const Pedidos = () => {
     if (nomeCliente) params.append("cliente", nomeCliente);
 
     console.log(params)
+    console.log("3333333333333333")
 
     fetch(`http://localhost:3000/pedido/getAll?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => {
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
-        setPedidos(pedidosOrdenados);
+        let pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados
+
+        if(secao_pedido_filtro === "Novos"){
+          pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados.filter((p) => novosIDs.includes(p.id_pedido))
+        }
+        setPedidos(pedidosOrdenadosFiltradosPorSecao);
       })
       .catch((err) => {
         console.error("Erro ao buscar pedidos:", err);
@@ -172,7 +190,7 @@ const Pedidos = () => {
     if (id_filter || dataInicio || dataFim || nomeCliente) {
       buscarPedidosFiltrados();
     }
-  }, [id_filter, dataInicio, dataFim, nomeCliente]);
+  }, [id_filter, dataInicio, dataFim, nomeCliente, secao_pedido_filtro]);
 
   const handleDeletePedido = (id) => {
     MySwal.fire({
@@ -567,19 +585,20 @@ const Pedidos = () => {
                   Modo: {modoFiltro === "OU" ? "1 OU 2" : "1 E 2"}
                 </button>
               )}
-
             </div>
-
           </div>
         </div>
 
         <div className="divisoes_orders">
           <h1>Pedidos</h1>
           <ul className="ul_divisoes_orders">
-            <li style={{ fontFamily: 'MinhaFonte', color: '#343434', textDecoration: 'underline' }} >Todos</li>
-            <li>Novos</li>
-            <li>Em andamento</li>
-            <li>Entregues</li>
+            <button onClick={() => {
+              setSecao_pedido_filtro("Todos")
+              console.log(secao_pedido_filtro)
+              }} ><li>Todos</li></button>
+            <button onClick={() => setSecao_pedido_filtro("Novos")} ><li>Novos</li></button>
+            <button onClick={() => setSecao_pedido_filtro("Em andamento")} ><li>Em andamento</li></button>
+            <button onClick={() => setSecao_pedido_filtro("Entregues")} ><li>Entregues</li></button>
           </ul>
         </div>
 
@@ -587,7 +606,6 @@ const Pedidos = () => {
           <div className="lista-pedidos">
             {/* aqui temos basicamente uma div apenas como "banner" alaranjado no topo da ui */}
             {/* <div className="counter_div_orders_list"/>  */}
-
 
             {pedidos.filter(pedidoPassaNoFiltro).length === 0 ? (
               <div style={{ textAlign: "center", marginTop: "40px" }}>
