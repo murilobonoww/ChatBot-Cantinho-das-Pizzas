@@ -24,13 +24,14 @@
   position: fixed;
   height: 100vh;
   top: 0;
-  background-color: #ffffff;
   z-index: 1000;
   padding: 20px 30px 15px 30px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid #dddddd19;
   left: 0;
   display: flex;
+  background-color: #f9f9f9;
+
 }
 
 .topo-fixo-pedidos h1 {
@@ -49,8 +50,8 @@
 }
 
 .topo-fixo-pedidos h2 {
-  margin-top: 16px;
-  margin-bottom: 10px;
+  margin-top: 30px;
+  margin-bottom: 20px;
   font-size: 24px;
   color: #343434;
 }
@@ -65,7 +66,7 @@
 
 .lbl_filtro {
   font-size: 16px;
-  margin-bottom: 4px;
+  margin-bottom: 10px;
   color: #7e7e7e;
   user-select: none;
 }
@@ -73,17 +74,24 @@
 .inputs_filtro {
   font-family: "MinhaFonte3", sans-serif;
   padding: 6px 10px;
-  /* border-radius: 6px;*/
+  border-radius: 6px;
   border: none;
-  border: 3px solid #afafaf;
-  border-bottom: 7px solid #afafaf;
+  /* border: 3px solid #afafaf; */
+  /* border-bottom: 7px solid #afafaf; */
+
   font-size: 14px;
   background-color: white;
+  
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
   min-width: 180px;
   vertical-align: middle;
   display: inline-block;
   height: 30px;
   color: #757575 !important;
+}
+
+.inputs_filtro:focus{
+    outline: 2px solid rgb(144, 144, 144);
 }
 
 /* Filtro itens */

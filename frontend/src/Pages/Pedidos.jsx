@@ -552,7 +552,7 @@ const Pedidos = () => {
                 />
               </label>
               <label>
-                <div className="lbl_filtro">Nome do Cliente:</div>
+                <div className="lbl_filtro">Cliente:</div>
                 <input
                   className="inputs_filtro"
                   type="text"
@@ -562,7 +562,7 @@ const Pedidos = () => {
                 />
               </label>
               <div className="filtro-itens">
-                <label className="lbl_filtro">Filtrar por item:</label>
+                <div className="lbl_filtro">Item:</div>
                 <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                   <input
                     className="inputs_filtro"
@@ -628,7 +628,7 @@ const Pedidos = () => {
         <div className="container_pedidos_">
           <div className="lista-pedidos">
             {pedidos.filter(pedidoPassaNoFiltro).length === 0 ? (
-              <div style={{ textAlign: "center", marginTop: "40px" }}>
+              <div style={{ marginTop: "40px", alignItems: "center", display: "flex", flexDirection: "column" }}>
                 <img
                   src={none_result}
                   alt="Nenhum resultado encontrado"
