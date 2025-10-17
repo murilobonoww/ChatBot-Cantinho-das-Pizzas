@@ -134,13 +134,16 @@ const Pedidos = () => {
         if(secao_pedido_filtro === "Novos"){
           pedidosOrdenados = pedidosOrdenados.filter((p) => novosIDs.includes(p.id_pedido))
         }
-        if(secao_pedido_filtro === "Em andamento"){
-          pedidosOrdenados = pedidosOrdenados.filter((p) => novosIDs.includes(p.id_pedido))
+        else if(secao_pedido_filtro === "Em andamento"){
+          pedidosOrdenados = pedidosOrdenados.filter((p) => p.status_pedido === "aberto" || p.status_pedido === "aceito" || p.status_pedido === "despachado" || p.status_pedido === "andamento")
+        }
+        else if(secao_pedido_filtro === "Entregues"){
+          pedidosOrdenados = pedidosOrdenados.filter((p) => p.status_pedido === "entregue")
         }
 
         const idsAnteriores = pedidosAnteriores.current.map(p => p.id_pedido);
         const novosPedidos = pedidosOrdenados.filter(p => !idsAnteriores.includes(p.id_pedido));
-        console.log("22222222222222222222")
+        console.log(data)
 
         localStorage.setItem("pedidos", JSON.stringify(pedidosOrdenados))
 
@@ -177,6 +180,9 @@ const Pedidos = () => {
 
         if(secao_pedido_filtro === "Novos"){
           pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados.filter((p) => novosIDs.includes(p.id_pedido))
+        }
+        if(secao_pedido_filtro === "Entregues"){
+          pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados.filter((p) => p.status_pedido === "entregue")
         }
         setPedidos(pedidosOrdenadosFiltradosPorSecao);
       })
