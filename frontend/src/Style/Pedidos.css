@@ -21,7 +21,8 @@
 /* TOPO fixo */
 .topo-fixo-pedidos {
   font-family: MinhaFonte, sans-serif;
-  position: sticky;
+  position: fixed;
+  height: 100vh;
   top: 0;
   background-color: #ffffff;
   z-index: 1000;
@@ -168,10 +169,11 @@
 /* Lista pedidos scroll */
 .lista-pedidos {
   flex-grow: 1;
-  overflow-y: auto;
+  overflow-y:visible;
   padding-right: 12px;
   background-color: #ffffff;
   margin-top: 90px;
+  margin-left: 270px;
 }
 
 /* Cartão de pedido */

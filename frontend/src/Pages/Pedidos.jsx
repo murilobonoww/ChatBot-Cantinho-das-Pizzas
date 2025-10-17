@@ -170,7 +170,6 @@ const Pedidos = () => {
     if (nomeCliente) params.append("cliente", nomeCliente);
 
     console.log(params)
-    console.log("3333333333333333")
 
     fetch(`http://localhost:3000/pedido/getAll?${params.toString()}`)
       .then((res) => res.json())
@@ -180,6 +179,9 @@ const Pedidos = () => {
 
         if(secao_pedido_filtro === "Novos"){
           pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados.filter((p) => novosIDs.includes(p.id_pedido))
+        }
+        else if(secao_pedido_filtro === "Em andamento"){
+          pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados.filter((p) => p.status_pedido === "aberto" || p.status_pedido === "aceito" || p.status_pedido === "despachado" || p.status_pedido === "andamento")
         }
         if(secao_pedido_filtro === "Entregues"){
           pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados.filter((p) => p.status_pedido === "entregue")
