@@ -269,7 +269,8 @@
   padding: 0 20px;
   border-radius: 15px;
   border: none;
-  color: rgb(79, 79, 79);
+  /* color: rgb(79, 79, 79); */
+  color: white;
   width: 110px;
   text-align: center;
   text-transform: capitalize;
@@ -279,23 +280,23 @@
 }
 
 .status-botao.aberto {
-  background-color: #cacaca;
+  background-color: #777474;
 }
 
 .status-botao.aceito {
-  background-color: #cacaca;
+  background-color: #000000;
 }
 
 .status-botao.despachado {
-  background-color: #cacaca;
+  background-color: #000000;
 }
 
 .status-botao.andamento {
-  background-color: #cacaca;
+  background-color: #000000;
 }
 
 .status-botao.entregue {
-  background-color: #cacaca;
+  background-color: #000000;
 }
 
 /* Detalhes do pedido (expandidos) */
@@ -458,6 +459,7 @@
   justify-content: center;
   margin-left: 30px;
   transition: all 0.3s ease-in-out;
+  margin-right: 10px;
 }
 
 .printer_btn:hover {
@@ -708,13 +710,14 @@ input[type="password"]{
 
 .btn_divisoes_oders {
   background-color: transparent;
-  width: 200px;
+  padding: 0;
+
 }
 
 .btn_divisoes_oders_active {
   background-color: transparent;
   font-family: 'MinhaFonte';
-  width: 200px;
+  padding: 0;
 }
 
 /* style={{ fontFamily: 'MinhaFonte', color: '#343434', textDecoration: 'underline' }} */
@@ -731,8 +734,28 @@ input[type="password"]{
   border-radius: 5px;
 }
 
-.ul_divisoes_orders li{
+.section_divisoes{
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.bubble_section_divisoes{
+  height: 25px;
+  width: 25px;
+  background-color: black;
+  border-radius: 50%;
+  margin-left: 10px;
+  font-size: 15px;
+  color: white;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.ul_divisoes_orders li{
+  display: flex;
+  align-items: center;
+  width: 200px;
+
 }

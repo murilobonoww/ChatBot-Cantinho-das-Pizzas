@@ -32,7 +32,9 @@ const Pedidos = () => {
   const [novosIDs, setNovosIDs] = useState([]);
   const [id_selectedOrder, setId_selectedOrder] = useState()
   const [novospedidos_localstorage, set_novospedidos_localstorage] = useState([]);
+
   const [secao_pedido_filtro, setSecao_pedido_filtro] = useState("Todos")
+  const [contagem_pedidos_secao, setContagem_pedidos_secao] = useState(0)
 
   //form change order
   const [newProductName, setNewProductName] = useState("")
@@ -65,10 +67,8 @@ const Pedidos = () => {
     fetch("http://localhost:3000/pedido/getAll")
       .then(res => res.json())
       .then(data => {
-        console.log(data)
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
         setPedidos(pedidosOrdenados);
-        console.log("1111111111111111111111111")
         buscarPedidosFiltrados();
 
         if (localStorage.getItem("pedidos") !== null) {
@@ -141,9 +141,10 @@ const Pedidos = () => {
           pedidosOrdenados = pedidosOrdenados.filter((p) => p.status_pedido === "entregue")
         }
 
+        setContagem_pedidos_secao(pedidosOrdenados.length)
+
         const idsAnteriores = pedidosAnteriores.current.map(p => p.id_pedido);
         const novosPedidos = pedidosOrdenados.filter(p => !idsAnteriores.includes(p.id_pedido));
-        console.log(data)
 
         localStorage.setItem("pedidos", JSON.stringify(pedidosOrdenados))
 
@@ -152,6 +153,7 @@ const Pedidos = () => {
         } else if (novosPedidos.length > 0) {
           const idsNovos = novosPedidos.map(p => p.id_pedido);
           setNovosIDs(idsNovos);
+          console.log(`\n\n\n\nPedidos anteriores :${pedidosAnteriores}\n\n\n\nNovos Pedidos: ${novosPedidos}\n\n\n\n`)
           playSound();
         }
 
@@ -169,7 +171,6 @@ const Pedidos = () => {
     if (dataFim) params.append("fim", dataFim);
     if (nomeCliente) params.append("cliente", nomeCliente);
 
-    console.log(params)
 
     fetch(`http://localhost:3000/pedido/getAll?${params.toString()}`)
       .then((res) => res.json())
@@ -187,6 +188,7 @@ const Pedidos = () => {
           pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados.filter((p) => p.status_pedido === "entregue")
         }
         setPedidos(pedidosOrdenadosFiltradosPorSecao);
+        setContagem_pedidos_secao(pedidosOrdenadosFiltradosPorSecao.length)
       })
       .catch((err) => {
         console.error("Erro ao buscar pedidos:", err);
@@ -601,26 +603,38 @@ const Pedidos = () => {
           <h1>Pedidos</h1>
           <ul className="ul_divisoes_orders">
             <li>
-              <button className={secao_pedido_filtro === "Todos" ? "btn_divisoes_oders_active" : "btn_divisoes_oders"} onClick={() => setSecao_pedido_filtro("Todos")} >Todos</button>
-              <div className="underline_divisoes_orders" style={{opacity: secao_pedido_filtro === "Todos" ? "100" : "0"}} />
+              <div className="section_divisoes">
+                <button className={secao_pedido_filtro === "Todos" ? "btn_divisoes_oders_active" : "btn_divisoes_oders"} onClick={() => setSecao_pedido_filtro("Todos")} >Todos</button>
+                <div className="underline_divisoes_orders" style={{ opacity: secao_pedido_filtro === "Todos" ? "100" : "0" }} />
+              </div>
+              <div className="bubble_section_divisoes" style={{ opacity: secao_pedido_filtro === "Todos" ? "100" : "0" }} >{contagem_pedidos_secao}</div>
             </li>
 
 
             <li>
-              <button className={secao_pedido_filtro === "Novos" ? "btn_divisoes_oders_active" : "btn_divisoes_oders"} onClick={() => setSecao_pedido_filtro("Novos")} ><li>Novos</li></button>
-              <div className="underline_divisoes_orders" style={{opacity: secao_pedido_filtro === "Novos" ? "100" : "0"}} />
+              <div className="section_divisoes">
+                <button className={secao_pedido_filtro === "Novos" ? "btn_divisoes_oders_active" : "btn_divisoes_oders"} onClick={() => setSecao_pedido_filtro("Novos")} >Novos</button>
+                <div className="underline_divisoes_orders" style={{ opacity: secao_pedido_filtro === "Novos" ? "100" : "0" }} />
+              </div>
+              <div className="bubble_section_divisoes" style={{ opacity: secao_pedido_filtro === "Novos" ? "100" : "0" }} >{contagem_pedidos_secao}</div>
             </li>
 
 
             <li>
-              <button className={secao_pedido_filtro === "Em andamento" ? "btn_divisoes_oders_active" : "btn_divisoes_oders"} onClick={() => setSecao_pedido_filtro("Em andamento")} ><li>Em andamento</li></button>
-              <div className="underline_divisoes_orders" style={{opacity: secao_pedido_filtro === "Em andamento" ? "100" : "0"}} />
+              <div className="section_divisoes">
+                <button className={secao_pedido_filtro === "Ativos" ? "btn_divisoes_oders_active" : "btn_divisoes_oders"} onClick={() => setSecao_pedido_filtro("Ativos")} >Ativos</button>
+                <div className="underline_divisoes_orders" style={{ opacity: secao_pedido_filtro === "Ativos" ? "100" : "0" }} />
+              </div>
+              <div className="bubble_section_divisoes" style={{ opacity: secao_pedido_filtro === "Ativos" ? "100" : "0" }} >{contagem_pedidos_secao}</div>
             </li>
 
 
             <li>
-              <button className={secao_pedido_filtro === "Entregues" ? "btn_divisoes_oders_active" : "btn_divisoes_oders"} onClick={() => setSecao_pedido_filtro("Entregues")} ><li>Entregues</li></button>
-              <div className="underline_divisoes_orders" style={{opacity: secao_pedido_filtro === "Entregues" ? "100" : "0"}} />
+              <div className="section_divisoes">
+                <button className={secao_pedido_filtro === "Entregues" ? "btn_divisoes_oders_active" : "btn_divisoes_oders"} onClick={() => setSecao_pedido_filtro("Entregues")} >Entregues</button>
+                <div className="underline_divisoes_orders" style={{ opacity: secao_pedido_filtro === "Entregues" ? "100" : "0" }} />
+              </div>
+              <div className="bubble_section_divisoes" style={{ opacity: secao_pedido_filtro === "Entregues" ? "100" : "0" }} >{contagem_pedidos_secao}</div>
             </li>
           </ul>
         </div>
@@ -628,7 +642,7 @@ const Pedidos = () => {
         <div className="container_pedidos_">
           <div className="lista-pedidos">
             {pedidos.filter(pedidoPassaNoFiltro).length === 0 ? (
-              <div style={{ marginTop: "40px", alignItems: "center", display: "flex", flexDirection: "column" }}>
+              <div style={{ marginTop: "40px", alignSelf: "center", alignItems: "center", display: "flex", flexDirection: "column" }}>
                 <img
                   src={none_result}
                   alt="Nenhum resultado encontrado"
