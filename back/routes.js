@@ -5,7 +5,7 @@ const { resolvePath } = require("react-router-dom");
 const dotenv = require("dotenv");
 dotenv.config();
 const axios = require("axios");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit");
 
@@ -15,41 +15,52 @@ const SECRET_KEY = process.env.JWT_SECRET;
 // impede ataques de força bruta, botando limite de tentativas pra inserir a senha
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 60, 
-  message: { error: "Muitas tentativas. Tente novamente mais tarde." }
-})
+  max: 60,
+  message: { error: "Muitas tentativas. Tente novamente mais tarde." },
+});
 
-function verifyToken(req, res, next){
-  const token = req.cookies?.token || req.headers["authorization"]?.split(" ")[1];
-  if(!token) return res.status(401).json({ error: "Token ausente" });
+function autenticar(req, res, next) {
+  const token = req.cookies.token;
 
-  jwt.verify(token, SECRET_KEY, (err, decoded) => {
-    if(err) return res.status(403).json({ error: "Token inválido" });
+  console.log(`TOKENNNNNNNNNNN:\n\n\n\n\n\n\n\n\n\n${token}\n\n\n\n\n\n\n\n\n\n\n\n`)
+
+  if (!token) {
+    return res.status(401).json({ error: "Token ausente" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
     req.user = decoded;
     next();
-  })
+  }
+  catch (error) {
+    return res.status(403).json({ error: "Token inválido ou expirado." });
+  }
 }
 
 router.post("/login", limiter, async (req, res) => {
   const { code } = req.body;
 
-  if(!code) return res.status(400).json({ error: "código obrigatório" });
+  if (!code) return res.status(400).json({ error: "código obrigatório" });
 
   const ok = await bcrypt.compare(code, CODE_HASH);
 
-  if(!ok) return res.status(401).json({ error: "código incorreto" });
+  if (!ok) return res.status(401).json({ error: "código incorreto" });
 
-  const token = jwt.sign({ acesso: "allowed" }, SECRET_KEY, { expiresIn: "10h" });
+  const token = jwt.sign({ acesso: "allowed" }, SECRET_KEY, {
+    expiresIn: "10h",
+  });
 
   res.cookie("token", token, {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
-    maxAge: 4 * 60 * 60 * 1000
+    secure: true,
+    sameSite: "None",
+    maxAge: 4 * 60 * 60 * 1000,
+    path: "/"
   });
 
-  res.json({ ok: true })
-})
+  res.json({ ok: true });
+});
 
 router.post("/confirmAuthPass/:pass", (req, res) => {
   const pass = req.params.pass;
@@ -188,7 +199,7 @@ router.post("/pedido/post", (req, res) => {
       item.sabor,
       item.quantidade,
       item.observacao || "",
-      item.preco
+      item.preco,
     ]);
 
     db.query(sqlItem, [valoresItens], (err2) => {
@@ -211,7 +222,7 @@ router.post("/pedido/post", (req, res) => {
   });
 });
 
-router.get("/pedido/getAll", (req, res) => {
+router.get("/pedido/getAll", autenticar, (req, res) => {
   const { id, inicio, fim, cliente } = req.query;
 
   let sql = `
@@ -280,7 +291,7 @@ router.get("/pedido/getAll", (req, res) => {
           sabor: row.sabor,
           quantidade: row.quantidade,
           observacao: row.observacao,
-          preco: row.preco
+          preco: row.preco,
         });
       }
     });
@@ -748,11 +759,9 @@ router.post("/cardapio", async (req, res) => {
     return res.status(400).json({ mensagem: "Nome ou sabor é obrigatório" });
   }
   if (section === "pizzas" && (!ingredientes || !preco_25 || !preco_35)) {
-    return res
-      .status(400)
-      .json({
-        mensagem: "Ingredientes, preço 25cm e preço 35cm são obrigatórios",
-      });
+    return res.status(400).json({
+      mensagem: "Ingredientes, preço 25cm e preço 35cm são obrigatórios",
+    });
   }
   if ((section === "esfihas" || section === "doces") && !preco) {
     return res.status(400).json({ mensagem: "Preço é obrigatório" });
@@ -820,11 +829,9 @@ router.put("/cardapio/:id", async (req, res) => {
     return res.status(400).json({ mensagem: "Nome ou sabor é obrigatório" });
   }
   if (section === "pizzas" && (!ingredientes || !preco_25 || !preco_35)) {
-    return res
-      .status(400)
-      .json({
-        mensagem: "Ingredientes, preço 25cm e preço 35cm são obrigatórios",
-      });
+    return res.status(400).json({
+      mensagem: "Ingredientes, preço 25cm e preço 35cm são obrigatórios",
+    });
   }
   if ((section === "esfihas" || section === "doces") && !preco) {
     return res.status(400).json({ mensagem: "Preço é obrigatório" });
@@ -929,11 +936,9 @@ router.delete("/cardapio", async (req, res) => {
     console.log(
       `✅ ${result.affectedRows} item(s) deletado(s) da seção ${section}`
     );
-    res
-      .status(200)
-      .json({
-        mensagem: `Item(s) deletado(s) com sucesso da seção ${section}`,
-      });
+    res.status(200).json({
+      mensagem: `Item(s) deletado(s) com sucesso da seção ${section}`,
+    });
   } catch (err) {
     console.error(`❌ Erro ao deletar itens da seção ${section}:`, err);
     res
@@ -941,7 +946,5 @@ router.delete("/cardapio", async (req, res) => {
       .json({ mensagem: err.message || "Erro ao deletar itens do cardápio" });
   }
 });
-
-module.exports = router;
 
 module.exports = router;

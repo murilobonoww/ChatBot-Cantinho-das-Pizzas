@@ -7,10 +7,17 @@ const axios = require("axios");
 const app = express();
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
+const https = require('https');
+const fs = require("fs");
 
 
 const http = require("http");
-const server = http.createServer(app);
+
+const server = https.createServer({
+  key: fs.readFileSync('./localhost+2-key.pem'),
+  cert: fs.readFileSync('./localhost+2.pem')
+},app)
+
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
@@ -22,7 +29,7 @@ global.io = io;
 
 app.use(helmet());
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "https://localhost:5173",
   credentials: true
 }));
 app.use(express.json());
@@ -178,6 +185,9 @@ io.on("connection", (socket) => {
   });
 });
 
+
+
+
 server.listen(PORT, () => {
-  console.log(`🚀 Backend rodando em http://localhost:${PORT}`);
+  console.log(`🚀 Backend rodando em https://localhost:${PORT}`);
 });

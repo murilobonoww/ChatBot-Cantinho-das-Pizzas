@@ -15,7 +15,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://127.0.0.1:3000/login", { code }, { withCredentials: true });
+      const res = await axios.post("https://localhost:3000/login", { code }, { withCredentials: true });
       localStorage.setItem("token", res.data.token);
       navigate("/");
     } catch (error) {
@@ -31,16 +31,19 @@ const Login = () => {
           progressClassName: "custom-info-progress"
         }, { autoClose: 5000 })}>?</button>
         <h1 id='login_page_title'>Insira o código de login</h1>
+
         <form className='login_form' onSubmit={handleSubmit}>
 
-          <input type={show ? 'text' : 'password'} autoFocus placeholder='Digite e pressione enter' onChange={(e) => setCode(e.target.value)}/>
-
-          <button type='button' id='btn_toggle_show_pass_login_page' onClick={() => setShow(prev => !prev)}>
-            <img id='img_btn_toggle_show_pass_login_page' src={!show ? show_pass : hide_pass}/>
-          </button>
+          <div className='row_1_login_form'>
+            <input type={show ? 'text' : 'password'} autoFocus placeholder='Digite e pressione enter' onChange={(e) => setCode(e.target.value)} />
+            <button type='button' id='btn_toggle_show_pass_login_page' onClick={() => setShow(prev => !prev)}>
+              <img id='img_btn_toggle_show_pass_login_page' src={show ? hide_pass : show_pass} />
+            </button>
+            </div>
 
 
           <button className='login_page_btn_submit' type='submit'>Entrar</button>
+
         </form>
       </div>
     </div>

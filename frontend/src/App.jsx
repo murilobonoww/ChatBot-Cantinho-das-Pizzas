@@ -25,7 +25,7 @@ function AppContent() {
   const navigate = useNavigate();
 
   const fetchPedidos = () => {
-    fetch("http://localhost:3000/pedido/getAll")
+    fetch("https://localhost:3000/pedido/getAll")
       .then((res) => res.json())
       .then((data) => {
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);

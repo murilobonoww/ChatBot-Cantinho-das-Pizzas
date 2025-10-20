@@ -9,6 +9,7 @@ input {
   font-size: 20px;
   border: 3px solid #afafaf;
   border-bottom: 10px solid #afafaf;
+  border-radius: 8px;
 }
 
 input:focus {
@@ -86,4 +87,11 @@ input:focus {
 .login_form{
   display: flex;
   align-items: center;
+  flex-direction: column;
+}
+
+.row_1_login_form{
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
 }

@@ -49,7 +49,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
     const fetchPedidos = async () => {
       console.log("Executando fetchPedidos!")
       try {
-        const res = await axios.get('http://localhost:3000/pedido/getAll')
+        const res = await axios.get('https://localhost:3000/pedido/getAll')
         const pedidos_atualizados = res.data
 
         if (carregamentoInicial.current === true) {
@@ -248,7 +248,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
   useEffect(() => {
     async function verificarPedidosNovos() {
       try {
-        const res = await axios.get("http://localhost:3000/pedidos/new");
+        const res = await axios.get("https://localhost:3000/pedidos/new");
         setTemPedidoNovo(res.data.novos);
       } catch (error) {
         console.error("Erro ao verificar pedidos novos:", error);

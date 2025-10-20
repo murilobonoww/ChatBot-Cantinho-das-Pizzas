@@ -64,7 +64,9 @@ const Pedidos = () => {
   }, [id_filter, dataInicio, dataFim, nomeCliente, secao_pedido_filtro]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/pedido/getAll")
+    fetch("https://localhost:3000/pedido/getAll", {
+      credentials: "include"
+    })
       .then(res => res.json())
       .then(data => {
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
@@ -126,7 +128,9 @@ const Pedidos = () => {
   }, [location.state]);
 
   const fetchPedidos = () => {
-    fetch(`http://localhost:3000/pedido/getAll`)
+    fetch(`https://localhost:3000/pedido/getAll`, {
+      credentials: "include"
+    })
       .then(res => res.json())
       .then(data => {
         let pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
@@ -172,7 +176,9 @@ const Pedidos = () => {
     if (nomeCliente) params.append("cliente", nomeCliente);
 
 
-    fetch(`http://localhost:3000/pedido/getAll?${params.toString()}`)
+    fetch(`https://localhost:3000/pedido/getAll?${params.toString()}`, {
+      credentials: "include"
+    })
       .then((res) => res.json())
       .then((data) => {
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
@@ -219,7 +225,7 @@ const Pedidos = () => {
       },
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`http://localhost:3000/pedido/${id}`, {
+        fetch(`https://localhost:3000/pedido/${id}`, {
           method: "DELETE",
         })
           .then((res) => {
@@ -306,7 +312,7 @@ const Pedidos = () => {
   }
 
   const setAsPrinted = (id) => {
-    fetch(`http://localhost:3000/pedido/setPrinted/${id}`, {
+    fetch(`https://localhost:3000/pedido/setPrinted/${id}`, {
       method: "PUT"
     })
   }
@@ -330,7 +336,7 @@ const Pedidos = () => {
 
       async function changeItem() {
         try {
-          const res = await fetch(`http://localhost:3000/item-pedido/${item.id}`, {
+          const res = await fetch(`https://localhost:3000/item-pedido/${item.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(i)
@@ -360,7 +366,7 @@ const Pedidos = () => {
 
   async function confirmAuthPass(pass, method) {
     try {
-      const res = await axios.post(`http://localhost:3000/confirmAuthPass/${pass}`)
+      const res = await axios.post(`https://localhost:3000/confirmAuthPass/${pass}`)
       if (res.status === 200 && method === "change") {
         setChangeOpened(true)
         setAuthOpened(false)

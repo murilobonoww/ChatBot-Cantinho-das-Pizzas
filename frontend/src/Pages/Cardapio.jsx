@@ -40,7 +40,7 @@ export default function Cardapio() {
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/pedido/getAll')
+        const res = await axios.get('https://localhost:3000/pedido/getAll')
         const data = res.data
         if (carregamentoInicial.current === true) {
           console.log("carregamento inicial")
@@ -70,7 +70,7 @@ export default function Cardapio() {
   }, [])
 
   useEffect(() => {
-    fetch("http://localhost:3000/cardapio")
+    fetch("https://localhost:3000/cardapio")
       .then(res => {
         if (!res.ok) throw new Error("Erro ao carregar cardápio");
         return res.json();
@@ -191,7 +191,7 @@ export default function Cardapio() {
 
   const reloadCardapio = async () => {
     try {
-      const res = await fetch("http://localhost:3000/cardapio");
+      const res = await fetch("https://localhost:3000/cardapio");
       if (!res.ok) throw new Error("Erro ao carregar cardápio");
       const data = await res.json();
       const sanitizedData = {
@@ -222,7 +222,7 @@ export default function Cardapio() {
     try {
       let response;
       if (isEditing) {
-        response = await fetch(`http://localhost:3000/cardapio/${editItemId}`, {
+        response = await fetch(`https://localhost:3000/cardapio/${editItemId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -230,7 +230,7 @@ export default function Cardapio() {
           body: JSON.stringify(newItemData),
         });
       } else {
-        response = await fetch("http://localhost:3000/cardapio", {
+        response = await fetch("https://localhost:3000/cardapio", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -288,7 +288,7 @@ export default function Cardapio() {
     console.log("Enviando DELETE com IDs:", sanitizedIds, "Seção:", selectedItems.section);
 
     try {
-      const response = await fetch("http://localhost:3000/cardapio", {
+      const response = await fetch("https://localhost:3000/cardapio", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
