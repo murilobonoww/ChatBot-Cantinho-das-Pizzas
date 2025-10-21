@@ -44,19 +44,24 @@ export default function Home({ enviarListaDeNovosIDs }) {
     audio.play();
   }
 
+
   useEffect(() => {
     const fetchPedidos = async () => {
       console.log("Executando fetchPedidos!")
       try {
-        const res = await axios.get('https://localhost:3000/pedido/getAll')
+        const res = await axios.get('https://localhost:3000/pedido/getAll', { withCredentials: true })
         const pedidos_atualizados = res.data
+
+        console.log("Pedidos anteriores:", pedidosAnteriores.current.length)
+        console.log("Pedidos atualizados:", pedidos_atualizados.length)
+        console.log("carregamentoInicial:", carregamentoInicial.current)
+
 
         if (carregamentoInicial.current === true) {
           carregamentoInicial.current = false
         }
         else {
           if (pedidos_atualizados.length > pedidosAnteriores.current.length) {
-            console.log("NOVO PEDIDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
             playSound()
             toast.info("Novo pedido!", {
               className: "custom-info-toast",
@@ -64,6 +69,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
             })
             setToggle_badge(true)
           }
+          console.log("NAO ENTRROU NO IF")
         }
 
         pedidosAnteriores.current = pedidos_atualizados
@@ -248,7 +254,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
   useEffect(() => {
     async function verificarPedidosNovos() {
       try {
-        const res = await axios.get("https://localhost:3000/pedidos/new");
+        const res = await axios.get("https://localhost:3000/pedidos/new" , { withCredentials: true });
         setTemPedidoNovo(res.data.novos);
       } catch (error) {
         console.error("Erro ao verificar pedidos novos:", error);

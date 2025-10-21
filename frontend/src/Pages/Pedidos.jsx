@@ -227,6 +227,7 @@ const Pedidos = () => {
       if (result.isConfirmed) {
         fetch(`https://localhost:3000/pedido/${id}`, {
           method: "DELETE",
+          credentials: "include"
         })
           .then((res) => {
             if (!res.ok) throw new Error("Erro ao deletar pedido");
@@ -313,7 +314,8 @@ const Pedidos = () => {
 
   const setAsPrinted = (id) => {
     fetch(`https://localhost:3000/pedido/setPrinted/${id}`, {
-      method: "PUT"
+      method: "PUT",
+      credentials: "include"
     })
   }
 
@@ -339,7 +341,8 @@ const Pedidos = () => {
           const res = await fetch(`https://localhost:3000/item-pedido/${item.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(i)
+            body: JSON.stringify(i),
+            credentials: "include"
           })
 
           if (res.status === 200) {
@@ -366,7 +369,7 @@ const Pedidos = () => {
 
   async function confirmAuthPass(pass, method) {
     try {
-      const res = await axios.post(`https://localhost:3000/confirmAuthPass/${pass}`)
+      const res = await axios.post(`https://localhost:3000/confirmAuthPass/${pass}`, { withCredentials: true })
       if (res.status === 200 && method === "change") {
         setChangeOpened(true)
         setAuthOpened(false)

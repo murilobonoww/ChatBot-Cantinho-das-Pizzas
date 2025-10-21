@@ -29,7 +29,7 @@ export default function Relatorios() {
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const res = await axios.get('https://localhost:3000/pedido/getAll')
+        const res = await axios.get('https://localhost:3000/pedido/getAll', { withCredentials: true })
         const data = res.data
         if (carregamentoInicial.current === true) {
           console.log("carregamento inicial")
@@ -81,7 +81,8 @@ export default function Relatorios() {
     fetch(`https://localhost:3000/relatorios/financeiro?${params.toString()}`, {
       headers: {
         Authorization: `Bearer ${senha}`
-      }
+      },
+      credentials: "include"
     })
       .then(async res => {
         if (!res.ok) {

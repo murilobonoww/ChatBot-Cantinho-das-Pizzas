@@ -908,14 +908,11 @@ async def webhook(request: Request):
                 
                 resumo = gerar_mensagem_amigavel(json_pedido, id_pedido=pegar_ultimo_id_pedido()+1)
                 enviar_whatsapp(from_num, resumo)
-                print("chegou antes da req")
                 res = requests.post("https://127.0.0.1:3000/pedido/post", json=json_pedido, verify=False)
-                print("chegou depois da req")
                 if res.status_code == 200:
                     print("Pedido enviado ao back-end!")
                 else:
-                    print(f"erro aoooo enviar\n\n\n\n\n\n\n\n\n\n\n{res.status_code, res}\n\n\n\n\n\n\n\n\n\n\n\n\n")
-                
+                    print(f"erro ao enviar ao back-end: {res.status_code, res}")
 
             except Exception as e:
                 print(f"❌ Erro de conexão com o backend: {e}")

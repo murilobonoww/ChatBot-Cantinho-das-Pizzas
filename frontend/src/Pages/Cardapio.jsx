@@ -40,7 +40,7 @@ export default function Cardapio() {
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const res = await axios.get('https://localhost:3000/pedido/getAll')
+        const res = await axios.get('https://localhost:3000/pedido/getAll', { withCredentials: true })
         const data = res.data
         if (carregamentoInicial.current === true) {
           console.log("carregamento inicial")
@@ -70,7 +70,7 @@ export default function Cardapio() {
   }, [])
 
   useEffect(() => {
-    fetch("https://localhost:3000/cardapio")
+    fetch("https://localhost:3000/cardapio", { credentials: "include" })
       .then(res => {
         if (!res.ok) throw new Error("Erro ao carregar cardápio");
         return res.json();
@@ -191,7 +191,7 @@ export default function Cardapio() {
 
   const reloadCardapio = async () => {
     try {
-      const res = await fetch("https://localhost:3000/cardapio");
+      const res = await fetch("https://localhost:3000/cardapio", { credentials: "include" });
       if (!res.ok) throw new Error("Erro ao carregar cardápio");
       const data = await res.json();
       const sanitizedData = {
@@ -228,6 +228,7 @@ export default function Cardapio() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(newItemData),
+          credentials: "include"
         });
       } else {
         response = await fetch("https://localhost:3000/cardapio", {
@@ -236,6 +237,7 @@ export default function Cardapio() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(newItemData),
+          credentials: "include"
         });
       }
 
@@ -297,6 +299,7 @@ export default function Cardapio() {
           section: selectedItems.section,
           ids: sanitizedIds,
         }),
+        credentials: "include"
       });
 
       if (!response.ok) {
