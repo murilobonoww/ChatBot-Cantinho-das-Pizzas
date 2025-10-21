@@ -5,7 +5,7 @@ import historico from "/assets/historico.webp";
 import menu from "/assets/menu.webp";
 import config from "/assets/control.webp";
 import entregadores from "/assets/entregador.webp";
-import { data, Link } from "react-router-dom";
+import { data, Link, Navigate, useNavigate } from "react-router-dom";
 import entregas_icon2 from "/assets/entregas.webp";
 import notificacao_icone from "/assets/notification_icon.webp";
 import bug_report from "/assets/bug-report.webp"
@@ -14,7 +14,6 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import Appp from "../App"
 
 const cards = [
   { icon: <img id="menu_img" src={historico} />, title: "Pedidos", to: "/pedidos" },
@@ -260,6 +259,8 @@ export default function Home({ enviarListaDeNovosIDs }) {
     return () => clearInterval(intervalo);
   }, []);
 
+
+
   // Mark notification as attended
   const atualizarStatusNotificacao = async (id_notificacao) => {
     try {
@@ -297,13 +298,31 @@ export default function Home({ enviarListaDeNovosIDs }) {
   };
 
   const logOut = async () => {
-    try{
+    try {
       const res = await axios.post('https://localhost:3000/logout', {}, { withCredentials: true })
+      navigate("/login")
     }
-    catch(error){
+    catch (error) {
       console.log(error)
     }
   }
+
+  const navigate = useNavigate()
+
+
+  const checkAuth = async () => {
+    try {
+      const res = await axios.post('https://localhost:3000/check-auth', {}, { withCredentials: true })
+    } catch (error) {
+      navigate("/login")
+    }
+  }
+
+  useEffect(() => {
+    const interval_check = setInterval(checkAuth, 5000)
+
+    return () => clearInterval(interval_check)
+  }, [])
 
   return (
     <div className="dashboard-container">

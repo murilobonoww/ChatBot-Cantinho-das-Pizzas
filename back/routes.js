@@ -12,6 +12,10 @@ const rateLimit = require("express-rate-limit");
 const CODE_HASH = process.env.COMPANY_CODE_HASH;
 const SECRET_KEY = process.env.JWT_SECRET;
 
+router.post("/check-auth", autenticar, (req, res) => {
+    return res.status(200).json({ logged: true })
+})
+
 router.post("/logout", (req, res) => {
   try {
     res.clearCookie("token", {
