@@ -12,6 +12,22 @@ const rateLimit = require("express-rate-limit");
 const CODE_HASH = process.env.COMPANY_CODE_HASH;
 const SECRET_KEY = process.env.JWT_SECRET;
 
+router.post("/logout", (req, res) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 4 * 60 * 60 * 1000,
+      path: "/",
+    });
+    return res.status(200).json({ message: "Logout bem suscedido" });
+  } catch (error) {
+    console.log(`Erro no logout: ${error}`);
+    res.status(500).json({ error: "Erro interno ao limpar cookie" });
+  }
+});
+
 // impede ataques de força bruta, botando limite de tentativas pra inserir a senha
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -22,8 +38,6 @@ const limiter = rateLimit({
 function autenticar(req, res, next) {
   const token = req.cookies.token;
 
-  console.log(`TOKENNNNNNNNNNN:\n\n\n\n\n\n\n\n\n\n${token}\n\n\n\n\n\n\n\n\n\n\n\n`)
-
   if (!token) {
     return res.status(401).json({ error: "Token ausente" });
   }
@@ -32,8 +46,7 @@ function autenticar(req, res, next) {
     const decoded = jwt.verify(token, SECRET_KEY);
     req.user = decoded;
     next();
-  }
-  catch (error) {
+  } catch (error) {
     return res.status(403).json({ error: "Token inválido ou expirado." });
   }
 }
@@ -56,7 +69,7 @@ router.post("/login", limiter, async (req, res) => {
     secure: true,
     sameSite: "None",
     maxAge: 4 * 60 * 60 * 1000,
-    path: "/"
+    path: "/",
   });
 
   res.json({ ok: true });

@@ -1,11 +1,12 @@
 /* Dashboard container */
 .dashboard-container {
   padding: 40px 20px;
-  font-family: 'MinhaFonte', sans-serif;
+  font-family:  sans-serif;
   /* background-color: #dfdfdf; */
   background-color: white;
   height: 100vh;
   padding: 0;
+  font-family: 'MinhaFonte', sans-serif;
 }
 
 /* Dashboard title */
@@ -85,7 +86,7 @@
 .dashboard-card h2 {
   font-size: 17px;
   margin: 0;
-  font-family: MinhaFonte3, sans-serif;
+  font-family: 'MinhaFonte3', sans-serif;
   color: rgba(23, 23, 23, 0.8);
   user-select: none;
 }
@@ -288,4 +289,19 @@
   background-color: orange;
   border-radius: 50%;
   z-index: 10;
+}
+
+.logout{
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  font-size: 22px;
+}
+
+#logout_btn{
+  background-color: transparent;
+}
+
+#logout_btn:hover{
+  text-decoration: underline;
 }

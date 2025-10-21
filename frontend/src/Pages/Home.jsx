@@ -296,8 +296,18 @@ export default function Home({ enviarListaDeNovosIDs }) {
     setTemNotificacoesNaoLidas(false);
   };
 
+  const logOut = async () => {
+    try{
+      const res = await axios.post('https://localhost:3000/logout', {}, { withCredentials: true })
+    }
+    catch(error){
+      console.log(error)
+    }
+  }
+
   return (
     <div className="dashboard-container">
+      <div className="logout"><button onClick={logOut} id="logout_btn">Sair</button></div>
       <div className="notification-icon-container">
         <img
           src={notificacao_icone}
