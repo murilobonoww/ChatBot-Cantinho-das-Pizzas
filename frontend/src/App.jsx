@@ -9,6 +9,7 @@ import Relatorios from "./Pages/Relatorios";
 import Cardapio from "./Pages/Cardapio";
 import PrivateRoute from "./Pages/PrivateRoute";
 import Login from "./Pages/Login";
+import "./Style/App.css"
 
 
 function AppContent() {

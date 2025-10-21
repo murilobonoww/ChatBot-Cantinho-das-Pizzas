@@ -91,7 +91,7 @@
 }
 
 .inputs_filtro:focus{
-    outline: 2px solid rgb(144, 144, 144);
+    outline: 2px solid rgb(144, 144, 144) !important;
 }
 
 /* Filtro itens */
@@ -286,6 +286,8 @@
 .status-botao.aceito {
   background-color: #000000;
 }
+
+
 
 .status-botao.despachado {
   background-color: #000000;

@@ -56,6 +56,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
         }
         else {
           if (pedidos_atualizados.length > pedidosAnteriores.current.length) {
+            console.log("NOVO PEDIDOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
             playSound()
             toast.info("Novo pedido!", {
               className: "custom-info-toast",
@@ -309,7 +310,6 @@ export default function Home({ enviarListaDeNovosIDs }) {
 
   const navigate = useNavigate()
 
-
   const checkAuth = async () => {
     try {
       const res = await axios.post('https://localhost:3000/check-auth', {}, { withCredentials: true })
@@ -366,7 +366,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
               >
                 <span>
                   <strong>{notificacao.numero_cliente}</strong> solicitou um atendente real às{" "}
-                  {formatarHora(notificacao.timestamp)} {/* Updated: Use formatted time */}
+                  {formatarHora(notificacao.timestamp)}
                 </span>
                 {notificacao.status === "pendente" && (
                   <button

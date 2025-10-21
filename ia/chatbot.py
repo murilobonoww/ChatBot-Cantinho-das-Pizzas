@@ -643,7 +643,8 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
             f"🧾 Pagamento: {pagamento}\n"
             f"📍 Entrega em: {endereco}\n\n"
             f"Obrigado pelo seu pedido! Em breve estaremos aí...🍕🛵\n"
-            f"{generate_GetNet_payment_link(getnetAcessToken, total, taxa, json_pedido)}"
+            #comentado pois o link de pagamento será implementado apenas em uma versão futura.
+            # f"{generate_GetNet_payment_link(getnetAcessToken, total, taxa, json_pedido)}"
         )
         return mensagem
     except Exception as e:
@@ -907,11 +908,14 @@ async def webhook(request: Request):
                 
                 resumo = gerar_mensagem_amigavel(json_pedido, id_pedido=pegar_ultimo_id_pedido()+1)
                 enviar_whatsapp(from_num, resumo)
-                res = requests.post("http://192.168.3.5:3000/pedido/post", json=json_pedido)
+                print("chegou antes da req")
+                res = requests.post("https://127.0.0.1:3000/pedido/post", json=json_pedido, verify=False)
+                print("chegou depois da req")
                 if res.status_code == 200:
                     print("Pedido enviado ao back-end!")
                 else:
-                    print(res.status_code, f"Erro ao enviar pedido ao back-end: {res}")
+                    print(f"erro aoooo enviar\n\n\n\n\n\n\n\n\n\n\n{res.status_code, res}\n\n\n\n\n\n\n\n\n\n\n\n\n")
+                
 
             except Exception as e:
                 print(f"❌ Erro de conexão com o backend: {e}")
