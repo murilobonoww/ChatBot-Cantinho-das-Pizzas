@@ -11,6 +11,7 @@ import traceback
 import requests
 from openai import OpenAI
 import pymysql
+from pymysql.cursors import DictCursor
 from dotenv import load_dotenv
 import os
 import re
@@ -22,6 +23,8 @@ from pydantic import BaseModel
 from rabbitmq import publish_message
 
 app = FastAPI()
+
+sabor_mm = "mm's"
 
 # Configuração do CORS
 app.add_middleware(
@@ -139,6 +142,65 @@ def saudacao():
     else:
         return "Boa noite!"
 
+def conectar_banco():
+    return pymysql.connect(
+        host="127.0.0.1",
+        user="root",
+        password=db_pass,
+        database=db_name,
+        port=3306,
+        cursorclass=DictCursor  
+    )
+
+
+def consultar_preco(sabor):
+    try: 
+        conn = conectar_banco()
+        cursor = conn.cursor()
+        query = """
+        SELECT preco_25, preco_35
+        FROM pizzas
+        WHERE sabor = %s
+        """
+        
+        cursor.execute(query, {
+            sabor
+        })
+        
+        results = cursor.fetchall()
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return results
+    
+    except Exception as e:
+        print(f"Erro ao buscar no database: {e}")
+        
+def consultar_ingredientes(sabor):
+    try:
+        conn = conectar_banco()
+        cursor = conn.cursor()
+        
+        query = """
+        SELECT ingredientes
+        FROM pizzas
+        WHERE sabor = %s
+        """
+        
+        cursor.execute(query, {
+            sabor
+        })
+        
+        results = cursor.fetchall()
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return results
+    
+    except Exception as e:
+        print(f"Erro ao buscar no database: {e}")
+    
+
 # Definição do prompt_template
 prompt_template = [{
     "role": "system",
@@ -205,59 +267,59 @@ prompt_template = [{
         "Quando informar ao cliente os ingredientes de uma pizza, devo sempre falar o termo \"molho artesanal\" onde o ingrediente for \"molho\"\n"
         
         
-        
+        "Pizza 25cm = média, pizza 35cm = grande"
         "Sabores de pizza:\n"
         "teste: 1.00/ 1.00 - teste\n"
-        "alho: 32.00 / 42.00 - molho, muçarela, alho, azeitona e orégano\n"
-        "atum 1: 34.00 / 57.00 - molho, atum, cebola, azeitona e orégano\n"
-        "atum 2: 35.00 / 55.00 - molho, atum, muçarela, cebola, tomate picado, azeitona e orégano\n"
-        "bacon: 28.00 / 47.00 - molho, muçarela, bacon, azeitona e orégano\n"
-        "baiana 1: 29.00 / 45.00 - molho, calabresa, ovo, cebola, pimenta, azeitona e orégano\n"
-        "baiana 2: 30.00 / 50.00 - molho, calabresa, muçarela, ovo, cebola, pimenta, azeitona e orégano\n"
-        "batata palha: 30.00 / 42.00 - molho, muçarela, batata palha, azeitona e orégano\n"
-        "bauru: 29.00 / 48.00 - molho, presunto ralado, tomate picado, muçarela, azeitona e orégano\n"
-        "brócolis: 35.00 / 51.00 - molho, brócolis, bacon, muçarela, azeitona e orégano\n"
-        "caipira: 38.00 / 55.00 - molho, frango, muçarela, milho, bacon, azeitona e orégano\n"
-        "calabacon: 35.00 / 50.00 - molho, calabresa, catupiry, bacon, azeitona e orégano\n"
-        "calabresa 1: 26.00 / 39.00 - molho, calabresa, cebola, azeitona e orégano\n"
-        "calabresa 2: 32.00 / 46.00 - molho, calabresa, tomate, ovo, bacon, azeitona e orégano\n"
-        "carne seca 1: 35.00 / 55.00 - molho, carne seca com muçarela, azeitona e orégano\n"
-        "carne seca 2: 38.00 / 60.00 - molho, carne seca com vinagrete, muçarela, azeitona e orégano\n"
-        "catubresa: 33.00 / 48.00 - molho, calabresa, catupiry, azeitona e orégano\n"
-        "champion: 30.00 / 45.00 - molho, champion, azeitona e orégano\n"
-        "cinco queijos: 38.00 / 60.00 - molho, catupiry, gorgonzola, muçarela, provolone, parmesão, azeitona e orégano\n"
-        "cubana: 35.00 / 48.00 - molho, calabresa, vinagrete, parmesão, bacon, azeitona e orégano\n"
-        "dois queijos: 31.00 / 45.00 - molho, catupiry, muçarela, azeitona e orégano\n"
-        "escarola: 31.00 / 48.00 - molho, escarola, muçarela, bacon, azeitona e orégano\n"
-        "frango 1: 32.00 / 49.00 - molho, frango com catupiry, azeitona e orégano\n"
-        "frango 2: 32.00 / 49.00 - molho, frango com muçarela, azeitona e orégano\n"
-        "frango 3: 32.00 / 49.00 - molho, frango com cheddar, azeitona e orégano\n"
-        "hot-dog: 35.00 / 50.00 - molho, salsicha, batata palha, azeitona, catupiry e orégano\n"
-        "lombo 1: 35.00 / 52.00 - molho, muçarela, lombo, tomate, azeitona e orégano\n"
-        "lombo 2: 38.00 / 55.00 - molho, lombo, catupiry, azeitona e orégano\n"
-        "marguerita: 32.00 / 48.00 - molho, muçarela, manjericão, tomate seco, azeitona e orégano\n"
-        "meio a meio: 26.00 / 39.00 - molho, muçarela, calabresa, azeitona e orégano\n"
-        "mexicana: 33.00 / 45.00 - molho, calabresa, parmesão, azeitona e orégano\n"
-        "muçabresa: 32.00 / 45.00 - molho, muçarela, calabresa, azeitona e orégano\n"
-        "muçarela: 26.00 / 39.00 - molho, muçarela, azeitona e orégano\n"
-        "palmito 1: 32.00 / 50.00 - molho, palmito, muçarela, azeitona e orégano\n"
-        "palmito 2: 35.00 / 55.00 - molho, palmito, catupiry, azeitona e orégano\n"
-        "peperone: 35.00 / 58.00 - molho, peperone, muçarela, azeitona e orégano\n"
-        "portuguesa: 32.00 / 48.00 - molho, presunto, ovo, milho, ervilha, palmito, cebola, muçarela, azeitona e orégano\n"
-        "à moda: 35.00 / 55.00 - calabresa, ovo, pimentão, catupiry, muçarela e orégano\n"
-        "toscana: 30.00 / 46.00 - molho, linguiça ralada, cebola, muçarela, tomate, azeitona e orégano\n"
-        "três queijos 1: 32.00 / 46.00 - molho, catupiry, muçarela, cheddar, azeitona e orégano\n"
-        "três queijos 2: 33.00 / 49.00 - molho, catupiry, provolone, muçarela, azeitona e orégano\n"
-        "quatro queijos: 35.00 / 54.00 - molho, catupiry, muçarela, parmesão, provolone, azeitona e orégano\n"
-        "banana: 33.00 / 45.00 - banana, leite condensado, canela e chocolate\n"
-        "brigadeiro: 33.00 / 45.00 - chocolate e granulado\n"
-        "carmela: 31.00 / 43.00 - banana e chocolate branco\n"
-        "romeu e julieta: 35.00 / 55.00 - muçarela e goiabada\n"
-        "morango: 30.00 / 45.00 - chocolate ao leite e morango\n"
-        "mm's: 33.00 / 50.00 - chocolate ao leite e MM's\n"
-        "ovo maltine: 35.00 / 55.00 - chocolate ao leite e ovo maltine\n"
-        "prestígio: 31.00 / 43.00 - chocolate ao leite e coco\n"
-        "chocolate: 29.00 / 40.00 - chocolate ao leite\n\n"
+        f"alho: {consultar_preco('alho')} - {consultar_ingredientes('alho')}\n"
+        f"atum 1: {consultar_preco('atum 1')} - {consultar_ingredientes('atum 1')}\n"
+        f"atum 2: {consultar_preco('atum 2')} - {consultar_ingredientes('atum 2')}\n"
+        f"bacon: {consultar_preco('bacon')} - {consultar_ingredientes('bacon')}\n"
+        f"baiana 1: {consultar_preco('baiana 1')} - {consultar_ingredientes('baiana 1')}\n"
+        f"baiana 2: {consultar_preco('baiana 2')} - {consultar_ingredientes('baiana 2')}\n"
+        f"batata palha: {consultar_preco('batata palha')} - {consultar_ingredientes('batata palha')}\n"
+        f"bauru: {consultar_preco('bauru')} - {consultar_ingredientes('bauru')}\n"
+        f"brócolis: {consultar_preco('brócolis')} - {consultar_ingredientes('brócolis')}\n"
+        f"caipira: {consultar_preco('caipira')} - {consultar_ingredientes('caipira')}\n"
+        f"calabacon: {consultar_preco('calabacon')} - {consultar_ingredientes('calabacon')}\n"
+        f"calabresa 1: {consultar_preco('calabresa 1')} - {consultar_ingredientes('calabresa 1')}\n"
+        f"calabresa 2: {consultar_preco('calabresa 2')} - {consultar_ingredientes('calabresa 2')}\n"
+        f"carne seca 1: {consultar_preco('carne seca 1')} - {consultar_ingredientes('carne seca 1')}\n"
+        f"carne seca 2: {consultar_preco('carne seca 2')} - {consultar_ingredientes('carne seca 2')}\n"
+        f"catubresa: {consultar_preco('catubresa')} - {consultar_ingredientes('catubresa')}\n"
+        f"champion: {consultar_preco('champion')} - {consultar_ingredientes('champion')}\n"
+        f"cinco queijos: {consultar_preco('cinco queijos')} - {consultar_ingredientes('cinco queijos')}\n"
+        f"cubana: {consultar_preco('cubana')} - {consultar_ingredientes('cubana')}\n"
+        f"dois queijos: {consultar_preco('dois queijos')} - {consultar_ingredientes('dois queijos')}\n"
+        f"escarola: {consultar_preco('escarola')} - {consultar_ingredientes('escarola')}\n"
+        f"frango 1: {consultar_preco('frango 1')} - {consultar_ingredientes('frango 1')}\n"
+        f"frango 2: {consultar_preco('frango 2')} - {consultar_ingredientes('frango 2')}\n"
+        f"frango 3: {consultar_preco('frango 3')} - {consultar_ingredientes('frango 3')}\n"
+        f"hot-dog: {consultar_preco('hot-dog')} - {consultar_ingredientes('hot-dog')}\n"
+        f"lombo 1: {consultar_preco('lombo 1')} - {consultar_ingredientes('lombo 1')}\n"
+        f"lombo 2: {consultar_preco('lombo 2')} - {consultar_ingredientes('lombo 2')}\n"
+        f"marguerita: {consultar_preco('marguerita')} - {consultar_ingredientes('marguerita')}\n"
+        f"meio a meio: {consultar_preco('meio a meio')} - {consultar_ingredientes('meio a meio')}\n"
+        f"mexicana: {consultar_preco('mexicana')} - {consultar_ingredientes('mexicana')}\n"
+        f"muçabresa: {consultar_preco('muçabresa')} - {consultar_ingredientes('muçabresa')}\n"
+        f"muçarela: {consultar_preco('muçarela')} - {consultar_ingredientes('muçarela')}\n"
+        f"palmito 1: {consultar_preco('palmito 1')} - {consultar_ingredientes('palmito 1')}\n"
+        f"palmito 2: {consultar_preco('palmito 2')} - {consultar_ingredientes('palmito 2')}\n"
+        f"peperone: {consultar_preco('peperone')} - {consultar_ingredientes('peperone')}\n"
+        f"portuguesa: {consultar_preco('portuguesa')} - {consultar_ingredientes('portuguesa')}\n"
+        f"à moda: {consultar_preco('à moda')} - {consultar_ingredientes('à moda')}\n"
+        f"toscana: {consultar_preco('toscana')} - {consultar_ingredientes('toscana')}\n"
+        f"três queijos 1: {consultar_preco('três queijos 1')} - {consultar_ingredientes('três queijos 1')}\n"
+        f"três queijos 2: {consultar_preco('três queijos 2')} - {consultar_ingredientes('três queijos 2')}\n"
+        f"quatro queijos: {consultar_preco('quatro queijos')} - {consultar_ingredientes('quatro queijos')}\n"
+        f"banana: {consultar_preco('baiana')} - {consultar_ingredientes('baiana')}\n"
+        f"brigadeiro: {consultar_preco('brigadeiro')} - {consultar_ingredientes('brigadeiro')}\n"
+        f"carmela: {consultar_preco('carmela')} - {consultar_ingredientes('carmela')}\n"
+        f"romeu e julieta: {consultar_preco('romeu e julieta')} - {consultar_ingredientes('romeu e julieta')}\n"
+        f"morango: {consultar_preco('morango')} - {consultar_ingredientes('morango')}\n"
+        f"mm's: {consultar_preco(sabor_mm)} - {consultar_ingredientes(sabor_mm)}\n"
+        f"ovo maltine: {consultar_preco('ovo maltine')} - {consultar_ingredientes('ovo maltine')}\n"
+        f"prestígio: {consultar_preco('prestígio')} - {consultar_ingredientes('prestígio')}\n"
+        f"chocolate: {consultar_preco('chocolate')} - {consultar_ingredientes('chocolate')}\n\n"
         
         "Sabores de esfiha:\n"
         "Carne: 3.50\nCalabresa: 3.50\nQueijo: 4.00\nMilho: 4.20\nAlho: 4.20\nBauru: 4.40\n"
@@ -283,7 +345,7 @@ prompt_template = [{
         "- Se ele **ainda não disse os itens**, respondo: \"Sem problemas! Vamos corrigir. O que você gostaria de mudar?\"\n"
         
         "- Se ele **já informou o que quer mudar**, respondo: \"Claro! Só 1 minutinho, vou verificar com a equipe se ainda é possível fazer a alteração no seu pedido. 😊\"\n"
-        "- Quando o cliente mencionar um sabor de pizza que possui variações (frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos) sem especificar a variação (ex: 'quero uma pizza de frango'), devo imediatamente listar as variações disponíveis, incluindo o nome, os preços (média e grande) e os ingredientes de cada uma, usando o termo 'molho artesanal' para o ingrediente 'molho'. A lista deve ser formatada com espaçamento entre os itens, e ao final, devo perguntar qual o cliente prefere. Exemplo de resposta: 'Temos 3 variações de frango:\n\n- Frango 1: 32,00 média / 49,00 grande - molho artesanal, frango com catupiry, azeitona e orégano\n- Frango 2: 32,00 média / 49,00 grande - molho artesanal, frango com muçarela, azeitona e orégano\n- Frango 3: 32,00 média / 49,00 grande - molho artesanal, frango com cheddar, azeitona e orégano\n\nQual você prefere? 😊"
+        "- Quando o cliente mencionar um sabor de pizza que possui variações (frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos) sem especificar a variação (ex: 'quero uma pizza de frango'), devo imediatamente listar as variações disponíveis, incluindo o nome, os preços (média e grande) e os ingredientes de cada uma, usando o termo 'molho artesanal' para o ingrediente 'molho'. A lista deve ser formatada com espaçamento entre os itens, e ao final, devo perguntar qual o cliente prefere. Exemplo de resposta: 'Temos 3 variações de frango:\n\n- Frango 1: x valor média / x valor grande - lista de ingredientes\n- Frango 2: x valor média / x valor grande - lista de ingredientes\n- Frango 3: x valor média / x valor grande - lista de ingredientes\n\nQual você prefere? 😊"
         "- Quando o cliente disser o item que deseja (ex: 'quero uma pizza de frango 1 grande'), devo apenas confirmar de forma leve e seguir com o pedido, sem dar preço nem pedir nome, endereço ou forma de pagamento ainda. Exemplo de resposta adequada: 'Pizza de frango 1 grande, certo? 😋 Quer adicionar mais alguma coisa ou posso seguir com seu pedido?' Se o sabor mencionado tiver variações e o cliente não especificar (ex: 'pizza de frango'), devo primeiro listar as variações disponíveis antes de confirmar.\n"
         "Nunca devo dar o preço do item sozinho. O preço será mostrado apenas ao final do pedido, com o total calculado automaticamente.\n"
         "Nunca devo pedir nome, endereço ou forma de pagamento enquanto o cliente ainda estiver escolhendo os itens. Esses dados só devem ser solicitados **depois** que o cliente disser que é só isso ou que quer fechar o pedido.\n"
@@ -298,6 +360,14 @@ prompt_template = [{
     )
 }]
 
+
+
+
+
+
+
+    
+
 # Modelo para notificações
 class Notificacao(BaseModel):
     id_notificacao: str
@@ -307,15 +377,6 @@ class Notificacao(BaseModel):
     status: str
     timestamp: str
 
-# Função de conexão com o banco
-def conectar_banco():
-    return pymysql.connect(
-        host="127.0.0.1",
-        user="root",
-        password=db_pass,
-        database=db_name,
-        port=3306
-    )
 
 # Função para limpar notificações expiradas
 async def limpar_notificacoes_expiradas():

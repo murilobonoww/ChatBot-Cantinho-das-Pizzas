@@ -157,7 +157,6 @@ const Pedidos = () => {
         } else if (novosPedidos.length > 0) {
           const idsNovos = novosPedidos.map(p => p.id_pedido);
           setNovosIDs(idsNovos);
-          console.log(`\n\n\n\nPedidos anteriores :${pedidosAnteriores}\n\n\n\nNovos Pedidos: ${novosPedidos}\n\n\n\n`)
           playSound();
         }
 
@@ -428,6 +427,15 @@ const Pedidos = () => {
     return nomeCompleto
   }
 
+  const set_classname_pedido_card = (id_) => {
+    if(novosIDs.includes(id_) ){
+      return " pedido-novo"
+    }
+    else{
+      return ""
+    }
+  }
+
   return (
     <div className="page-pedidos">
       <div className="pedidos">
@@ -677,8 +685,8 @@ const Pedidos = () => {
                       togglePedido(pedido.id_pedido)
                     }}
                     key={pedido.id_pedido}
-                    className={`pedido-card ${abertos[pedido.id_pedido] ? "aberto" : "fechado"
-                      } ${novosIDs.includes(pedido.id_pedido) ? "pedido-novo" : ""}`}
+                    className={`pedido-card ${abertos[pedido.id_pedido] ? "aberto" : "fechado"}${set_classname_pedido_card(pedido.id_pedido)}`}
+                  // } ${novosIDs.includes(pedido.id_pedido) ? "pedido-novo" : ""}`}
                   >
 
                     <div className="pedido-header" key={pedido.id_pedido}>

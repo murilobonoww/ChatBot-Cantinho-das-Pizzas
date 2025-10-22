@@ -225,10 +225,6 @@ html {
   transition: all 0.3s ease;
 }
 
-.input-busca:hover{
-  transform: scale(1.02);
-}
-
 .input-busca:focus {
   outline: 2px solid rgb(144, 144, 144);
 }
