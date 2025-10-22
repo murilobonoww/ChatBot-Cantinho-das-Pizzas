@@ -164,7 +164,7 @@ def consultar_preco(sabor, tipo):
             case "esfiha":
                 query = f"""SELECT sabor, preco FROM esfihas WHERE sabor = '{sabor}'"""
             case "doce":
-                query = f"""SELECT preco FROM doces WHERE nome = '{sabor}'"""
+                query = f"""SELECT nome, preco FROM doces WHERE nome = '{sabor}'"""
             case "bebida":
                 query = f"""SELECT nome, preco FROM bebidas WHERE nome = '{sabor}'"""
             case "outros":
@@ -214,6 +214,8 @@ def get_sabores_or_nomes_from_db(tipo):
             query = "select sabor from esfihas"
         elif(tipo == "b"):
             query = "select nome from bebidas"
+        elif(tipo == "d"):
+            query = "select nome from doces"
         
         cursor.execute(query)
         
@@ -259,7 +261,17 @@ def fetch_bebidas():
         
     return nomes_e_precos_de_bebidas
 
-print(fetch_bebidas())
+
+def fetch_doces():
+    nomes_de_doces = get_sabores_or_nomes_from_db('d')
+    nomes_e_precos_de_doces = []
+
+    for doce in nomes_de_doces:
+        nomes_e_precos_de_doces.append(consultar_preco(doce, 'doce'))
+        
+    return nomes_e_precos_de_doces
+
+print(fetch_doces())
 
 
 # Definição do prompt_template
@@ -312,21 +324,12 @@ prompt_template = [{
         # "- Se o cliente disser “pizza de x 25” ou “pizza x 35”, entendo que está se referindo a centímetros (25cm = média, 35cm = grande).\n"
         
         # "Doces:\n"
-        # f"Suflair {consultar_preco("suflair", "doce")}\n Kit Kat ao leite {consultar_preco("Kit Kat ao leite", "doce")}\nKit Kat branco {consultar_preco("Kit Kat branco", "doce")}\nKit Kat dark {consultar_preco("Kit Kat dark", "doce")}\nBis extra original {consultar_preco("Bis extra original", "doce")}\nAzedinho {consultar_preco("Azedinho", "doce")}\nCaribe {consultar_preco("Caribe", "doce")}\nHalls {consultar_preco("Halls", "doce")}\nTrident {consultar_preco("Trident", "doce")}\n"
+        # f"{fetch_doces()}"
         # "outros:\n"
         # f"salgadinho fofura - {consultar_preco('salgadinho fofura', 'outros')}\npipoca - {consultar_preco('pipoca', 'outros')}\n"
         
         # "Bebidas disponíveis:\n"
-        # "Sucos Prats • 900ml (uva ou laranja) — R$ 18,00 • 1,5L (uva ou laranja) — R$ 30,00\n"
-        # "Suco Natural One • 300ml (uva ou laranja) — R$ 5,00 • 900ml (uva, laranja ou pêssego) — R$ 18,00 • 2L (uva ou laranja) — R$ 30,00\n"
-        # "Suco Del Valle • 1 litro — R$ 15,00 • Lata 290ml (pêssego, maracujá, goiaba ou manga) — R$ 7,00\n"
-        # "Água mineral • Com ou sem gás — R$ 3,00\n"
-        # "Refrigerantes 2 litros • Coca-Cola — R$ 15,00 • Fanta Laranja — R$ 15,00 • Sprite — R$ 15,00 • Sukita (uva ou laranja) — R$ 12,00\n"
-        # "Cervejas em lata • Skol 350ml — R$ 5,00 • Skol Latão — R$ 7,00 • Brahma Latão — R$ 7,00 • Brahma Duplo Malte — R$ 8,00\n"
-        # "Cervejas long neck — R$ 10,00 • Budweiser (normal ou zero) • Amstel • Stella Artois • Heineken\n"
-        # "Cervejas 600ml — R$ 15,00 • Original • Stella Artois\n"
-        # "Vinho Pérgola — R$ 30,00 • Opções: seco ou suave\n"
-        # "Outras bebidas:  • Cabaré Ice — R$ 12,00 • Smirnoff — R$ 12,00 • Energético Monster — R$ 12,00 • Schweppes — R$ 6,00\n"
+        # f"{fetch_bebidas()}"
         # "Quando informar ao cliente os ingredientes de uma pizza, devo sempre falar o termo \"molho artesanal\" onde o ingrediente for \"molho\"\n"
         
         # "Pizza 25cm = média, pizza 35cm = grande"
