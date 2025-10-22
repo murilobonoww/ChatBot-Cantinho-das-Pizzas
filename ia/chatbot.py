@@ -216,6 +216,8 @@ def get_sabores_or_nomes_from_db(tipo):
             query = "select nome from bebidas"
         elif(tipo == "d"):
             query = "select nome from doces"
+        elif(tipo == "o"):
+            query = "select nome from outros"
         
         cursor.execute(query)
         
@@ -271,7 +273,17 @@ def fetch_doces():
         
     return nomes_e_precos_de_doces
 
-print(fetch_doces())
+
+def fetch_outros():
+    nomes_de_itens = get_sabores_or_nomes_from_db('o')
+    nomes_e_precos_de_itens = []
+
+    for item in nomes_de_itens:
+        nomes_e_precos_de_itens.append(consultar_preco(item, 'outros'))
+        
+    return nomes_e_precos_de_itens
+
+print(fetch_outros())
 
 
 # Definição do prompt_template
