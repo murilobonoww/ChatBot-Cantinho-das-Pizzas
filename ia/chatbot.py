@@ -24,8 +24,6 @@ from rabbitmq import publish_message
 
 app = FastAPI()
 
-sabor_mm = "mm's"
-
 # Configuração do CORS
 app.add_middleware(
     CORSMiddleware,
@@ -432,7 +430,7 @@ def pegar_ultimo_id_pedido():
         resultado = cursor.fetchone()
         cursor.close()
         conn.close()
-        return resultado[0]
+        return resultado["MAX(id_pedido)"]
     except Exception as e:
         print("❌ Erro ao buscar último ID do pedido:", e)
         return None

@@ -453,7 +453,7 @@ const Pedidos = () => {
         <div className="auth_tela_pedidos" style={{ opacity: authOpenedDelete ? "100" : "0", pointerEvents: authOpenedDelete ? "auto" : "none" }}>
           <img src={warning_icon} style={{ width: "50px" }} />
           <h1 id="title_auth_tela_pedidos">Ação restrita à gerência</h1>
-          <input placeholder="Digite a senha da gerência" type="password" value={authPass} onChange={(e) => setAuthPass(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} autoFocus id="input_auth_tela_pedidos" />
+          <input placeholder="Digite a senha" type="password" value={authPass} onChange={(e) => setAuthPass(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} autoFocus id="input_auth_tela_pedidos" />
           <button id="btn_confirm_auth_pass" onClick={() => confirmAuthPass(authPass, "delete")}>Entrar</button>
         </div>
 
