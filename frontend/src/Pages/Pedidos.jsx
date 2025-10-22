@@ -446,7 +446,7 @@ const Pedidos = () => {
         <div className="auth_tela_pedidos" style={{ opacity: authOpened ? "100" : "0", pointerEvents: authOpened ? "auto" : "none" }}>
           <img src={warning_icon} style={{ width: "50px" }} />
           <h1 id="title_auth_tela_pedidos">Ação restrita à gerência</h1>
-          <input placeholder="Digite a senha da gerência" type="password" value={authPass} onChange={(e) => setAuthPass(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} autoFocus id="input_auth_tela_pedidos" />
+          <input placeholder="Digite a senha" type="password" value={authPass} onChange={(e) => setAuthPass(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} autoFocus id="input_auth_tela_pedidos" />
           <button id="btn_confirm_auth_pass" onClick={() => confirmAuthPass(authPass, "change")}>Entrar</button>
         </div>
 
@@ -464,7 +464,7 @@ const Pedidos = () => {
             <h2>Itens</h2>
             <form onSubmit={(e) => handleSubmitChange(e, itemsToEdit)}>
               <div style={{
-                height: pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.length > 1 ? "450px" : "360px",
+                height: pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.length > 1 ? "400px" : "360px",
                 overflowY: pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.length > 1 ? "auto" : "hidden",
                 borderBottom: pedidos.find((pedido) => pedido.id_pedido === id_selectedOrder)?.itens.length > 1 ? "1px solid gray" : "none"
               }}>

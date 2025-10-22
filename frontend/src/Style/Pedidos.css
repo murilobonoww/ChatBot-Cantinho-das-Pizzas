@@ -508,7 +508,7 @@
 
 #input_auth_tela_pedidos{
   width: 200px;
-  text-align: center;
+  text-align: center; 
   margin: 15px 0 15px 0;
   padding: 5px;
   border: 3px solid #afafaf;
@@ -547,7 +547,7 @@ input[type="password"]{
   top: 50%;
   bottom: 50%;
   width: 700px;
-  height: 700px;
+  height: 600px;
   text-align: center;
   align-items: center;
   display: flex;
