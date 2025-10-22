@@ -153,19 +153,19 @@ def conectar_banco():
     )
 
 
-def consultar_preco(sabor):
-    try: 
+def consultar_preco(sabor, tipo):
+    try:
         conn = conectar_banco()
         cursor = conn.cursor()
-        query = """
-        SELECT preco_25, preco_35
-        FROM pizzas
-        WHERE sabor = %s
-        """
         
-        cursor.execute(query, {
-            sabor
-        })
+        match tipo:
+            case "pizza":
+                query = f"""SELECT preco_25, preco_35 FROM pizzas WHERE sabor = {sabor}"""
+            case _:
+                query = f"""SELECT preco FROM {tipo} WHERE sabor = {sabor}"""
+
+        
+        cursor.execute(query)
         
         results = cursor.fetchall()
         conn.commit()
@@ -181,15 +181,9 @@ def consultar_ingredientes(sabor):
         conn = conectar_banco()
         cursor = conn.cursor()
         
-        query = """
-        SELECT ingredientes
-        FROM pizzas
-        WHERE sabor = %s
-        """
+        query = f""" SELECT ingredientes FROM pizzas WHERE sabor = {sabor} """
         
-        cursor.execute(query, {
-            sabor
-        })
+        cursor.execute(query)
         
         results = cursor.fetchall()
         conn.commit()
@@ -270,59 +264,59 @@ prompt_template = [{
         "Pizza 25cm = média, pizza 35cm = grande"
         "Sabores de pizza:\n"
         "teste: 1.00/ 1.00 - teste\n"
-        f"alho: {consultar_preco('alho')} - {consultar_ingredientes('alho')}\n"
-        f"atum 1: {consultar_preco('atum 1')} - {consultar_ingredientes('atum 1')}\n"
-        f"atum 2: {consultar_preco('atum 2')} - {consultar_ingredientes('atum 2')}\n"
-        f"bacon: {consultar_preco('bacon')} - {consultar_ingredientes('bacon')}\n"
-        f"baiana 1: {consultar_preco('baiana 1')} - {consultar_ingredientes('baiana 1')}\n"
-        f"baiana 2: {consultar_preco('baiana 2')} - {consultar_ingredientes('baiana 2')}\n"
-        f"batata palha: {consultar_preco('batata palha')} - {consultar_ingredientes('batata palha')}\n"
-        f"bauru: {consultar_preco('bauru')} - {consultar_ingredientes('bauru')}\n"
-        f"brócolis: {consultar_preco('brócolis')} - {consultar_ingredientes('brócolis')}\n"
-        f"caipira: {consultar_preco('caipira')} - {consultar_ingredientes('caipira')}\n"
-        f"calabacon: {consultar_preco('calabacon')} - {consultar_ingredientes('calabacon')}\n"
-        f"calabresa 1: {consultar_preco('calabresa 1')} - {consultar_ingredientes('calabresa 1')}\n"
-        f"calabresa 2: {consultar_preco('calabresa 2')} - {consultar_ingredientes('calabresa 2')}\n"
-        f"carne seca 1: {consultar_preco('carne seca 1')} - {consultar_ingredientes('carne seca 1')}\n"
-        f"carne seca 2: {consultar_preco('carne seca 2')} - {consultar_ingredientes('carne seca 2')}\n"
-        f"catubresa: {consultar_preco('catubresa')} - {consultar_ingredientes('catubresa')}\n"
-        f"champion: {consultar_preco('champion')} - {consultar_ingredientes('champion')}\n"
-        f"cinco queijos: {consultar_preco('cinco queijos')} - {consultar_ingredientes('cinco queijos')}\n"
-        f"cubana: {consultar_preco('cubana')} - {consultar_ingredientes('cubana')}\n"
-        f"dois queijos: {consultar_preco('dois queijos')} - {consultar_ingredientes('dois queijos')}\n"
-        f"escarola: {consultar_preco('escarola')} - {consultar_ingredientes('escarola')}\n"
-        f"frango 1: {consultar_preco('frango 1')} - {consultar_ingredientes('frango 1')}\n"
-        f"frango 2: {consultar_preco('frango 2')} - {consultar_ingredientes('frango 2')}\n"
-        f"frango 3: {consultar_preco('frango 3')} - {consultar_ingredientes('frango 3')}\n"
-        f"hot-dog: {consultar_preco('hot-dog')} - {consultar_ingredientes('hot-dog')}\n"
-        f"lombo 1: {consultar_preco('lombo 1')} - {consultar_ingredientes('lombo 1')}\n"
-        f"lombo 2: {consultar_preco('lombo 2')} - {consultar_ingredientes('lombo 2')}\n"
-        f"marguerita: {consultar_preco('marguerita')} - {consultar_ingredientes('marguerita')}\n"
-        f"meio a meio: {consultar_preco('meio a meio')} - {consultar_ingredientes('meio a meio')}\n"
-        f"mexicana: {consultar_preco('mexicana')} - {consultar_ingredientes('mexicana')}\n"
-        f"muçabresa: {consultar_preco('muçabresa')} - {consultar_ingredientes('muçabresa')}\n"
-        f"muçarela: {consultar_preco('muçarela')} - {consultar_ingredientes('muçarela')}\n"
-        f"palmito 1: {consultar_preco('palmito 1')} - {consultar_ingredientes('palmito 1')}\n"
-        f"palmito 2: {consultar_preco('palmito 2')} - {consultar_ingredientes('palmito 2')}\n"
-        f"peperone: {consultar_preco('peperone')} - {consultar_ingredientes('peperone')}\n"
-        f"portuguesa: {consultar_preco('portuguesa')} - {consultar_ingredientes('portuguesa')}\n"
-        f"à moda: {consultar_preco('à moda')} - {consultar_ingredientes('à moda')}\n"
-        f"toscana: {consultar_preco('toscana')} - {consultar_ingredientes('toscana')}\n"
-        f"três queijos 1: {consultar_preco('três queijos 1')} - {consultar_ingredientes('três queijos 1')}\n"
-        f"três queijos 2: {consultar_preco('três queijos 2')} - {consultar_ingredientes('três queijos 2')}\n"
-        f"quatro queijos: {consultar_preco('quatro queijos')} - {consultar_ingredientes('quatro queijos')}\n"
-        f"banana: {consultar_preco('baiana')} - {consultar_ingredientes('baiana')}\n"
-        f"brigadeiro: {consultar_preco('brigadeiro')} - {consultar_ingredientes('brigadeiro')}\n"
-        f"carmela: {consultar_preco('carmela')} - {consultar_ingredientes('carmela')}\n"
-        f"romeu e julieta: {consultar_preco('romeu e julieta')} - {consultar_ingredientes('romeu e julieta')}\n"
-        f"morango: {consultar_preco('morango')} - {consultar_ingredientes('morango')}\n"
-        f"mm's: {consultar_preco(sabor_mm)} - {consultar_ingredientes(sabor_mm)}\n"
-        f"ovo maltine: {consultar_preco('ovo maltine')} - {consultar_ingredientes('ovo maltine')}\n"
-        f"prestígio: {consultar_preco('prestígio')} - {consultar_ingredientes('prestígio')}\n"
-        f"chocolate: {consultar_preco('chocolate')} - {consultar_ingredientes('chocolate')}\n\n"
+        f"alho: {consultar_preco('alho', 'pizza')} - {consultar_ingredientes('alho')}\n"
+        f"atum 1: {consultar_preco('atum 1', 'pizza')} - {consultar_ingredientes('atum 1')}\n"
+        f"atum 2: {consultar_preco('atum 2', 'pizza')} - {consultar_ingredientes('atum 2')}\n"
+        f"bacon: {consultar_preco('bacon', 'pizza')} - {consultar_ingredientes('bacon')}\n"
+        f"baiana 1: {consultar_preco('baiana 1', 'pizza')} - {consultar_ingredientes('baiana 1')}\n"
+        f"baiana 2: {consultar_preco('baiana 2', 'pizza')} - {consultar_ingredientes('baiana 2')}\n"
+        f"batata palha: {consultar_preco('batata palha', 'pizza')} - {consultar_ingredientes('batata palha')}\n"
+        f"bauru: {consultar_preco('bauru', 'pizza')} - {consultar_ingredientes('bauru')}\n"
+        f"brócolis: {consultar_preco('brócolis', 'pizza')} - {consultar_ingredientes('brócolis')}\n"
+        f"caipira: {consultar_preco('caipira', 'pizza')} - {consultar_ingredientes('caipira')}\n"
+        f"calabacon: {consultar_preco('calabacon', 'pizza')} - {consultar_ingredientes('calabacon')}\n"
+        f"calabresa 1: {consultar_preco('calabresa 1', 'pizza')} - {consultar_ingredientes('calabresa 1')}\n"
+        f"calabresa 2: {consultar_preco('calabresa 2', 'pizza')} - {consultar_ingredientes('calabresa 2')}\n"
+        f"carne seca 1: {consultar_preco('carne seca 1', 'pizza')} - {consultar_ingredientes('carne seca 1')}\n"
+        f"carne seca 2: {consultar_preco('carne seca 2', 'pizza')} - {consultar_ingredientes('carne seca 2')}\n"
+        f"catubresa: {consultar_preco('catubresa', 'pizza')} - {consultar_ingredientes('catubresa')}\n"
+        f"champion: {consultar_preco('champion', 'pizza')} - {consultar_ingredientes('champion')}\n"
+        f"cinco queijos: {consultar_preco('cinco queijos', 'pizza')} - {consultar_ingredientes('cinco queijos')}\n"
+        f"cubana: {consultar_preco('cubana', 'pizza')} - {consultar_ingredientes('cubana')}\n"
+        f"dois queijos: {consultar_preco('dois queijos', 'pizza')} - {consultar_ingredientes('dois queijos')}\n"
+        f"escarola: {consultar_preco('escarola', 'pizza')} - {consultar_ingredientes('escarola')}\n"
+        f"frango 1: {consultar_preco('frango 1', 'pizza')} - {consultar_ingredientes('frango 1')}\n"
+        f"frango 2: {consultar_preco('frango 2', 'pizza')} - {consultar_ingredientes('frango 2')}\n"
+        f"frango 3: {consultar_preco('frango 3', 'pizza')} - {consultar_ingredientes('frango 3')}\n"
+        f"hot-dog: {consultar_preco('hot-dog', 'pizza')} - {consultar_ingredientes('hot-dog')}\n"
+        f"lombo 1: {consultar_preco('lombo 1', 'pizza')} - {consultar_ingredientes('lombo 1')}\n"
+        f"lombo 2: {consultar_preco('lombo 2', 'pizza')} - {consultar_ingredientes('lombo 2')}\n"
+        f"marguerita: {consultar_preco('marguerita', 'pizza')} - {consultar_ingredientes('marguerita')}\n"
+        f"meio a meio: {consultar_preco('meio a meio', 'pizza')} - {consultar_ingredientes('meio a meio')}\n"
+        f"mexicana: {consultar_preco('mexicana', 'pizza')} - {consultar_ingredientes('mexicana')}\n"
+        f"muçabresa: {consultar_preco('muçabresa', 'pizza')} - {consultar_ingredientes('muçabresa')}\n"
+        f"muçarela: {consultar_preco('muçarela', 'pizza')} - {consultar_ingredientes('muçarela')}\n"
+        f"palmito 1: {consultar_preco('palmito 1', 'pizza')} - {consultar_ingredientes('palmito 1')}\n"
+        f"palmito 2: {consultar_preco('palmito 2', 'pizza')} - {consultar_ingredientes('palmito 2')}\n"
+        f"peperone: {consultar_preco('peperone', 'pizza')} - {consultar_ingredientes('peperone')}\n"
+        f"portuguesa: {consultar_preco('portuguesa', 'pizza')} - {consultar_ingredientes('portuguesa')}\n"
+        f"à moda: {consultar_preco('à moda', 'pizza')} - {consultar_ingredientes('à moda')}\n"
+        f"toscana: {consultar_preco('toscana', 'pizza')} - {consultar_ingredientes('toscana')}\n"
+        f"três queijos 1: {consultar_preco('três queijos 1', 'pizza')} - {consultar_ingredientes('três queijos 1')}\n"
+        f"três queijos 2: {consultar_preco('três queijos 2', 'pizza')} - {consultar_ingredientes('três queijos 2')}\n"
+        f"quatro queijos: {consultar_preco('quatro queijos', 'pizza')} - {consultar_ingredientes('quatro queijos')}\n"
+        f"banana: {consultar_preco('baiana', 'pizza')} - {consultar_ingredientes('baiana')}\n"
+        f"brigadeiro: {consultar_preco('brigadeiro', 'pizza')} - {consultar_ingredientes('brigadeiro')}\n"
+        f"carmela: {consultar_preco('carmela', 'pizza')} - {consultar_ingredientes('carmela')}\n"
+        f"romeu e julieta: {consultar_preco('romeu e julieta', 'pizza')} - {consultar_ingredientes('romeu e julieta')}\n"
+        f"morango: {consultar_preco('morango', 'pizza')} - {consultar_ingredientes('morango')}\n"
+        f"mm's: {consultar_preco(sabor_mm, 'pizza')} - {consultar_ingredientes(sabor_mm)}\n"
+        f"ovo maltine: {consultar_preco('ovo maltine', 'pizza')} - {consultar_ingredientes('ovo maltine')}\n"
+        f"prestígio: {consultar_preco('prestígio', 'pizza')} - {consultar_ingredientes('prestígio')}\n"
+        f"chocolate: {consultar_preco('chocolate', 'pizza')} - {consultar_ingredientes('chocolate')}\n\n"
         
         "Sabores de esfiha:\n"
-        "Carne: 3.50\nCalabresa: 3.50\nQueijo: 4.00\nMilho: 4.20\nAlho: 4.20\nBauru: 4.40\n"
+        f"Carne: {consultar_preco('carne', 'esfiha')}\nCalabresa: 3.50\nQueijo: 4.00\nMilho: 4.20\nAlho: 4.20\nBauru: 4.40\n"
         "Carne c/ Queijo: 4.40\nCarne c/ Catupiry: 4.40\nCalabresa c/ Queijo: 4.40\nCalabresa c/ Cheddar: 4.40\n"
         "Calabresa c/ Catupiry: 4.40\nEscarola: 4.40\nBacon: 4.40\nAtum: 4.40\nPalmito c/ Catupiry: 4.40\n"
         "Palmito c/ Queijo: 4.40\nFrango c/ Catupiry: 4.40\nFrango c/ Queijo: 4.40\nFrango c/ Cheddar: 4.40\n"
