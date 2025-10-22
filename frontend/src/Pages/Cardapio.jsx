@@ -615,10 +615,6 @@ export default function Cardapio() {
                   className="sabor"
                   dangerouslySetInnerHTML={{ __html: realceTexto(bebida.nome) }}
                 />
-                <div
-                  className="tamanho_bebidas"
-                  dangerouslySetInnerHTML={{ __html: realceTexto(bebida.tamanho) }}
-                />
                 <div className="precos">
                   R$ {(Number(bebida.preco) || 0).toFixed(2)}
                 </div>

@@ -166,9 +166,9 @@ def consultar_preco(sabor, tipo):
             case "doce":
                 query = f"""SELECT preco FROM doces WHERE nome = '{sabor}'"""
             case "bebida":
-                query = f"""SELECT preco FROM bebidas WHERE nome = '{sabor}'"""
+                query = f"""SELECT nome, preco FROM bebidas WHERE nome = '{sabor}'"""
             case "outros":
-                query = f"""SELECT preco FROM outros WHERE nome = '{sabor}'"""
+                query = f"""SELECT nome, preco FROM outros WHERE nome = '{sabor}'"""
 
         
         cursor.execute(query)
@@ -202,7 +202,7 @@ def consultar_ingredientes(sabor):
     
     
 
-def get_sabores_from_db(tipo):
+def get_sabores_or_nomes_from_db(tipo):
     lista_sabores = []
     try:
         conn = conectar_banco()
@@ -212,6 +212,8 @@ def get_sabores_from_db(tipo):
             query = "select sabor from pizzas"
         elif(tipo == "e"):
             query = "select sabor from esfihas"
+        elif(tipo == "b"):
+            query = "select nome from bebidas"
         
         cursor.execute(query)
         
@@ -220,7 +222,7 @@ def get_sabores_from_db(tipo):
         conn.close()
         
         for item in results:
-            valor = item['sabor']
+            valor = item['sabor'] if tipo == "p" or tipo == "e" else item['nome']
             lista_sabores.append(valor)
         
         return lista_sabores
@@ -229,7 +231,7 @@ def get_sabores_from_db(tipo):
         print(e)
         
 def fetch_pizzas():
-    sabores_de_pizza = get_sabores_from_db('p')
+    sabores_de_pizza = get_sabores_or_nomes_from_db('p')
     sabores_e_precos_de_pizza = []
     ingredientes_de_pizzas = []
 
@@ -240,7 +242,7 @@ def fetch_pizzas():
     return sabores_e_precos_de_pizza, ingredientes_de_pizzas
 
 def fetch_esfihas():
-    sabores_de_esfiha = get_sabores_from_db('e')
+    sabores_de_esfiha = get_sabores_or_nomes_from_db('e')
     sabores_e_precos_de_esfiha = []
 
     for sabor in sabores_de_esfiha:
@@ -248,7 +250,16 @@ def fetch_esfihas():
         
     return sabores_e_precos_de_esfiha
 
-print(fetch_esfihas())
+def fetch_bebidas():
+    nomes_de_bebidas = get_sabores_or_nomes_from_db('b')
+    nomes_e_precos_de_bebidas = []
+
+    for bebida in nomes_de_bebidas:
+        nomes_e_precos_de_bebidas.append(consultar_preco(bebida, 'bebida'))
+        
+    return nomes_e_precos_de_bebidas
+
+print(fetch_bebidas())
 
 
 # Definição do prompt_template
@@ -318,13 +329,11 @@ prompt_template = [{
         # "Outras bebidas:  • Cabaré Ice — R$ 12,00 • Smirnoff — R$ 12,00 • Energético Monster — R$ 12,00 • Schweppes — R$ 6,00\n"
         # "Quando informar ao cliente os ingredientes de uma pizza, devo sempre falar o termo \"molho artesanal\" onde o ingrediente for \"molho\"\n"
         
-        
         # "Pizza 25cm = média, pizza 35cm = grande"
         # f"{fetch_pizzas()}"
         
         # "Sabores de esfiha:\n"
         # f"{fetch_esfihas()}"
-        
         
         # "- Se o cliente perguntar quais as formas de pagamento, ou disser uma forma que não aceitamos, respondo com: \"Aceitamos apenas pix, débito e crédito. Qual você prefere?\" sem emoji nessa frase\n"
         # "- Se o cliente mencionar pagamento com dinheiro, boleto, pix parcelado, cartão alimentação ou outra forma não permitida, respondo com: \"Aceitamos apenas pix, débito e crédito. Qual você prefere?\" sem emoji nessa frase\n"
