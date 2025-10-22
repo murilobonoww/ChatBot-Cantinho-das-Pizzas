@@ -162,7 +162,7 @@ def consultar_preco(sabor, tipo):
             case "pizza":
                 query = f"""SELECT sabor, preco_25, preco_35 FROM pizzas WHERE sabor = '{sabor}'"""
             case "esfiha":
-                query = f"""SELECT preco FROM esfihas WHERE sabor = '{sabor}'"""
+                query = f"""SELECT sabor, preco FROM esfihas WHERE sabor = '{sabor}'"""
             case "doce":
                 query = f"""SELECT preco FROM doces WHERE nome = '{sabor}'"""
             case "bebida":
@@ -202,13 +202,16 @@ def consultar_ingredientes(sabor):
     
     
 
-def get_sabores_from_db():
+def get_sabores_from_db(tipo):
     lista_sabores = []
     try:
         conn = conectar_banco()
         cursor = conn.cursor()
         
-        query = "select sabor from pizzas"
+        if(tipo == "p"):
+            query = "select sabor from pizzas"
+        elif(tipo == "e"):
+            query = "select sabor from esfihas"
         
         cursor.execute(query)
         
@@ -226,7 +229,7 @@ def get_sabores_from_db():
         print(e)
         
 def fetch_pizzas():
-    sabores_de_pizza = get_sabores_from_db()
+    sabores_de_pizza = get_sabores_from_db('p')
     sabores_e_precos_de_pizza = []
     ingredientes_de_pizzas = []
 
@@ -235,18 +238,17 @@ def fetch_pizzas():
         ingredientes_de_pizzas.append(consultar_ingredientes(sabor))
         
     return sabores_e_precos_de_pizza, ingredientes_de_pizzas
-
 
 def fetch_esfihas():
-    sabores_de_pizza = get_sabores_from_db()
-    sabores_e_precos_de_pizza = []
-    ingredientes_de_pizzas = []
+    sabores_de_esfiha = get_sabores_from_db('e')
+    sabores_e_precos_de_esfiha = []
 
-    for sabor in sabores_de_pizza:
-        sabores_e_precos_de_pizza.append(consultar_preco(sabor, 'pizza'))
-        ingredientes_de_pizzas.append(consultar_ingredientes(sabor))
+    for sabor in sabores_de_esfiha:
+        sabores_e_precos_de_esfiha.append(consultar_preco(sabor, 'esfiha'))
         
-    return sabores_e_precos_de_pizza, ingredientes_de_pizzas
+    return sabores_e_precos_de_esfiha
+
+print(fetch_esfihas())
 
 
 # Definição do prompt_template
@@ -321,17 +323,7 @@ prompt_template = [{
         # f"{fetch_pizzas()}"
         
         # "Sabores de esfiha:\n"
-        # f"Carne: {consultar_preco('Carne', 'esfiha')}\nCalabresa: {consultar_preco('Calabresa', 'esfiha')}\nQueijo: {consultar_preco('Queijo', 'esfiha')}\nMilho: 4.20\nAlho: 4.20\nBauru: 4.40\n"
-        # f"Carne c/ Queijo: {consultar_preco('Carne c/ Queijo', 'esfiha')}\nCarne c/ Catupiry: {consultar_preco('Carne c/ Catupiry', 'esfiha')}\nCalabresa c/ Queijo: {consultar_preco('Calabresa c/ Queijo', 'esfiha')}\nCalabresa c/ Cheddar: {consultar_preco('Calabresa c/ Cheddar', 'esfiha')}\n"
-        # f"Calabresa c/ Catupiry: {consultar_preco('Calabresa c/ Catupiry', 'esfiha')}\nEscarola: {consultar_preco('Escarola', 'esfiha')}\nBacon: {consultar_preco('Bacon', 'esfiha')}\nAtum: {consultar_preco('Atum', 'esfiha')}\nPalmito c/ Catupiry: {consultar_preco('Palmito c/ Catupiry', 'esfiha')}\n"
-        # f"Palmito c/ Queijo: {consultar_preco('Palmito c/ Queijo', 'esfiha')}\nFrango c/ Catupiry: {consultar_preco('Frango c/ Catupiry', 'esfiha')}\nFrango c/ Queijo: {consultar_preco('Frango c/ Queijo', 'esfiha')}\nFrango c/ Cheddar: {consultar_preco('Frango c/ Cheddar', 'esfiha')}\n"
-        
-        # f"Frango c/ Queijo e Milho: {consultar_preco('Frango c/ Queijo e Milho', 'esfiha')}\nFrango c/ Queijo, Milho e Bacon: {consultar_preco('Frango c/ Queijo, Milho e Bacon', 'esfiha')}\nFrango c/ Catupiry e Bacon: 4.80\n"
-        # f"Calabresa c/ Queijo e Bacon: 4.80\nCalabresa c/ Catupiry e Bacon: 4.80\nAtum c/ Queijo: 4.80\n"
-        # f"Atum c/ Catupiry: 4.80\nAtum c/ Cheddar: 4.80\nBrócolis: 4.80\nCarne Seca: 4.80\nDois Queijos: 4.80\n"
-        # f"Sonho de Valsa: 8.00\nM&M’s: 8.00\nBrigadeiro: 8.00\nCarmela: 8.00\nPrestígio: 8.00\n"
-        # f"Ovo Maltine: 8.00\nRomeu e Julieta: 8.00\nChocolate: 8.00\nPaçoca: 8.00\nMorango: 8.00\nOuro Branco: 8.00\nUva: 8.00\n\n"
-        # f"Bomba chocolate: 29.00\n Bomba Sonho de Valsa: 35.00\n Bomba Avelã: 29.00\n Bomba Prestígio: 31.00\n Bomba OvoMaltine: 32.00\n Bomba MM's: 35.00\n Bomba Brigadeiro: 31.00\n"
+        # f"{fetch_esfihas()}"
         
         
         # "- Se o cliente perguntar quais as formas de pagamento, ou disser uma forma que não aceitamos, respondo com: \"Aceitamos apenas pix, débito e crédito. Qual você prefere?\" sem emoji nessa frase\n"
