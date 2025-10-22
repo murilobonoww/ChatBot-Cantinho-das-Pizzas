@@ -178,7 +178,6 @@
 .lista-pedidos {
   flex-grow: 1;
   overflow-y:visible;
-  padding-right: 12px;
   background-color: #ffffff;
   margin-top: 100px;
   margin-left: 270px;
@@ -555,15 +554,16 @@ input[type="password"]{
   transition: all 0.2s ease-in-out;
   user-select: none;
   flex-direction: column;
+  margin-top: 20px;
 }
 
 .change_order_card h1{
   padding-top: 25px;
 }
-
+/* 
 .change_order_card label{
   margin: 20px 0 5px 0;
-}
+} */
 
 .change_order_card input{
   box-shadow: 2px 5px 5px rgba(0, 0, 0, 0.2);
@@ -572,6 +572,7 @@ input[type="password"]{
   height: 40px;
   font-size: 20px;
   border-radius: 10px;
+  margin-bottom: 30px;
 }
 
 .change_order_card input:focus{
@@ -582,14 +583,14 @@ input[type="password"]{
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: 300px;
-  height: 360px;
+  width: 370px;
+  height: 380px;
   overflow-y:auto;
   margin-bottom: 20px;
 }
 
 .change_order_form_inputs{
-  width: 95%;
+  width: 90%;
 }
 
 #btn_submit_change_order_form{
