@@ -442,10 +442,8 @@ router.get("/relatorios/financeiro", (req, res) => {
       p.data_pedido,
       p.nome_cliente,
       p.forma_pagamento,
-      p.preco_total,
-      e.nome AS entregador
+      p.preco_total
     FROM pedido p
-    LEFT JOIN entregador e ON p.id_pedido = e.pedido_id_fk
   `;
 
   const valores = [];
@@ -484,7 +482,6 @@ router.get("/relatorios/financeiro", (req, res) => {
         cliente: r.nome_cliente,
         valor: parseFloat(r.preco_total),
         pagamento: r.forma_pagamento,
-        entregador: r.entregador || "-",
       };
     });
 
@@ -532,7 +529,12 @@ router.get("/relatorios/financeiro", (req, res) => {
           let sabor_mais_vendido =
             resultFlavor.length > 0 ? resultFlavor[0].sabor : null;
 
+          
           mais_vendido = String(mais_vendido + " de " + sabor_mais_vendido);
+
+          if(mais_vendido === null || sabor_mais_vendido === null){
+            mais_vendido = "Não há dados suficientes"
+          }
 
           res.status(200).json({
             total_vendas,
