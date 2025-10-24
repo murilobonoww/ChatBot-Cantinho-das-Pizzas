@@ -839,7 +839,7 @@ router.put("/cardapio/:id", async (req, res) => {
   const { section, nome, ingredientes, preco, preco_25, preco_35, tamanho } =
     req.body;
 
-  const validSections = ["pizzas", "esfihas", "bebidas", "doces"];
+  const validSections = ["pizzas", "esfihas", "bebidas", "doces", "outros"];
   if (!validSections.includes(section)) {
     return res.status(400).json({ mensagem: "Seção inválida" });
   }
@@ -852,7 +852,7 @@ router.put("/cardapio/:id", async (req, res) => {
       mensagem: "Ingredientes, preço 25cm e preço 35cm são obrigatórios",
     });
   }
-  if ((section === "esfihas" || section === "doces") && !preco) {
+  if ((section === "esfihas" || section === "doces" || section === "outros") && !preco) {
     return res.status(400).json({ mensagem: "Preço é obrigatório" });
   }
   if (section === "bebidas" && (!tamanho || !preco)) {
@@ -888,6 +888,10 @@ router.put("/cardapio/:id", async (req, res) => {
         break;
       case "doces":
         sql = `UPDATE doces SET nome = ?, preco = ? WHERE id = ?`;
+        values = [nome, preco, id];
+        break;
+      case "outros":
+        sql = `UPDATE outros SET nome = ?, preco = ? WHERE id = ?`;
         values = [nome, preco, id];
         break;
     }

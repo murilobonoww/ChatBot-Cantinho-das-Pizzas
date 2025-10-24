@@ -8,7 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import bell_sound from "/assets/bell.mp3"
 
 export default function Cardapio() {
-  const [cardapio, setCardapio] = useState({ pizzas: [], esfihas: [], bebidas: [], doces: [] });
+  const [cardapio, setCardapio] = useState({ pizzas: [], esfihas: [], bebidas: [], doces: [], outros: [] });
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [busca, setBusca] = useState("");
@@ -81,7 +81,7 @@ export default function Cardapio() {
           esfihas: data.esfihas.map(item => ({ ...item, id: parseInt(item.id) })),
           bebidas: data.bebidas.map(item => ({ ...item, id: parseInt(item.id) })),
           doces: data.doces.map(item => ({ ...item, id: parseInt(item.id) })),
-          outros: data.outros.map(item => ({ ...item, id: parseInt(item.id) }))
+          outros: data.outros.map(item => ({ ...item, id: parseInt(item.id) })),
         };
         console.log("Cardápio carregado:", sanitizedData);
         setCardapio(sanitizedData);
@@ -200,6 +200,7 @@ export default function Cardapio() {
         esfihas: data.esfihas.map(item => ({ ...item, id: parseInt(item.id) })),
         bebidas: data.bebidas.map(item => ({ ...item, id: parseInt(item.id) })),
         doces: data.doces.map(item => ({ ...item, id: parseInt(item.id) })),
+        outros: data.outros.map(item => ({ ...item, id: parseInt(item.id) })),
       };
       setCardapio(sanitizedData);
     } catch (err) {
@@ -467,7 +468,7 @@ export default function Cardapio() {
                 className="input-busca"
               >
                 <option value="pizzas">Pizzas</option>
-                <option value="esfihas">Esfihas</option>  
+                <option value="esfihas">Esfihas</option>
                 <option value="bebidas">Bebidas</option>
                 <option value="doces">Doces</option>
                 <option value="outros">Outros</option>
@@ -681,7 +682,7 @@ export default function Cardapio() {
           </div>
         </div>
 
-         <div className="secao-cardapio" id="outros-section">
+        <div className="secao-cardapio" id="outros-section">
           <h2>Outros</h2>
           <div className="card-grid">
             {filtrarItens(cardapio.outros).map(item => (
