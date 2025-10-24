@@ -654,10 +654,11 @@ router.get("/cardapio", async (req, res) => {
     const [esfihas] = await tempConnection.query("SELECT * FROM esfihas");
     const [bebidas] = await tempConnection.query("SELECT * FROM bebidas");
     const [doces] = await tempConnection.query("SELECT * FROM doces");
+    const [outros] = await tempConnection.query("SELECT * FROM outros");
 
     await tempConnection.end();
 
-    res.json({ pizzas, esfihas, bebidas, doces });
+    res.json({ pizzas, esfihas, bebidas, doces, outros });
   } catch (err) {
     console.error("Erro ao buscar cardápio:", err);
     res.status(500).json({ erro: "Erro ao buscar cardápio" });

@@ -81,6 +81,7 @@ export default function Cardapio() {
           esfihas: data.esfihas.map(item => ({ ...item, id: parseInt(item.id) })),
           bebidas: data.bebidas.map(item => ({ ...item, id: parseInt(item.id) })),
           doces: data.doces.map(item => ({ ...item, id: parseInt(item.id) })),
+          outros: data.outros.map(item => ({ ...item, id: parseInt(item.id) }))
         };
         console.log("Cardápio carregado:", sanitizedData);
         setCardapio(sanitizedData);
@@ -372,45 +373,32 @@ export default function Cardapio() {
             </button>
             <button
               className="atalho-btn"
-              onClick={() => {
-                setIsEditing(false);
-                setEditItemId(null);
-                setNewItem({
-                  section: "pizzas",
-                  nome: "",
-                  ingredientes: "",
-                  preco: "",
-                  preco_25: "",
-                  preco_35: "",
-                  tamanho: "",
-                });
-                setShowModal(true);
-              }}
-              aria-label="Adicionar novo item ao cardápio"
+              onClick={() => scrollToSection("outros-section")}
+              aria-label="Ir para seção de Doces"
             >
-
+              Outros
             </button>
 
             <button onClick={() => {
-                setIsEditing(false);
-                setEditItemId(null);
-                setNewItem({
-                  section: "pizzas",
-                  nome: "",
-                  ingredientes: "",
-                  preco: "",
-                  preco_25: "",
-                  preco_35: "",
-                  tamanho: "",
-                });
-                setShowModal(true);
-              }} id="add_item_menu_btn"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" id="add_item_menu_svg_btn"><path
+              setIsEditing(false);
+              setEditItemId(null);
+              setNewItem({
+                section: "pizzas",
+                nome: "",
+                ingredientes: "",
+                preco: "",
+                preco_25: "",
+                preco_35: "",
+                tamanho: "",
+              });
+              setShowModal(true);
+            }} id="add_item_menu_btn"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" id="add_item_menu_svg_btn"><path
               d="m15 0 v30 m0 0 m-15 -15 h30"
               stroke-width="5"
               stroke="gray"
               stroke-linejoin="round"
               stroke-linecap="round"
-              
+
             ></path></svg></button>
 
 
@@ -466,11 +454,12 @@ export default function Cardapio() {
       </div>
 
       {/* {showModal && ( */}
-        <div className="modal-overlay" style={{ opacity: showModal ? "100" : "0", pointerEvents: showModal ? "all" : "none" }}>
-          <div className="modal-content">
-            <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-            <h2 id="title_modal_content_menu">{isEditing ? "Editar Item" : "Adicionar Novo Item"}</h2>
-            <div className="modal-body">
+      <div className="modal-overlay" style={{ opacity: showModal ? "100" : "0", pointerEvents: showModal ? "all" : "none" }}>
+        <div className="modal-content">
+          <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+          <h2 id="title_modal_content_menu">{isEditing ? "Editar Item" : "Adicionar Novo Item"}</h2>
+          <div className="modal-body">
+            {!isEditing &&
               <select
                 name="section"
                 value={newItem.section}
@@ -478,47 +467,68 @@ export default function Cardapio() {
                 className="input-busca"
               >
                 <option value="pizzas">Pizzas</option>
-                <option value="esfihas">Esfihas</option>
+                <option value="esfihas">Esfihas</option>  
                 <option value="bebidas">Bebidas</option>
                 <option value="doces">Doces</option>
+                <option value="outros">Outros</option>
               </select>
+            }
+            <input
+              type="text"
+              name="nome"
+              value={newItem.nome}
+              onChange={handleNewItemChange}
+              placeholder={newItem.section === "pizzas" || newItem.section === "esfihas" ? "Sabor" : "Nome"}
+              className="input-busca"
+            />
+            {newItem.section === "pizzas" && (
+              <>
+                <input
+                  type="text"
+                  name="ingredientes"
+                  value={newItem.ingredientes}
+                  onChange={handleNewItemChange}
+                  placeholder="Ingredientes"
+                  className="input-busca"
+                />
+                <input
+                  type="number"
+                  name="preco_25"
+                  value={newItem.preco_25}
+                  onChange={handleNewItemChange}
+                  placeholder="Preço - média"
+                  className="input-busca"
+                />
+                <input
+                  type="number"
+                  name="preco_35"
+                  value={newItem.preco_35}
+                  onChange={handleNewItemChange}
+                  placeholder="Preço - grande"
+                  className="input-busca"
+                />
+              </>
+            )}
+            {(newItem.section === "esfihas" || newItem.section === "doces" || newItem.section === "outros") && (
               <input
-                type="text"
-                name="nome"
-                value={newItem.nome}
+                type="number"
+                name="preco"
+                value={newItem.preco}
                 onChange={handleNewItemChange}
-                placeholder={newItem.section === "pizzas" || newItem.section === "esfihas" ? "Sabor" : "Nome"}
+                placeholder="Preço"
                 className="input-busca"
               />
-              {newItem.section === "pizzas" && (
-                <>
-                  <input
-                    type="text"
-                    name="ingredientes"
-                    value={newItem.ingredientes}
-                    onChange={handleNewItemChange}
-                    placeholder="Ingredientes"
-                    className="input-busca"
-                  />
-                  <input
-                    type="number"
-                    name="preco_25"
-                    value={newItem.preco_25}
-                    onChange={handleNewItemChange}
-                    placeholder="Preço - média"
-                    className="input-busca"
-                  />
-                  <input
-                    type="number"
-                    name="preco_35"
-                    value={newItem.preco_35}
-                    onChange={handleNewItemChange}
-                    placeholder="Preço - grande"
-                    className="input-busca"
-                  />
-                </>
-              )}
-              {(newItem.section === "esfihas" || newItem.section === "doces") && (
+            )}
+            {newItem.section === "bebidas" && (
+              <>
+                <input
+                  type="text"
+                  name="tamanho"
+                  value={newItem.tamanho}
+                  onChange={handleNewItemChange}
+                  placeholder="Tamanho (ml ou l)"
+                  className="input-busca"
+                />
                 <input
                   type="number"
                   name="preco"
@@ -527,33 +537,14 @@ export default function Cardapio() {
                   placeholder="Preço"
                   className="input-busca"
                 />
-              )}
-              {newItem.section === "bebidas" && (
-                <>
-                  <input
-                    type="text"
-                    name="tamanho"
-                    value={newItem.tamanho}
-                    onChange={handleNewItemChange}
-                    placeholder="Tamanho (ml ou l)"
-                    className="input-busca"
-                  />
-                  <input
-                    type="number"
-                    name="preco"
-                    value={newItem.preco}
-                    onChange={handleNewItemChange}
-                    placeholder="Preço"
-                    className="input-busca"
-                  />
-                </>
-              )}
-              <button className="atalho-btn" onClick={handleAddItem}>
-                {isEditing ? "Salvar Alterações" : "Adicionar"}
-              </button>
-            </div>
+              </>
+            )}
+            <button className="atalho-btn" onClick={handleAddItem}>
+              {isEditing ? "Salvar Alterações" : "Adicionar"}
+            </button>
           </div>
         </div>
+      </div>
       {/* )} */}
 
       <div className="conteudo-rolavel">
@@ -682,6 +673,39 @@ export default function Cardapio() {
                   <svg width="1em" height="1em" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet">
                     <path
                       d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6l0s6.2 16.4 0 22.6z"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+         <div className="secao-cardapio" id="outros-section">
+          <h2>Outros</h2>
+          <div className="card-grid">
+            {filtrarItens(cardapio.outros).map(item => (
+              <div className="card-item" key={item.id}>
+                {isDeleting && (
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.section === "outros" && selectedItems.ids.includes(item.id)}
+                    onChange={() => handleSelectItem(item.id, "outros")}
+                    className="delete-checkbox"
+                  />
+                )}
+                <div
+                  className="sabor"
+                  dangerouslySetInnerHTML={{ __html: realceTexto(item.nome) }}
+                />
+                <div className="ingredientes" />
+                <div className="precos">
+                  R$ {(Number(item.preco) || 0).toFixed(2)}
+                </div>
+                <button className="editBtn" onClick={() => handleEditItem(item, "outros")}>
+                  <svg width="1em" height="1em" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet">
+                    <path
+                      d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"
                     ></path>
                   </svg>
                 </button>
