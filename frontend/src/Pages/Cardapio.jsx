@@ -334,7 +334,7 @@ export default function Cardapio() {
           <h1>Cardápio</h1>
           <input
             type="text"
-            placeholder="Buscar sabor ou ingrediente..."
+            placeholder="Buscar item..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             className="input-busca"
@@ -388,8 +388,36 @@ export default function Cardapio() {
               }}
               aria-label="Adicionar novo item ao cardápio"
             >
-              Novo Item
+
             </button>
+
+            <button onClick={() => {
+                setIsEditing(false);
+                setEditItemId(null);
+                setNewItem({
+                  section: "pizzas",
+                  nome: "",
+                  ingredientes: "",
+                  preco: "",
+                  preco_25: "",
+                  preco_35: "",
+                  tamanho: "",
+                });
+                setShowModal(true);
+              }} id="add_item_menu_btn"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" id="add_item_menu_svg_btn"><path
+              d="m15 0 v30 m0 0 m-15 -15 h30"
+              stroke-width="5"
+              stroke="gray"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+              
+            ></path></svg></button>
+
+
+
+
+
+
             <button
               aria-label={isDeleting ? "Confirmar exclusão de itens" : "Entrar no modo de exclusão"}
               className="delete-button"
@@ -437,11 +465,11 @@ export default function Cardapio() {
         </div>
       </div>
 
-      {showModal && (
-        <div className="modal-overlay">
+      {/* {showModal && ( */}
+        <div className="modal-overlay" style={{ opacity: showModal ? "100" : "0", pointerEvents: showModal ? "all" : "none" }}>
           <div className="modal-content">
             <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-            <h2>{isEditing ? "Editar Item" : "Adicionar Novo Item"}</h2>
+            <h2 id="title_modal_content_menu">{isEditing ? "Editar Item" : "Adicionar Novo Item"}</h2>
             <div className="modal-body">
               <select
                 name="section"
@@ -477,7 +505,7 @@ export default function Cardapio() {
                     name="preco_25"
                     value={newItem.preco_25}
                     onChange={handleNewItemChange}
-                    placeholder="Preço 25cm"
+                    placeholder="Preço - média"
                     className="input-busca"
                   />
                   <input
@@ -485,7 +513,7 @@ export default function Cardapio() {
                     name="preco_35"
                     value={newItem.preco_35}
                     onChange={handleNewItemChange}
-                    placeholder="Preço 35cm"
+                    placeholder="Preço - grande"
                     className="input-busca"
                   />
                 </>
@@ -526,7 +554,7 @@ export default function Cardapio() {
             </div>
           </div>
         </div>
-      )}
+      {/* )} */}
 
       <div className="conteudo-rolavel">
         <div className="secao-cardapio" id="pizzas-section">
