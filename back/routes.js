@@ -7,6 +7,8 @@ const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit");
+const mysqlPromise = require("mysql2/promise");
+
 
 const CODE_HASH = process.env.COMPANY_CODE_HASH;
 const SECRET_KEY = process.env.JWT_SECRET;
@@ -638,33 +640,6 @@ router.put("/pedido/:id", (req, res) => {
   );
 });
 
-const mysqlPromise = require("mysql2/promise");
-
-router.get("/cardapio", async (req, res) => {
-  try {
-    const tempConnection = await mysqlPromise.createConnection({
-      host: process.env.HOST,
-      user: process.env.USER,
-      password: process.env.PASS,
-      database: process.env.DB,
-      port: process.env.DB_PORT || 3306,
-    });
-
-    const [pizzas] = await tempConnection.query("SELECT * FROM pizzas");
-    const [esfihas] = await tempConnection.query("SELECT * FROM esfihas");
-    const [bebidas] = await tempConnection.query("SELECT * FROM bebidas");
-    const [doces] = await tempConnection.query("SELECT * FROM doces");
-    const [outros] = await tempConnection.query("SELECT * FROM outros");
-
-    await tempConnection.end();
-
-    res.json({ pizzas, esfihas, bebidas, doces, outros });
-  } catch (err) {
-    console.error("Erro ao buscar cardápio:", err);
-    res.status(500).json({ erro: "Erro ao buscar cardápio" });
-  }
-});
-
 router.get("/pedidos/new", (req, res) => {
   const sql = `SELECT COUNT(*) AS total FROM pedido WHERE status_pedido = 'aberto'`;
 
@@ -762,6 +737,31 @@ router.get("/pedido/foody/:uid", async (req, res) => {
     res
       .status(500)
       .json({ mensagem: "Erro ao buscar pedido na Foody Delivery" });
+  }
+});
+
+router.get("/cardapio", async (req, res) => {
+  try {
+    const tempConnection = await mysqlPromise.createConnection({
+      host: process.env.HOST,
+      user: process.env.USER,
+      password: process.env.PASS,
+      database: process.env.DB,
+      port: process.env.DB_PORT || 3306,
+    });
+
+    const [pizzas] = await tempConnection.query("SELECT * FROM pizzas");
+    const [esfihas] = await tempConnection.query("SELECT * FROM esfihas");
+    const [bebidas] = await tempConnection.query("SELECT * FROM bebidas");
+    const [doces] = await tempConnection.query("SELECT * FROM doces");
+    const [outros] = await tempConnection.query("SELECT * FROM outros");
+
+    await tempConnection.end();
+
+    res.json({ pizzas, esfihas, bebidas, doces, outros });
+  } catch (err) {
+    console.error("Erro ao buscar cardápio:", err);
+    res.status(500).json({ erro: "Erro ao buscar cardápio" });
   }
 });
 

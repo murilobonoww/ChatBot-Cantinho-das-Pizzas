@@ -6,6 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import 'react-toastify/dist/ReactToastify.css';
 import bell_sound from "/assets/bell.mp3"
+import pizza_img from "/assets/pizza.png"
 
 export default function Cardapio() {
   const [cardapio, setCardapio] = useState({ pizzas: [], esfihas: [], bebidas: [], doces: [], outros: [] });
@@ -30,6 +31,7 @@ export default function Cardapio() {
   });
   const InputRef = useRef(null);
   const topoFixoRef = useRef(null);
+  const [dots, setDots] = useState("")
 
   const playSound = () => {
     const audio = new Audio(bell_sound)
@@ -325,8 +327,32 @@ export default function Cardapio() {
     }
   };
 
-  if (loading) return <div>Carregando cardápio...</div>;
-  if (erro) return <div>Erro: {erro}</div>;
+  useEffect(() => {
+    if (loading) {
+      const maxDots = 3;
+
+      const interval = setInterval(() => {
+        setDots(prev => (prev.length < maxDots ? prev + "." : ""))
+      }, 250)
+
+      return () => clearInterval(interval)
+    }
+  }, [])
+
+  if (loading) return (
+    <div className="loading_menu">
+      <img id="pizza_img_loading_menu" src={pizza_img} />
+      <h1 id="title_loading_menu">Carregando cardápio{dots}</h1>
+    </div>
+  )
+
+
+
+
+
+
+
+
 
   return (
     <div className="cardapio-container">
@@ -571,7 +597,7 @@ export default function Cardapio() {
                   dangerouslySetInnerHTML={{ __html: realceTexto(pizza.ingredientes || "") }}
                 />
                 <div className="precos">
-                  M: R$ {(Number(pizza.preco_25) || 0).toFixed(2)} | G: R$ {(Number(pizza.preco_35) || 0).toFixed(2)}
+                  R$ {(Number(pizza.preco_25) || 0).toFixed(2)} | R$ {(Number(pizza.preco_35) || 0).toFixed(2)}
                 </div>
                 <button className="editBtn" onClick={() => handleEditItem(pizza, "pizzas")}>
                   <svg width="1em" height="1em" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet">

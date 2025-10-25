@@ -123,7 +123,7 @@ html {
 
 .card-item .ingredientes {
   font-size: 0.875rem;
-  color: #555;
+  color: #524b44;
   flex: 1 1 250px;
   padding-left: 0.5rem;
   white-space: normal;
@@ -142,7 +142,7 @@ html {
 
 .card-item .precos {
   font-weight: 600;
-  color: #4caf50;
+  color: #98c68f;
   flex: 1 1 120px;
   text-align: right;
   font-size: 1rem;
@@ -153,11 +153,11 @@ html {
   height: 50px;
   border-radius: 12px;
   border: none;
-  background-color: #ff7043;
+  background-color: #e8e8e8;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.123);
+  /* box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.123); */
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -182,16 +182,15 @@ html {
 }
 
 .editBtn:hover {
-  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.336);
-  width: 55px;
-  height: 55px;
-  filter: brightness(1.3);
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+  background-color: #ce7421;
 }
 
 .editBtn svg {
   width: 24px;
   height: 24px;
-  fill: white;
+  fill: gray;
   z-index: 3;
   transition: all 0.2s;
   transform-origin: bottom;
@@ -199,6 +198,7 @@ html {
 
 .editBtn:hover svg {
   transform: rotate(-15deg) translateX(5px);
+  fill: rgb(255, 255, 255);
 }
 
 .editBtn::after {
@@ -208,7 +208,7 @@ html {
   position: absolute;
   bottom: 18px;
   left: -5px;
-  background-color: white;
+  background-color: rgb(255, 255, 255);
   border-radius: 2px;
   z-index: 2;
   transform: scaleX(0);
@@ -249,7 +249,7 @@ mark {
   font-size: 15px;
   font-family: "MinhaFonte2", sans-serif;
   color: #fff;
-  background-color: #ff7043;
+  background-color: #ce7421;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -495,6 +495,7 @@ mark {
 
   .editBtn {
     align-self: flex-end;
+    background-color: #ce7421;
   }
 
   .modal-content {
@@ -512,4 +513,35 @@ mark {
     height: 24px;
     font-size: 12px;
   }
+}
+
+.loading_menu{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+#title_loading_menu{
+  width: 235.11px !important;
+  margin-top: 10px;
+  font-family: 'MinhaFonte';
+  font-size: 20px;
+}
+
+#pizza_img_loading_menu{
+  width: 200px;
+  height: 200px;
+  animation: pizza_spin 1.5s infinite;
+}
+
+@keyframes pizza_spin {
+  0% {transform: rotate(0deg) scale(1);}
+
+
+  50% {transform: rotate(180deg) scale(1.05); }
+  
+
+  100% {transform: rotate(360deg) scale(1);}
 }
