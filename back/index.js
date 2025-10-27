@@ -29,7 +29,7 @@ global.io = io;
 
 app.use(helmet());
 app.use(cors({
-  origin: "*",
+  origin: "https://cantinhodaspizzas-jpwnv8l6n-murilo-bonows-projects.vercel.app",
   credentials: true
 }));
 app.use(express.json());
