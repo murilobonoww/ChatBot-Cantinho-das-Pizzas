@@ -64,7 +64,7 @@ const Pedidos = () => {
   }, [id_filter, dataInicio, dataFim, nomeCliente, secao_pedido_filtro]);
 
   useEffect(() => {
-    fetch("https://localhost:3000/pedido/getAll", {
+    fetch("https://back-cantinho-das-pizzas.onrender.com/pedido/getAll", {
       credentials: "include"
     })
       .then(res => res.json())
@@ -128,7 +128,7 @@ const Pedidos = () => {
   }, [location.state]);
 
   const fetchPedidos = () => {
-    fetch(`https://localhost:3000/pedido/getAll`, {
+    fetch(`https://back-cantinho-das-pizzas.onrender.com/pedido/getAll`, {
       credentials: "include"
     })
       .then(res => res.json())
@@ -175,7 +175,7 @@ const Pedidos = () => {
     if (nomeCliente) params.append("cliente", nomeCliente);
 
 
-    fetch(`https://localhost:3000/pedido/getAll?${params.toString()}`, {
+    fetch(`https://back-cantinho-das-pizzas.onrender.com/pedido/getAll?${params.toString()}`, {
       credentials: "include"
     })
       .then((res) => res.json())
@@ -224,7 +224,7 @@ const Pedidos = () => {
       },
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`https://localhost:3000/pedido/${id}`, {
+        fetch(`https://back-cantinho-das-pizzas.onrender.com/pedido/${id}`, {
           method: "DELETE",
           credentials: "include"
         })
@@ -312,7 +312,7 @@ const Pedidos = () => {
   }
 
   const setAsPrinted = (id) => {
-    fetch(`https://localhost:3000/pedido/setPrinted/${id}`, {
+    fetch(`https://back-cantinho-das-pizzas.onrender.com/pedido/setPrinted/${id}`, {
       method: "PUT",
       credentials: "include"
     })
@@ -337,7 +337,7 @@ const Pedidos = () => {
 
       async function changeItem() {
         try {
-          const res = await fetch(`https://localhost:3000/item-pedido/${item.id}`, {
+          const res = await fetch(`https://back-cantinho-das-pizzas.onrender.com/item-pedido/${item.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(i),
@@ -368,7 +368,7 @@ const Pedidos = () => {
 
   async function confirmAuthPass(pass, method) {
     try {
-      const res = await axios.post(`https://localhost:3000/confirmAuthPass/${pass}`, { withCredentials: true })
+      const res = await axios.post(`https://back-cantinho-das-pizzas.onrender.com/confirmAuthPass/${pass}`, { withCredentials: true })
       if (res.status === 200 && method === "change") {
         setChangeOpened(true)
         setAuthOpened(false)

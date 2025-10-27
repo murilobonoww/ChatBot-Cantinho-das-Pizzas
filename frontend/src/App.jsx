@@ -26,7 +26,7 @@ function AppContent() {
   const navigate = useNavigate();
 
   const fetchPedidos = () => {
-    fetch("https://localhost:3000/pedido/getAll", {credentials: "include"})
+    fetch("https://back-cantinho-das-pizzas.onrender.com/pedido/getAll", {credentials: "include"})
       .then((res) => res.json())
       .then((data) => {
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);

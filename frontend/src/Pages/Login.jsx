@@ -15,7 +15,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("https://localhost:3000/login", { code }, { withCredentials: true });
+      const res = await axios.post("https://back-cantinho-das-pizzas.onrender.com/login", { code }, { withCredentials: true });
       localStorage.setItem("token", res.data.token);
       navigate("/");
     } catch (error) {

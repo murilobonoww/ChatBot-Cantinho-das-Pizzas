@@ -49,7 +49,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
     const fetchPedidos = async () => {
       console.log("Executando fetchPedidos!")
       try {
-        const res = await axios.get('https://localhost:3000/pedido/getAll', { withCredentials: true })
+        const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/getAll', { withCredentials: true })
         const pedidos_atualizados = res.data
 
         console.log("Pedidos anteriores:", pedidosAnteriores.current.length)
@@ -254,7 +254,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
   useEffect(() => {
     async function verificarPedidosNovos() {
       try {
-        const res = await axios.get("https://localhost:3000/pedidos/new" , { withCredentials: true });
+        const res = await axios.get("https://back-cantinho-das-pizzas.onrender.com/pedidos/new" , { withCredentials: true });
         setTemPedidoNovo(res.data.novos);
       } catch (error) {
         console.error("Erro ao verificar pedidos novos:", error);
@@ -306,7 +306,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
 
   const logOut = async () => {
     try {
-      const res = await axios.post('https://localhost:3000/logout', {}, { withCredentials: true })
+      const res = await axios.post('https://back-cantinho-das-pizzas.onrender.com/logout', {}, { withCredentials: true })
       navigate("/login")
     }
     catch (error) {
@@ -318,7 +318,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
 
   const checkAuth = async () => {
     try {
-      const res = await axios.post('https://localhost:3000/check-auth', {}, { withCredentials: true })
+      const res = await axios.post('https://back-cantinho-das-pizzas.onrender.com/check-auth', {}, { withCredentials: true })
     } catch (error) {
       navigate("/login")
     }
