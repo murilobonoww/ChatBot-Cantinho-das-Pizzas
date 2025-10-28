@@ -27,7 +27,7 @@ app = FastAPI()
 # Configuração do CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://localhost:5173", "https://127.0.0.1:5173"],
+    allow_origins="https://cantinho-das-pizzas.vercel.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -145,11 +145,11 @@ def saudacao():
 
 def conectar_banco():
     return pymysql.connect(
-        host="127.0.0.1",
-        user="root",
+        host=db_host,
+        user=db_user,
         password=db_pass,
         database=db_name,
-        port=3306,
+        port=db_port,
         cursorclass=DictCursor  
     )
 
@@ -975,7 +975,7 @@ async def webhook(request: Request):
                 
                 resumo = gerar_mensagem_amigavel(json_pedido, id_pedido=pegar_ultimo_id_pedido()+1)
                 enviar_whatsapp(from_num, resumo)
-                res = requests.post("https://127.0.0.1:3000/pedido/post", json=json_pedido, verify=False)
+                res = requests.post("https://back-cantinho-das-pizzas.onrender.com/pedido/post", json=json_pedido, verify=False)
                 if res.status_code == 200:
                     print("Pedido enviado ao back-end!")
                 else:
