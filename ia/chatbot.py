@@ -464,8 +464,6 @@ def pegar_coordenadas(endereco):
         print("❌ Erro ao obter coordenadas:", data.get('status'))
         return 0.0, 0.0
 
-
-
 def get_or_upload_media_id():
     try:
         with open("media_id.txt", "r") as f:
