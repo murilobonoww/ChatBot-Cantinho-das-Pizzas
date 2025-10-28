@@ -49,7 +49,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
     const fetchPedidos = async () => {
       console.log("Executando fetchPedidos!")
       try {
-        const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/getAll', { withCredentials: true })
+        const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/pedido/getAll', { withCredentials: true })
         const pedidos_atualizados = res.data
 
         console.log("Pedidos anteriores:", pedidosAnteriores.current.length)

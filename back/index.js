@@ -25,7 +25,7 @@ global.io = io;
 
 app.use(helmet());
 app.use(cors({
-  origin: "https://chat-bot-cantinho-das-pizzas.vercel.app",
+  origin: "https://cantinho-das-pizzas.vercel.app",
   credentials: true
 }));
 app.use(express.json());
