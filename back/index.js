@@ -7,16 +7,12 @@ const axios = require("axios");
 const app = express();
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
-const https = require('https');
 const fs = require("fs");
 
 
 const http = require("http");
 
-const server = https.createServer({
-  key: fs.readFileSync('./localhost+2-key.pem'),
-  cert: fs.readFileSync('./localhost+2.pem')
-},app)
+const server = http.createServer(app)
 
 const { Server } = require("socket.io");
 const io = new Server(server, {
@@ -185,9 +181,6 @@ io.on("connection", (socket) => {
   });
 });
 
-
-
-
-server.listen(10000, "0.0.0.0", () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Backend rodando em :${PORT}`);
 });
