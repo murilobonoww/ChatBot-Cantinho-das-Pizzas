@@ -227,7 +227,11 @@ def get_sabores_or_nomes_from_db(tipo):
         conn.close()
         
         for item in results:
-            valor = item['sabor'] if tipo == "p" or tipo == "e" else item['nome']
+            if tipo == "p" or tipo == "e":
+                valor = item['sabor']
+            else:
+                valor = item['nome']
+                
             lista_sabores.append(valor)
         
         return lista_sabores
