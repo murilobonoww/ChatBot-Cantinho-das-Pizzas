@@ -36,7 +36,7 @@ app.add_middleware(
 load_dotenv()
 
 keys = [
-    "MAPS_API_KEY", "GPT_API_KEY", "DB_PASS", "DB_NAME", "APP_ID",
+    "MAPS_API_KEY", "GPT_API_KEY", "DB_PASS", "DB_NAME", "DB_HOST", "DB_USER", "DB_PORT","APP_ID",
     "WHATSAPP_ACCESS_TOKEN", "FONE_ID", "CLIENT_SECRET", "WEBHOOK_VERIFY_TOKEN", "MEDIA_ID", "GETNET_ACCESS_TOKEN", "AUTH"
 ]
 
@@ -45,6 +45,9 @@ keys = [
     gpt_api_key,
     db_pass,
     db_name,
+    db_host,
+    db_user,
+    db_port,
     app_id,
     access_token,
     fone_id,
