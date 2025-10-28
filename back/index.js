@@ -188,6 +188,6 @@ io.on("connection", (socket) => {
 
 
 
-server.listen(PORT, "0.0.0.0", () => {
+server.listen(10000, "0.0.0.0", () => {
   console.log(`🚀 Backend rodando em :${PORT}`);
 });
