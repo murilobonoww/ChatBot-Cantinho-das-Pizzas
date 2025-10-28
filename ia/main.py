@@ -130,7 +130,7 @@ def generate_GetNet_payment_link (token, total_pedido, frete, json_pedido):
     response = requests.post(url=getnet_url_generate_payment_link, headers=headers_payment_link, json=payload)
     link_id = (response.json()).get("link_id")
     payment_link = (response.json()).get("url")
-    publish_message("fila_pagamentos", {"orderID": pegar_ultimo_id_pedido()+1, "link": payment_link, "link_id": link_id, "json_pedido": json_pedido})
+    # publish_message("fila_pagamentos", {"orderID": pegar_ultimo_id_pedido()+1, "link": payment_link, "link_id": link_id, "json_pedido": json_pedido})
     
     return payment_link
 
@@ -149,7 +149,7 @@ def conectar_banco():
         user=db_user,
         password=db_pass,
         database=db_name,
-        port=db_port,
+        port=11367,
         cursorclass=DictCursor  
     )
 
@@ -200,8 +200,6 @@ def consultar_ingredientes(sabor):
     
     except Exception as e:
         print(f"Erro ao buscar no database: {e}")
-    
-    
 
 def get_sabores_or_nomes_from_db(tipo):
     lista_sabores = []
@@ -237,7 +235,7 @@ def get_sabores_or_nomes_from_db(tipo):
         return lista_sabores
         
     except Exception as e:
-        print(e)
+        print("erro:", e)
         
 def fetch_pizzas():
     sabores_de_pizza = get_sabores_or_nomes_from_db('p')
