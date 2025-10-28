@@ -20,7 +20,7 @@ import uuid
 import uvicorn
 from typing import Dict, List
 from pydantic import BaseModel
-from rabbitmq import publish_message
+# from rabbitmq import publish_message
 
 app = FastAPI()
 
