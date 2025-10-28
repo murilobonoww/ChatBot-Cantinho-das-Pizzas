@@ -27,7 +27,7 @@ app = FastAPI()
 # Configuração do CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins="https://cantinho-das-pizzas.vercel.app",
+    allow_origins=["https://cantinho-das-pizzas.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

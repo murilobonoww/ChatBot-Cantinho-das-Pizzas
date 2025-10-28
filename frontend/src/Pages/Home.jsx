@@ -109,7 +109,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
   useEffect(() => {
     async function carregarNotificacoesIniciais() {
       try {
-        const response = await axios.get("http://localhost:5000/notificacoes/ativas");
+        const response = await axios.get("https://chatbot-cantinho-das-pizzas-production.up.railway.app/notificacoes/ativas");
         setNotificacoes(response.data);
         setTemNotificacoesNaoLidas(response.data.some((n) => n.status === "pendente"));
       } catch (error) {
@@ -131,7 +131,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
         socketRef.current = null;
       }
 
-      socketRef.current = new WebSocket("ws://localhost:5000/ws");
+      socketRef.current = new WebSocket("wss://chatbot-cantinho-das-pizzas-production.up.railway.app/ws");
 
       socketRef.current.onopen = () => {
         console.log("🔗 Conectado ao servidor WebSocket");
@@ -271,7 +271,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
   // Mark notification as attended
   const atualizarStatusNotificacao = async (id_notificacao) => {
     try {
-      const response = await axios.post(`http://localhost:5000/notificacoes/atender/${id_notificacao}`);
+      const response = await axios.post(`https://chatbot-cantinho-das-pizzas-production.up.railway.app/notificacoes/atender/${id_notificacao}`);
       console.log(`Notificação ${id_notificacao} marcada como atendida:`, response.data);
     } catch (error) {
       console.error(`Erro ao atualizar status da notificação ${id_notificacao}:`, error);
@@ -284,7 +284,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
   // Clear all notifications
   const limparNotificacoes = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/notificacoes/limpar");
+      const response = await axios.post("https://chatbot-cantinho-das-pizzas-production.up.railway.app/notificacoes/limpar");
       console.log("Notificações limpas:", response.data);
       setNotificacoes((prev) => prev.map((n) => ({ ...n, status: "atendida" })));
       setTemNotificacoesNaoLidas(false);
