@@ -436,7 +436,10 @@ def pegar_ultimo_id_pedido():
         resultado = cursor.fetchone()
         cursor.close()
         conn.close()
-        return resultado["MAX(id_pedido)"]
+        if resultado["MAX(id_pedido)"] != None:
+            return resultado["MAX(id_pedido)"]
+        else:
+            return 1
     except Exception as e:
         print("❌ Erro ao buscar último ID do pedido:", e)
         return None
