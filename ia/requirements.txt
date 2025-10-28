@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pymysql
+python-dotenv
+openai
+pydantic
+requests
+eventlet
+pika
+pytz
