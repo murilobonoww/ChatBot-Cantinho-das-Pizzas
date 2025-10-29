@@ -708,7 +708,7 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
             f"- Total a pagar: R$ {f'{total:.2f}'.replace('.',',')}\n\n"
             f"🧾 Pagamento: {pagamento}\n"
             f"📍 Entrega em: {endereco}\n\n"
-            "O pagamento será feito pessoalmente na entrega"
+            "O pagamento será feito pessoalmente na entrega\n\n"
             f"Obrigado pelo seu pedido! Em breve estaremos aí...🍕🛵\n"
             #comentado pois o link de pagamento será implementado apenas em uma versão futura.
             # f"{generate_GetNet_payment_link(getnetAcessToken, total, taxa, json_pedido)}"

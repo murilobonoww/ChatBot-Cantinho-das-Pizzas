@@ -424,14 +424,17 @@ const Pedidos = () => {
     const primeiroSobrenome = array_de_partes_do_nome[1] ? array_de_partes_do_nome[1][0] + "." : ""
 
     const nomeCompleto = primeiroNome + " " + primeiroSobrenome
+
+    // primeiro nome max length:
+    // sobrenome sempre será _(espaco)1 letra e ., ou seja, 3 caracteres a mais que o nome
     return nomeCompleto
   }
 
   const set_classname_pedido_card = (id_) => {
-    if(novosIDs.includes(id_) ){
+    if (novosIDs.includes(id_)) {
       return " pedido-novo"
     }
-    else{
+    else {
       return ""
     }
   }
@@ -783,6 +786,7 @@ const Pedidos = () => {
                       )}
 
                     </div>
+
 
 
                     {abertos[pedido.id_pedido] && (
