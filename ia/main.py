@@ -134,15 +134,6 @@ def generate_GetNet_payment_link (token, total_pedido, frete, json_pedido):
     
     return payment_link
 
-def saudacao():
-    hora = datetime.now(pytz.timezone("America/Sao_Paulo")).hour
-    if hora < 12:
-        return "Bom dia!"
-    elif hora < 18:
-        return "Boa tarde!"
-    else:
-        return "Boa noite!"
-
 def conectar_banco():
     return pymysql.connect(
         host=db_host,
@@ -153,6 +144,34 @@ def conectar_banco():
         cursorclass=DictCursor  
     )
 
+def enviar_pdf_para_cliente(numero_cliente):
+    token = os.getenv("WHATSAPP_ACCESS_TOKEN")
+    phone_number_id = os.getenv("FONE_ID")
+    media_id = carregar_media_id()
+
+    if not media_id:
+        print("❌ Não foi possível enviar o cardápio (media_id inválido)")
+        return
+
+    url = f"https://graph.facebook.com/v19.0/{phone_number_id}/messages"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    body = {
+        "messaging_product": "whatsapp",
+        "to": numero_cliente,
+        "type": "document",
+        "document": {
+            "id": media_id,
+            "caption": "Aqui está o nosso menu completo 🍕📖\n\n",
+            "filename": "cardapio.pdf"
+        }
+    }
+
+    response = requests.post(url, headers=headers, json=body)
+    print("✅ PDF enviado:", response.json())
 
 def consultar_preco(sabor, tipo):
     try:
@@ -291,14 +310,13 @@ def fetch_outros():
 prompt_template = [{
     "role": "system",
     "content": (
-        "Eu sou um atendente simpático da pizzaria Cantinho das Pizzas e do Açaí. Falo sempre de forma educada e direta. Uso listas com espaçamento entre itens.\n\n"
+        "Eu sou uma atendente simpática da pizzaria Cantinho das Pizzas e do Açaí, sou a Laryssa. Falo sempre de forma educada e direta. Uso listas com espaçamento entre itens.\n\n"
         "✅ Como devo me comportar:\n"
-        f"Começo a conversa com uma saudação amigável: \"Olá, {saudacao()}! Como posso ajudar você hoje? 😊\"\n"
-        "Só devo dizer a saudação inicial (bom dia, boa tarde, ou boa noite) uma única vez, no início da conversa. Depois disso, não repito mais.\n"
-        "Se o cliente falou que quer uma pizza ele quer apenas 1.\n"
-        "Se o cliente disser logo no início que quer apenas uma pizza (ex: 'quero uma pizza de frango, uma só'), eu não preciso perguntar novamente a quantidade depois. Já devo assumir que é 1 unidade.\n"
+        f"Começo a conversa com uma saudação amigável: mando apenas '[trigger_saudacao_inicial]', esse comando dispara no sistema a resposta de saudação!\n"
+        "Só devo dizer a saudação inicial uma única vez, no início da conversa. Depois disso, não repito mais.\n"
+        "Se o cliente disser logo no início que quer apenas uma pizza (ex: 'quero uma pizza de frango, uma só'), eu não preciso perguntar novamente a quantidade depois. Já devo assumir que é apenas 1 unidade.\n"
         "Nunca devo pedir o preço total ou a taxa de entrega ao cliente. Eu mesmo calculo com base nas quantidades e valores do cardápio.\n"
-        "Se o cliente disser que quer 'uma pizza de [sabor]', devo assumir que ele quer apenas uma unidade desse sabor.\n"
+        "Se o cliente disser que quer 'uma pizza de [sabor]', devo assumir que ele quer apenas 1 unidade desse sabor.\n"
         "Não devo fazer o cliente repetir nem confirmar informações anteriores. Apenas sigo perguntando o que ainda falta.\n"
         "Durante o pedido, só faço perguntas relacionadas ao item atual (sabor, tamanho e quantidade). Somente depois de concluir os itens, pergunto nome, forma de pagamento e endereço.\n"
         "Posso perguntar sobre nome, forma de pagamento e endereço de forma separada ou tudo junto — se o cliente enviar os três de uma vez, devo reconhecer e seguir normalmente.\n"
@@ -519,34 +537,7 @@ def carregar_media_id():
     with open("media_id.txt", "r") as f:
         return f.read().strip()
 
-def enviar_pdf_para_cliente(numero_cliente):
-    token = os.getenv("WHATSAPP_ACCESS_TOKEN")
-    phone_number_id = os.getenv("FONE_ID")
-    media_id = carregar_media_id()
 
-    if not media_id:
-        print("❌ Não foi possível enviar o cardápio (media_id inválido)")
-        return
-
-    url = f"https://graph.facebook.com/v19.0/{phone_number_id}/messages"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
-
-    body = {
-        "messaging_product": "whatsapp",
-        "to": numero_cliente,
-        "type": "document",
-        "document": {
-            "id": media_id,
-            "caption": "Aqui está o nosso menu completo 🍕📖\n\n",
-            "filename": "cardapio.pdf"
-        }
-    }
-
-    response = requests.post(url, headers=headers, json=body)
-    print("✅ PDF enviado:", response.json())
 
 def calcular_distancia_km(endereco_destino):
     origem = "R. Copacabana, 111 - Jardim Maria Helena, Barueri - SP, 06445-060"
@@ -897,6 +888,9 @@ async def webhook(request: Request):
         resposta = enviar_msg("", historico_usuarios[from_num])
         print(f"🤖 Resposta do chatbot: {resposta}")
         historico_usuarios[from_num].append({"role": "assistant", "content": resposta})
+        
+        if resposta.strip() == "[trigger_saudacao_inicial]":
+            enviar_whatsapp(from_num, f"Olá! Sou a Laryssa, assistente virtual do Cantinho das Pizzas e do Açaí. Como posso ajudar você hoje? 😊\n Aqui está o nosso cardápio: ${enviar_pdf_para_cliente(from_num)}")
 
         if resposta.strip() == "[ENVIAR_CARDAPIO_PDF]":
             print("📄 Solicitação de envio de cardápio PDF")
