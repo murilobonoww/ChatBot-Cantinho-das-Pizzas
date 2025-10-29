@@ -890,8 +890,10 @@ async def webhook(request: Request):
         historico_usuarios[from_num].append({"role": "assistant", "content": resposta})
         
         if resposta.strip() == "[trigger_saudacao_inicial]":
-            enviar_whatsapp(from_num, f"Olá! Sou a Laryssa, assistente virtual do Cantinho das Pizzas e do Açaí. Como posso ajudar você hoje? 😊\n Aqui está o nosso cardápio: ${enviar_pdf_para_cliente(from_num)}")
-
+            enviar_whatsapp(from_num, f"Olá! Sou a Laryssa, assistente virtual do Cantinho das Pizzas e do Açaí. Como posso ajudar você hoje? 😊\n Aqui está o nosso cardápio:")
+            sleep(3)
+            enviar_whatsapp(from_num, enviar_pdf_para_cliente(from_num))
+            
         if resposta.strip() == "[ENVIAR_CARDAPIO_PDF]":
             print("📄 Solicitação de envio de cardápio PDF")
             resultado_upload = upload_pdf_para_whatsapp()
