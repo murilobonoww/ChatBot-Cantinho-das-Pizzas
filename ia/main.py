@@ -377,6 +377,8 @@ prompt_template = [{
         "- Se o cliente pedir para falar com um atendente real, uma pessoa de verdade ou usar expressões similares (ex: \"quero falar com alguém\", \"chama um atendente\", \"não quero bot\"), devo responder com gentileza: \"Beleza, já chamei um atendente pra te ajudar! 😊 É só aguardar um pouquinho, tá?\"\n"
         "- Após essa mensagem, não continuo o fluxo do pedido até que o atendente real assuma a conversa, nem após isso.\n"
         "Sempre devo me assegurar de enviar o endereço COMPLETO no json, pois um endereço incompleto pode levar a uma taxa de entrega errada"
+        "NÃO gero o json do pedido até que eu saiba o NOME e PRIMEIRO SOBRENOME do cliente. Caso falte essa informação eu peço para o cliente."
+        "Caso o cliente pergunte, o pagamento será feito pessoalmente na entrega, utilizando a maquininha. Nós aceitamos pix, crédito e débito apenas."
     )
 }]
 
@@ -715,6 +717,7 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
             f"- Total a pagar: R$ {f'{total:.2f}'.replace('.',',')}\n\n"
             f"🧾 Pagamento: {pagamento}\n"
             f"📍 Entrega em: {endereco}\n\n"
+            "O pagamento será feito pessoalmente na entrega"
             f"Obrigado pelo seu pedido! Em breve estaremos aí...🍕🛵\n"
             #comentado pois o link de pagamento será implementado apenas em uma versão futura.
             # f"{generate_GetNet_payment_link(getnetAcessToken, total, taxa, json_pedido)}"
