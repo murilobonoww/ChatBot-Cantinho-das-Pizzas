@@ -871,7 +871,7 @@ async def webhook(request: Request):
         text = msg.get('text', {}).get('body', '').lower()
         
         print(f"📨 Mensagem recebida de {from_num}: {text}, ID: {msg_id}")
-        print(f"\n\n\n\n\n\n\n Text: {text} \n\n\n\n\n\n\n\n\n")
+        print(f"Text: {text}")
 
         if from_num in last_msgs:
             if last_msgs[from_num]['text'] == text:
@@ -879,7 +879,6 @@ async def webhook(request: Request):
                 return {"message": "Duplicate message"}
 
         last_msgs[from_num] = {"id": msg_id, "text": text}
-
 
         if from_num not in historico_usuarios:
             historico_usuarios[from_num] = prompt_template.copy()
@@ -890,9 +889,9 @@ async def webhook(request: Request):
         historico_usuarios[from_num].append({"role": "assistant", "content": resposta})
         
         if resposta.strip() == "[trigger_saudacao_inicial]":
-            enviar_whatsapp(from_num, f"Olá! Sou a Laryssa, assistente virtual do Cantinho das Pizzas e do Açaí. Como posso ajudar você hoje? 😊\n Aqui está o nosso cardápio:")
-            sleep(3)
+            enviar_whatsapp(from_num, f"Olá! Sou a Laryssa, assistente virtual do Cantinho das Pizzas e do Açaí. Como posso ajudar você hoje? 😊")
             enviar_whatsapp(from_num, enviar_pdf_para_cliente(from_num))
+            return {"message": "Ok"}
             
         if resposta.strip() == "[ENVIAR_CARDAPIO_PDF]":
             print("📄 Solicitação de envio de cardápio PDF")
