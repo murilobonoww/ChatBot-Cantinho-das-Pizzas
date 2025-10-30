@@ -418,15 +418,22 @@ const Pedidos = () => {
     }
   }, [id_selectedOrder])
 
-  const abreviar_nome_completo = (nome_completo) => {
+  const abreviar_nome_completo = (nome_completo, elemento) => {
     const array_de_partes_do_nome = nome_completo.trim().split(/\s+/)
     const primeiroNome = array_de_partes_do_nome[0]
     const primeiroSobrenome = array_de_partes_do_nome[1] ? array_de_partes_do_nome[1][0] + "." : ""
 
-    const nomeCompleto = primeiroNome + " " + primeiroSobrenome
+    let nomeCompleto = primeiroNome + " " + primeiroSobrenome
+    let primeiroNome_formatted = ""
 
-    // primeiro nome max length:
-    // sobrenome sempre será _(espaco)1 letra e ., ou seja, 3 caracteres a mais que o nome
+    if(nomeCompleto.length >= 14){
+      for(let i = 0; i< 11; i++){
+        primeiroNome_formatted += `${primeiroNome[i]}`
+      }
+      primeiroNome_formatted += `...`
+      nomeCompleto = primeiroNome_formatted + primeiroSobrenome
+    }
+    
     return nomeCompleto
   }
 
@@ -438,6 +445,8 @@ const Pedidos = () => {
       return ""
     }
   }
+
+
 
   return (
     <div className="page-pedidos">
@@ -699,7 +708,7 @@ const Pedidos = () => {
                         </h2>
 
                         <pre id="client_name_pedido_card">
-                          •  {abreviar_nome_completo(pedido.nome_cliente)}        <span style={{ fontFamily: "MinhaFonte3", color: "#9a9898" }}>{formatarDataHora(pedido.data_pedido)}</span>
+                          •  <span id="span_nome_cliente_pedido_Card">{abreviar_nome_completo(pedido.nome_cliente)}</span>        <span style={{ fontFamily: "MinhaFonte3", color: "#9a9898" }}>{formatarDataHora(pedido.data_pedido)}</span>
                         </pre>
                       </div>
 

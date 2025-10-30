@@ -47,6 +47,11 @@
   font-family: 'MinhaFonte';
   color: #515050;
   font-size: 18px;
+  display: flex;
+}
+
+#span_nome_cliente_pedido_Card{
+  width: 150px !important;
 }
 
 .topo-fixo-pedidos h2 {
