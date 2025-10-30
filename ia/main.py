@@ -973,8 +973,7 @@ async def webhook(request: Request):
                 
                 agora = datetime.now()
                 data_formatada = agora.strftime("%Y-%m-%d %H:%M:%S")
-                json_pedido["data_pedido"] = data_formatada
-                print(data_formatada)
+                json_pedido["data_pedido"] = f"{data_formatada}"
 
                 historico_usuarios[from_num].append({
                     "role": "system",
