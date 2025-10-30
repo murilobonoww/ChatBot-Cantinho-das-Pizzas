@@ -704,7 +704,7 @@ const Pedidos = () => {
                     <div className="pedido-header" key={pedido.id_pedido}>
                       <div className="pedido_info">
                         <h2>
-                          #{pedido.id_pedido}{" "}
+                          #{pedido.id_pedido < 10 ? "0"+pedido.id_pedido : pedido.id_pedido}{" "}
                         </h2>
 
                         <pre id="client_name_pedido_card">
