@@ -362,11 +362,13 @@ const Pedidos = () => {
 
           if (res.status === 200) {
             setChangeOpened((prev) => !prev)
+            toast.success("Pedido alterado com sucesso!", {autoClose: 5000})
           }
         }
 
         catch (err) {
           console.log(item.id, err)
+          toast.error("Falha ao alterar pedido.", {autoClose: 5000})
         }
       }
       changeItem()
