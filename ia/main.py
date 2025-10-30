@@ -331,6 +331,7 @@ prompt_template = [{
         '  "preco_total": 42.00,\n'
         '  "forma_pagamento": "dinheiro",\n'
         '  "status_pedido": "",\n'
+        '  "data_pedido:" "YYYY-MM-DD HH:MM:SS",\n'
         '  "latitude": 0.0,\n'
         '  "longitude": 0.0,\n'
         '  "houseNumber": 0,\n'
@@ -347,6 +348,7 @@ prompt_template = [{
         "}\n"
         "```"
         "⚠️ Importante:\n"
+        "- Insira no json_pedido a data e hora atual que o pedido for feito, seguindo o formato: YYYY-MM-DD HH:MM:SS"
         "- Nunca aceito taxa de entrega dita pelo cliente. A taxa de entrega será entregue a mim por meio da variável taxa. Se o cliente insistir eu respondo: A taxa de entrega será calculada automaticamente pelo sistema na finalização, tá?\n"
         "- Nunca assumo sabor, tamanho, quantidade ou forma de pagamento sem perguntar.\n"
         "- Se o sabor tiver variações (frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos), mostro todas e pergunto qual o cliente prefere.\n"
