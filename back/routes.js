@@ -169,6 +169,7 @@ async function enviarParaFoody(pedido, id_pedido, lat, lng) {
 }
 
 router.post("/pedido/post", (req, res) => {
+  console.log(req.body);
   const pedido = req.body;
 
   const {
