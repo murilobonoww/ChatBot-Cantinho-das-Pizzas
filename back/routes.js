@@ -179,6 +179,7 @@ router.post("/pedido/post", (req, res) => {
     preco_total,
     forma_pagamento,
     status_pedido,
+    data_pedido,
     itens,
     latitude,
     longitude,
@@ -186,8 +187,8 @@ router.post("/pedido/post", (req, res) => {
 
   const sqlPedido = `
     INSERT INTO pedido (
-      nome_cliente, endereco_entrega, taxa_entrega, preco_total, forma_pagamento, status_pedido
-    ) VALUES (?, ?, ?, ?, ?, ?)
+      nome_cliente, endereco_entrega, taxa_entrega, preco_total, forma_pagamento, status_pedido, data_pedido
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
 
   const valoresPedido = [
@@ -197,6 +198,7 @@ router.post("/pedido/post", (req, res) => {
     preco_total,
     forma_pagamento,
     status_pedido || "aberto",
+    data_pedido
   ];
 
   db.query(sqlPedido, valoresPedido, (err, resultado) => {
