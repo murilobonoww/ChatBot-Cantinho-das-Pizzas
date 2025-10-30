@@ -20,6 +20,24 @@ export default function Relatorios() {
 
   const senhaInputRef = useRef(null);
 
+  useEffect(() => {
+    const ping_ = async () => {
+      const agr = new Date();
+      const hora_atual = agr.getHours();
+      if (hora_atual >= 14 && hora_atual <= 23) {
+        try {
+          const res = await axios.get('https://chatbot-cantinho-das-pizzas-production.up.railway.app/')
+        } catch (error) {
+          console.log("Erro no ping:", error)
+        }
+      }
+    }
+    const interval = setInterval(ping_, 10000)
+    ping_()
+    return () => clearInterval(interval)
+  }, [])
+
+
   const playSound = () => {
     const audio = new Audio(bell_sound)
     audio.volume = 0.7

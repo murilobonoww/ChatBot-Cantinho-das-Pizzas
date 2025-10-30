@@ -52,6 +52,22 @@ const Pedidos = () => {
   const [authOpenedDelete, setAuthOpenedDelete] = useState(false)
   const [deleteOpened, setDeleteOpened] = useState(false)
 
+  useEffect(() => {
+    const ping_ = async () => {
+      const agr = new Date();
+      const hora_atual = agr.getHours();
+      if (hora_atual >= 14 && hora_atual <= 23) {
+        try {
+          const res = await axios.get('https://chatbot-cantinho-das-pizzas-production.up.railway.app/')
+        } catch (error) {
+          console.log("Erro no ping:", error)
+        }
+      }
+    }
+    const interval = setInterval(ping_, 10000)
+    ping_()
+    return () => clearInterval(interval)
+  }, [])
 
   const playSound = () => {
     const audio = new Audio(bell_sound);
@@ -426,14 +442,14 @@ const Pedidos = () => {
     let nomeCompleto = primeiroNome + " " + primeiroSobrenome
     let primeiroNome_formatted = ""
 
-    if(nomeCompleto.length >= 14){
-      for(let i = 0; i< 11; i++){
+    if (nomeCompleto.length >= 14) {
+      for (let i = 0; i < 11; i++) {
         primeiroNome_formatted += `${primeiroNome[i]}`
       }
       primeiroNome_formatted += `...`
       nomeCompleto = primeiroNome_formatted + primeiroSobrenome
     }
-    
+
     return nomeCompleto
   }
 
@@ -704,7 +720,7 @@ const Pedidos = () => {
                     <div className="pedido-header" key={pedido.id_pedido}>
                       <div className="pedido_info">
                         <h2>
-                          #{pedido.id_pedido < 10 ? "0"+pedido.id_pedido : pedido.id_pedido}{" "}
+                          #{pedido.id_pedido < 10 ? "0" + pedido.id_pedido : pedido.id_pedido}{" "}
                         </h2>
 
                         <pre id="client_name_pedido_card">

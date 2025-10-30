@@ -37,6 +37,22 @@ export default function Home({ enviarListaDeNovosIDs }) {
   const [toggle_badge, setToggle_badge] = useState(false);
   const [ids_novos_pedidos, setIds_novos_pedidos] = useState([]);
 
+  useEffect(() => {
+    const ping_ = async () => {
+      const agr = new Date();
+      const hora_atual = agr.getHours();
+      if (hora_atual >= 14 && hora_atual <= 23) {
+        try {
+          const res = await axios.get('https://chatbot-cantinho-das-pizzas-production.up.railway.app/')
+        } catch (error) {
+          console.log("Erro no ping:", error)
+        }
+      }
+    }
+    const interval = setInterval(ping_, 10000)
+    ping_()
+    return () => clearInterval(interval)
+  }, [])
 
   const playSound = () => {
     const audio = new Audio(bell_sound);
@@ -47,15 +63,9 @@ export default function Home({ enviarListaDeNovosIDs }) {
 
   useEffect(() => {
     const fetchPedidos = async () => {
-      console.log("Executando fetchPedidos!")
       try {
         const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/pedido/getAll', { withCredentials: true })
         const pedidos_atualizados = res.data
-
-        console.log("Pedidos anteriores:", pedidosAnteriores.current.length)
-        console.log("Pedidos atualizados:", pedidos_atualizados.length)
-        console.log("carregamentoInicial:", carregamentoInicial.current)
-
 
         if (carregamentoInicial.current === true) {
           carregamentoInicial.current = false
@@ -69,7 +79,6 @@ export default function Home({ enviarListaDeNovosIDs }) {
             })
             setToggle_badge(true)
           }
-          console.log("NAO ENTRROU NO IF")
         }
 
         pedidosAnteriores.current = pedidos_atualizados
@@ -254,7 +263,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
   useEffect(() => {
     async function verificarPedidosNovos() {
       try {
-        const res = await axios.get("https://back-cantinho-das-pizzas.onrender.com/pedidos/new" , { withCredentials: true });
+        const res = await axios.get("https://back-cantinho-das-pizzas.onrender.com/pedidos/new", { withCredentials: true });
         setTemPedidoNovo(res.data.novos);
       } catch (error) {
         console.error("Erro ao verificar pedidos novos:", error);

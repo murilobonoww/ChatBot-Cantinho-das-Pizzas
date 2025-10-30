@@ -1002,6 +1002,8 @@ async def webhook(request: Request):
         enviar_whatsapp(from_num, "⚠️ Erro ao processar sua mensagem. Tente novamente!")
         return {"message": "ERROR", "detail": str(e)}
 
+
+
 if __name__ == "__main__":
     print("🚀 Iniciando servidor FastAPI...")
     uvicorn.run(app, host="0.0.0.0", port=5000)

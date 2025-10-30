@@ -7,6 +7,7 @@ import axios from "axios";
 import 'react-toastify/dist/ReactToastify.css';
 import bell_sound from "/assets/bell.mp3"
 import pizza_img from "/assets/pizza.png"
+import { ErrorIcon } from "react-hot-toast";
 
 export default function Cardapio() {
   const [cardapio, setCardapio] = useState({ pizzas: [], esfihas: [], bebidas: [], doces: [], outros: [] });
@@ -32,6 +33,23 @@ export default function Cardapio() {
   const InputRef = useRef(null);
   const topoFixoRef = useRef(null);
   const [dots, setDots] = useState("")
+
+  useEffect(() => {
+    const ping_ = async () => {
+      const agr = new Date();
+      const hora_atual = agr.getHours();
+      if (hora_atual >= 14 && hora_atual <= 23) {
+        try {
+          const res = await axios.get('https://chatbot-cantinho-das-pizzas-production.up.railway.app/')
+        } catch (error) {
+          console.log("Erro no ping:", error)
+        }
+      }
+    }
+    const interval = setInterval(ping_, 10000)
+    ping_()
+    return () => clearInterval(interval)
+  }, [])
 
   const playSound = () => {
     const audio = new Audio(bell_sound)
@@ -326,6 +344,8 @@ export default function Cardapio() {
       toast.error(`Erro ao deletar itens: ${err.message}`);
     }
   };
+
+
 
   useEffect(() => {
     if (loading) {
