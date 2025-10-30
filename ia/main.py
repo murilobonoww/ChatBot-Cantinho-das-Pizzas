@@ -970,6 +970,10 @@ async def webhook(request: Request):
                 json_pedido["latitude"] = lat if lat is not None else 0.0
                 json_pedido["longitude"] = lng if lng is not None else 0.0
                 print(f"🗺️ Coordenadas: lat={lat}, lng={lng}")
+                
+                agora = datetime.now()
+                data_formatada = agora.strftime("%Y-%m-%d %H:%M:%S")
+                json_pedido["data_pedido"] = data_formatada
 
                 historico_usuarios[from_num].append({
                     "role": "system",
