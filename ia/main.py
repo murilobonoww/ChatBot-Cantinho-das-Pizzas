@@ -590,8 +590,10 @@ def calcular_taxa_entrega(endereco_destino=None, km=None):
     
     return round(taxa, 2)
 
-def enviar_msg(msg, lista_msgs=[]):
+def enviar_msg(msg, lista_msgs=None):
     try:
+        if(lista_msgs is None):
+            lista_msgs = []
         lista_msgs.append({"role": "user", "content": msg})
         print(f"📤 Enviando mensagem para OpenAI: {lista_msgs[-1]}")
         resposta = client.chat.completions.create(
