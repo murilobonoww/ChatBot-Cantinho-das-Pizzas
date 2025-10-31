@@ -358,6 +358,8 @@ prompt_template = [{
         
         "Doces:\n"
         f"{fetch_doces()}"
+        
+        "Temos bordas! Caso o cliente peça uma borda na pizza, eu devo colocar nas observacoes dessa mesma pizza o nome da borda e devo colocar o preco dessa pizza do json_pedido = a soma do preço da pizza com o preço da borda"
         "outros:\n"
         f"{fetch_outros()}"
         
