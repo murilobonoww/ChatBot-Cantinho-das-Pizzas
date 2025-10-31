@@ -942,7 +942,9 @@ async def webhook(request: Request):
                 p = float(preco)
                 preco_total += p
                 
-            enviar_msg(from_num, f"O total até o momento ficou: R${preco_total:.2f}".replace(".", ","))
+            msg_ = f"O total até o momento ficou: R${preco_total:.2f}".replace(".", ",")
+                
+            enviar_msg(from_num, msg_)
             return {"message": "ok"}
         
         if "```json" not in resposta:
