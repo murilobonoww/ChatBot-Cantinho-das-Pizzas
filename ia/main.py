@@ -690,14 +690,16 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
             
             if "pizza" in item.get("produto"):
                 obs = "G" if "35" in str(item.get("observacao")) else "broto"
+                obs = f"({obs})"
             else:
                 obs = item.get("observacao", "")
+                obs = f"({obs})"
                 
             if "pizza" in produto or "esfiha" in produto:
-                linha = f"- {qtd}x {produto} de {sabor} ({obs}) - R$ {f'{preco:.2f}'.replace('.', ',')} "
+                linha = f"- {qtd}x {produto} de {sabor} {obs} - R$ {f'{preco:.2f}'.replace('.', ',')} "
 
             else:
-                linha = f"- {qtd}x {sabor} ({obs}) - R$ {f'{preco:.2f}'.replace('.', ',')} "
+                linha = f"- {qtd}x {sabor} {obs} - R$ {f'{preco:.2f}'.replace('.', ',')} "
                 
             itens_formatados.append(linha)
         
