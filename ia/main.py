@@ -581,9 +581,9 @@ def calcular_taxa_entrega(endereco_destino=None, km=None):
     else:
         distancia = km
     
-    if distancia <= 1:
-        taxa = distancia * 4 if distancia else 0
-    elif distancia > 1 and distancia <= 3:
+    if distancia < 1:
+        taxa = 4
+    elif distancia >= 1 and distancia < 3:
         taxa = distancia * 3 if distancia else 0
     else:
         taxa = distancia * 2
