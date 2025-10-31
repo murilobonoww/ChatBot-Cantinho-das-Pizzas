@@ -933,6 +933,16 @@ async def webhook(request: Request):
                 print(f"❌ Falha ao enviar mensagem de atendente real para {from_num}")
             return {"message": "ok"}
 
+        if "sum" in resposta:
+            sum = re.search(r'\[(.*?)\]', resposta)
+            sum_arr = sum.split(",")
+            preco_total = 0
+            
+            for preco in sum_arr:
+                preco_total += preco
+                
+            enviar_msg(from_num, f"O total até o momento ficou: R${preco_total:.2f}".replace(".", ","))
+        
         if "```json" not in resposta:
             print(f"📤 Enviando resposta para {from_num}: {resposta}")
             if not enviar_whatsapp(from_num, resposta):
