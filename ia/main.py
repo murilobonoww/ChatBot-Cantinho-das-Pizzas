@@ -943,6 +943,7 @@ async def webhook(request: Request):
                 preco_total += preco
                 
             enviar_msg(from_num, f"O total até o momento ficou: R${preco_total:.2f}".replace(".", ","))
+            return {"message": "ok"}
         
         if "```json" not in resposta:
             print(f"📤 Enviando resposta para {from_num}: {resposta}")
