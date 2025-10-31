@@ -691,6 +691,8 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
             if "pizza" in item.get("produto"):
                 obs = "G" if "35" in str(item.get("observacao")) else "broto"
                 obs = f"({obs})"
+            elif "esfiha" in item.get("produto"):
+                obs = ""
             else:
                 obs = item.get("observacao", "")
                 obs = f"({obs})"
