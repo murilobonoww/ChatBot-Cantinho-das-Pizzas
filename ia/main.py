@@ -933,7 +933,7 @@ async def webhook(request: Request):
                 print(f"❌ Falha ao enviar mensagem de atendente real para {from_num}")
             return {"message": "ok"}
 
-        if "sum" in resposta:
+        if "sum:" in resposta:
             sum = re.findall(r'\d+\.\d+', resposta)
             
             preco_total = 0
