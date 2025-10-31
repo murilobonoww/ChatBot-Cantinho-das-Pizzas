@@ -934,11 +934,12 @@ async def webhook(request: Request):
             return {"message": "ok"}
 
         if "sum" in resposta:
-            sum = re.search(r'\[(.*?)\]', resposta)
-            sum_arr = str(sum).split(",")
+            sum = re.findall(r'\d+\.\d+', resposta)
+            
             preco_total = 0
             
-            for preco in sum_arr:
+            for preco in sum:
+                float(preco)
                 preco_total += preco
                 
             enviar_msg(from_num, f"O total até o momento ficou: R${preco_total:.2f}".replace(".", ","))
