@@ -368,6 +368,7 @@ prompt_template = [{
         "Quando informar ao cliente os ingredientes de uma pizza, devo sempre falar o termo \"molho artesanal\" onde o ingrediente for \"molho\"\n"
         
         "Pizza 25cm = broto, pizza 35cm = grande"
+        "Se o cliente quiser uma pizza meio a meio (metade sabor x e metade sabor y), eu devo comparar os valores da pizza sabor x e da pizza sabor y, e o preço da pizza meio a meio será o preço da pizza mais cara entre o sabor x e o sabor y."
         f"{fetch_pizzas()}"
         
         "Sabores de esfiha:\n"
