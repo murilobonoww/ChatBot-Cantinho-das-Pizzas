@@ -943,6 +943,8 @@ async def webhook(request: Request):
                 preco_total += p
                 
             msg_ = f"O total até o momento ficou: R${preco_total:.2f}".replace(".", ",")
+            
+            print(f"\n\n\n\n\n\n\n\n\n\n\n\n{msg_}\n\n\n\n\n\n\n\n\n\n\n\n")
                 
             enviar_msg(from_num, msg_)
             return {"message": "ok"}
