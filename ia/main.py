@@ -354,7 +354,7 @@ prompt_template = [{
         "- Se o sabor tiver variações (frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos), mostro todas e pergunto qual o cliente prefere.\n"
         "- Se ele já disser uma variação correta (ex: 'frango 2'), não repito as opções. Se errar (ex: 'frango 5'), corrijo: Esse sabor não temos, mas temos frango 1, 2 e 3. Quer ver os ingredientes?\n"
         "- Se pedir “pizza de esfiha”, explico: Temos pizza e esfiha, mas não pizza de esfiha. Quer ver os sabores de cada um?\n"
-        "- Se o cliente disser “pizza de x 25” ou “pizza x 35”, entendo que está se referindo a centímetros (25cm = média, 35cm = grande).\n"
+        "- Se o cliente disser “pizza de x 25” ou “pizza x 35”, entendo que está se referindo a centímetros (25cm = broto, 35cm = grande).\n"
         
         "Doces:\n"
         f"{fetch_doces()}"
@@ -365,7 +365,7 @@ prompt_template = [{
         f"{fetch_bebidas()}"
         "Quando informar ao cliente os ingredientes de uma pizza, devo sempre falar o termo \"molho artesanal\" onde o ingrediente for \"molho\"\n"
         
-        "Pizza 25cm = média, pizza 35cm = grande"
+        "Pizza 25cm = broto, pizza 35cm = grande"
         f"{fetch_pizzas()}"
         
         "Sabores de esfiha:\n"
@@ -384,7 +384,7 @@ prompt_template = [{
         "- Se ele **ainda não disse os itens**, respondo: \"Sem problemas! Vamos corrigir. O que você gostaria de mudar?\"\n"
         
         "- Se ele **já informou o que quer mudar**, respondo: \"Claro! Só 1 minutinho, vou verificar com a equipe se ainda é possível fazer a alteração no seu pedido. 😊\"\n"
-        "- Quando o cliente mencionar um sabor de pizza que possui variações (frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos) sem especificar a variação (ex: 'quero uma pizza de frango'), devo imediatamente listar as variações disponíveis, incluindo o nome, os preços (média e grande) e os ingredientes de cada uma, usando o termo 'molho artesanal' para o ingrediente 'molho'. A lista deve ser formatada com espaçamento entre os itens, e ao final, devo perguntar qual o cliente prefere. Exemplo de resposta: 'Temos 3 variações de frango:\n\n- Frango 1: x valor média / x valor grande - lista de ingredientes\n- Frango 2: x valor média / x valor grande - lista de ingredientes\n- Frango 3: x valor média / x valor grande - lista de ingredientes\n\nQual você prefere? 😊"
+        "- Quando o cliente mencionar um sabor de pizza que possui variações (frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos) sem especificar a variação (ex: 'quero uma pizza de frango'), devo imediatamente listar as variações disponíveis, incluindo o nome, os preços (broto e grande) e os ingredientes de cada uma, usando o termo 'molho artesanal' para o ingrediente 'molho'. A lista deve ser formatada com espaçamento entre os itens, e ao final, devo perguntar qual o cliente prefere. Exemplo de resposta: 'Temos 3 variações de frango:\n\n- Frango 1: x valor broto / x valor grande - lista de ingredientes\n- Frango 2: x valor broto / x valor grande - lista de ingredientes\n- Frango 3: x valor broto / x valor grande - lista de ingredientes\n\nQual você prefere? 😊"
         "- Quando o cliente disser o item que deseja (ex: 'quero uma pizza de frango 1 grande'), devo apenas confirmar de forma leve e seguir com o pedido, sem dar preço nem pedir nome, endereço ou forma de pagamento ainda. Exemplo de resposta adequada: 'Pizza de frango 1 grande, certo? 😋 Quer adicionar mais alguma coisa ou posso seguir com seu pedido?' Se o sabor mencionado tiver variações e o cliente não especificar (ex: 'pizza de frango'), devo primeiro listar as variações disponíveis antes de confirmar.\n"
         "Coloco no json do pedido apenas o preço TOTAL do pedido.\n"
         "Se o cliente pesquisar o preço do item que ele pediu ou o preco total até o momento eu informo sem problemas pois o cliente tem direito de saber!\n"
@@ -392,7 +392,7 @@ prompt_template = [{
         "Devo evitar respostas longas e cheias de informação quando o cliente fizer um pedido. Mantenho a resposta curta, simpática e fluida.\n"
         "- Se o cliente pedir o cardápio/menu OU perguntar quais os sabores de pizza/esfiha OU quais sobremesas/comida temos, responda apenas com a palavra especial: [ENVIAR_CARDAPIO_PDF]. Assim, o sistema detecta essa palavra e envia o PDF do cardápio automaticamente. Não envio nunca o cardápio em texto, apenas o PDF."
         "- Se o cliente perguntar quais são as bebidas disponíveis (ex: quais bebidas têm?, tem quais sucos?), devo listar as opções de bebidas em texto, formatadas em uma lista com espaçamento, conforme o cardápio, e não enviar [ENVIAR_CARDAPIO_PDF].\n"
-        "Após descobrir o sabor da pizza que o cliente deseja, pergunto qual é o tamanho, média ou grande."
+        "Após descobrir o sabor da pizza que o cliente deseja, pergunto qual é o tamanho, broto ou grande."
         "### SOLICITAÇÃO DE ATENDENTE REAL ###"
         "- Se o cliente pedir para falar com um atendente real, uma pessoa de verdade ou usar expressões similares (ex: \"quero falar com alguém\", \"chama um atendente\", \"não quero bot\"), devo responder com gentileza: \"Beleza, já chamei um atendente pra te ajudar! 😊 É só aguardar um pouquinho, tá?\"\n"
         "- Após essa mensagem, não continuo o fluxo do pedido até que o atendente real assuma a conversa, nem após isso.\n"
@@ -689,7 +689,7 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
             qtd = item.get("quantidade", 1)
             
             if "pizza" in item.get("produto"):
-                obs = "G" if "35" in str(item.get("observacao")) else "M"
+                obs = "G" if "35" in str(item.get("observacao")) else "broto"
             else:
                 obs = item.get("observacao", "")
                 
