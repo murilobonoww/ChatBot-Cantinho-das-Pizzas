@@ -935,7 +935,7 @@ async def webhook(request: Request):
 
         if "sum" in resposta:
             sum = re.search(r'\[(.*?)\]', resposta)
-            sum_arr = sum.split(",")
+            sum_arr = str(sum).split(",")
             preco_total = 0
             
             for preco in sum_arr:
