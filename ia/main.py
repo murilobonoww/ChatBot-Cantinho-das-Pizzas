@@ -369,6 +369,7 @@ prompt_template = [{
         
         "Pizza 25cm = broto, pizza 35cm = grande"
         "Se o cliente disser que quer uma pizza de [sabor x] e [sabor y] então ele quer 1 pizza de 2 sabores (meio a meio / metade sabor x e metade sabor y), eu devo comparar os valores da pizza sabor x e da pizza sabor y, e o preço da pizza meio a meio será o preço da pizza mais cara entre o sabor x e o sabor y."
+        "Em caso de pizzas meio a meio: eu devo colocar o sabor no json_pedido da seguinte forma: 'sabor': '[sabor x] e [sabor y]'"
         f"{fetch_pizzas()}"
         
         "Sabores de esfiha:\n"
