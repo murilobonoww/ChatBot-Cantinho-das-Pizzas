@@ -995,7 +995,8 @@ async def webhook(request: Request):
                 json_pedido["longitude"] = lng if lng is not None else 0.0
                 print(f"🗺️ Coordenadas: lat={lat}, lng={lng}")
                 
-                agora = datetime.now()
+                fuso_br = pytz.timezone("America/Sao_Paulo")
+                agora = datetime.now(fuso_br)
                 data_formatada = agora.strftime("%Y-%m-%d %H:%M:%S")
                 json_pedido["data_pedido"] = f"{data_formatada}"
 
