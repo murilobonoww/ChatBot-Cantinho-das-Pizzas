@@ -995,6 +995,11 @@ async def webhook(request: Request):
                 agora = datetime.now(timezone.utc).astimezone(fuso_br)
                 data_formatada = agora.strftime("%Y-%m-%d %H:%M:%S")
                 json_pedido["data_pedido"] = f"{data_formatada}"
+                
+                print("🕒 datetime.now() =", datetime.now())
+                print("🕒 datetime.now(timezone.utc) =", datetime.now(timezone.utc))
+                print("🕒 datetime.now(fuso_br) =", datetime.now(fuso_br))
+                print("🕒 datetime.now(timezone.utc).astimezone(fuso_br) =", datetime.now(timezone.utc).astimezone(fuso_br))
 
                 historico_usuarios[from_num].append({
                     "role": "system",
