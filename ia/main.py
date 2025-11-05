@@ -992,7 +992,7 @@ async def webhook(request: Request):
                 print(f"🗺️ Coordenadas: lat={lat}, lng={lng}")
                 
                 fuso_br = pytz.timezone("America/Sao_Paulo")
-                agora = datetime.now(fuso_br)
+                agora = datetime.now(timezone.utc).astimezone(fuso_br)
                 data_formatada = agora.strftime("%Y-%m-%d %H:%M:%S")
                 json_pedido["data_pedido"] = f"{data_formatada}"
 
