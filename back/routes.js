@@ -410,6 +410,23 @@ router.delete("/pedido/:id", (req, res) => {
   });
 });
 
+router.get("/pedido/:id/status", (req, res) => {
+  const id = req.params.id;
+
+  const sql = `SELECT status_pedido FROM pedido where id_pedido = ${id}`;
+  db.query(sql, (err, resultado) => {
+    if(err){
+      console.error("Erro ao pegar status de pedido: ", err)
+    }
+
+    if(resultado.affectedRows === 0){
+      return res.status(404).json({ mensagem: "Pedido não encontrado" })
+    }
+
+    return res.status(200)
+  })
+})
+
 router.put("/pedido/:id/status", (req, res) => {
   const id = req.params.id;
   const { novoStatus } = req.body;

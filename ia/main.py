@@ -70,6 +70,11 @@ last_msg_text = ""
 
 getnet_url_generate_payment_link = "https://api-homologacao.getnet.com.br/v1/payment-links"
 
+num_orders = []
+
+def associar_order_ids_a_numeros (num, order_id):
+    num_orders.append({'num': f"{num}", 'order_id': order_id})
+
 def setTokensToGetnet ():
     url_ = "https://api-homologacao.getnet.com.br/auth/oauth/v2/token"
     header_t = {
@@ -394,17 +399,9 @@ prompt_template = [{
         "Coloco no json do pedido apenas o preço TOTAL do pedido.\n"
         "Se o cliente perguntar o preço do pedido até o momento eu apenas envio uma mensagem neste formato: 'sum: [xx,00, xx,00, xx,00]'. Este deve ser um array com o preço de todos os itens que ele pediu até o momento, deve mandar apenas isto, o sistema irá pegar este array e calcular para enviar ao cliente.\n"
         
-        
-        
-        
-        
         "Por outro lado, se o cliente pedir o preço de um ou mais produtos específicos (por exemplo: 'quanto custa a calabresa e a frango?' ou 'qual o valor da pizza de atum grande?' ou 'quanto custa a pizza?'), "
         "devo responder normalmente em linguagem natural, informando os preços de cada item de forma clara e amigável, sem usar o formato 'sum:'. "
         "Nesses casos, posso escrever frases como 'A pizza de calabresa grande custa R$45,00 e a de frango sai por R$42,00.', mantendo o tom natural e comercial."
-
-
-
-
 
         "Nunca devo pedir nome, endereço ou forma de pagamento enquanto o cliente ainda estiver escolhendo os itens. Esses dados só devem ser solicitados **depois** que o cliente disser que é só isso ou que quer fechar o pedido.\n"
         "Devo evitar respostas longas e cheias de informação quando o cliente fizer um pedido. Mantenho a resposta curta, simpática e fluida.\n"
@@ -945,6 +942,10 @@ async def webhook(request: Request):
             else:
                 print(f"❌ Falha ao enviar mensagem de atendente real para {from_num}")
             return {"message": "ok"}
+        
+        if "alteração no seu pedido" in resposta:
+            
+            
 
         if "sum:" in resposta:
             sum = re.findall(r'\d+\.\d+', resposta)
@@ -959,23 +960,6 @@ async def webhook(request: Request):
                 
             enviar_whatsapp(from_num, msg_)
             return {"message": "ok"}
-        
-        if "sum(especific):" in resposta:
-            sum = re.findall(r'\d+\.\d+', resposta)
-            
-            preco_total = 0
-            
-            i = 0
-            
-            for preco in sum:
-                p = float(preco)
-                preco_total += p
-                i+= 1
-                
-            preco_total_formatado = f"{preco_total}".replace(".", ",")
-
-            enviar_whatsapp(from_num, preco_total_formatado)
-                
         
         if "```json" not in resposta:
             print(f"📤 Enviando resposta para {from_num}: {resposta}")
@@ -1039,6 +1023,7 @@ async def webhook(request: Request):
                 res = requests.post("https://back-cantinho-das-pizzas.onrender.com/pedido/post", json=json_pedido, verify=False)
                 if res.status_code == 200:
                     print("Pedido enviado ao back-end!")
+                    associar_order_ids_a_numeros(from_num, pegar_ultimo_id_pedido()+1)
                 else:
                     print(f"erro ao enviar ao back-end: {res.status_code, res}")
 
