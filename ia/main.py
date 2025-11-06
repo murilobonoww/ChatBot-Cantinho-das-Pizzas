@@ -392,7 +392,20 @@ prompt_template = [{
         "- Quando o cliente mencionar um sabor de pizza que possui variações (frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos) sem especificar a variação (ex: 'quero uma pizza de frango'), devo imediatamente listar as variações disponíveis, incluindo o nome, os preços (broto e grande) e os ingredientes de cada uma, usando o termo 'molho artesanal' para o ingrediente 'molho'. A lista deve ser formatada com espaçamento entre os itens, e ao final, devo perguntar qual o cliente prefere. Exemplo de resposta: 'Temos 3 variações de frango:\n\n- Frango 1: x valor broto / x valor grande - lista de ingredientes\n- Frango 2: x valor broto / x valor grande - lista de ingredientes\n- Frango 3: x valor broto / x valor grande - lista de ingredientes\n\nQual você prefere? 😊"
         "- Quando o cliente disser o item que deseja (ex: 'quero uma pizza de frango 1 grande'), devo apenas confirmar de forma leve e seguir com o pedido, sem dar preço nem pedir nome, endereço ou forma de pagamento ainda. Exemplo de resposta adequada: 'Pizza de frango 1 grande, certo? 😋 Quer adicionar mais alguma coisa ou posso seguir com seu pedido?' Se o sabor mencionado tiver variações e o cliente não especificar (ex: 'pizza de frango'), devo primeiro listar as variações disponíveis antes de confirmar.\n"
         "Coloco no json do pedido apenas o preço TOTAL do pedido.\n"
-        "Se o cliente perguntar o preço do item que ele pediu ou o preco total até o momento eu apenas envio uma mensagem neste formato: 'sum: [xx,00, xx,00, xx,00]'. Este deve ser um array com o preço de todos os itens que ele pediu até o momento, deve mandar apenas isto, o sistema irá pegar este array e calcular para enviar ao cliente.\n"
+        "Se o cliente perguntar o preço do pedido até o momento eu apenas envio uma mensagem neste formato: 'sum: [xx,00, xx,00, xx,00]'. Este deve ser um array com o preço de todos os itens que ele pediu até o momento, deve mandar apenas isto, o sistema irá pegar este array e calcular para enviar ao cliente.\n"
+        
+        
+        
+        
+        
+        "Por outro lado, se o cliente pedir o preço de um ou mais produtos específicos (por exemplo: 'quanto custa a calabresa e a frango?' ou 'qual o valor da pizza de atum grande?' ou 'quanto custa a pizza?'), "
+        "devo responder normalmente em linguagem natural, informando os preços de cada item de forma clara e amigável, sem usar o formato 'sum:'. "
+        "Nesses casos, posso escrever frases como 'A pizza de calabresa grande custa R$45,00 e a de frango sai por R$42,00.', mantendo o tom natural e comercial."
+
+
+
+
+
         "Nunca devo pedir nome, endereço ou forma de pagamento enquanto o cliente ainda estiver escolhendo os itens. Esses dados só devem ser solicitados **depois** que o cliente disser que é só isso ou que quer fechar o pedido.\n"
         "Devo evitar respostas longas e cheias de informação quando o cliente fizer um pedido. Mantenho a resposta curta, simpática e fluida.\n"
         "- Se o cliente pedir o cardápio/menu OU perguntar quais os sabores de pizza/esfiha OU quais sobremesas/comida temos, responda apenas com a palavra especial: [ENVIAR_CARDAPIO_PDF]. Assim, o sistema detecta essa palavra e envia o PDF do cardápio automaticamente. Não envio nunca o cardápio em texto, apenas o PDF."
@@ -947,6 +960,23 @@ async def webhook(request: Request):
             enviar_whatsapp(from_num, msg_)
             return {"message": "ok"}
         
+        if "sum(especific):" in resposta:
+            sum = re.findall(r'\d+\.\d+', resposta)
+            
+            preco_total = 0
+            
+            i = 0
+            
+            for preco in sum:
+                p = float(preco)
+                preco_total += p
+                i+= 1
+                
+            preco_total_formatado = f"{preco_total}".replace(".", ",")
+
+            enviar_whatsapp(from_num, preco_total_formatado)
+                
+        
         if "```json" not in resposta:
             print(f"📤 Enviando resposta para {from_num}: {resposta}")
             if not enviar_whatsapp(from_num, resposta):
@@ -991,15 +1021,10 @@ async def webhook(request: Request):
                 json_pedido["longitude"] = lng if lng is not None else 0.0
                 print(f"🗺️ Coordenadas: lat={lat}, lng={lng}")
                 
-                fuso_br = pytz.timezone("America/Sao_Paulo")
-                agora = datetime.now() + timedelta(hours=3)
+                agora = datetime.now()
                 data_formatada = agora.strftime("%Y-%m-%d %H:%M:%S")
                 json_pedido["data_pedido"] = f"{data_formatada}"
                 
-                print("🕒 datetime.now() =", datetime.now())
-                print("🕒 datetime.now(timezone.utc) =", datetime.now(timezone.utc))
-                print("🕒 datetime.now(fuso_br) =", datetime.now(fuso_br))
-                print("🕒 datetime.now(timezone.utc).astimezone(fuso_br) =", datetime.now(timezone.utc).astimezone(fuso_br))
 
                 historico_usuarios[from_num].append({
                     "role": "system",
