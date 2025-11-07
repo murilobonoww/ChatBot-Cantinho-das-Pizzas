@@ -200,7 +200,7 @@ router.post("/pedido/post", (req, res) => {
     forma_pagamento,
     status_pedido || "aberto",
     data_pedido,
-    altera
+    alteracao
   ];
 
   db.query(sqlPedido, valoresPedido, (err, resultado) => {

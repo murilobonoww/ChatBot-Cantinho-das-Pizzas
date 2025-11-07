@@ -410,7 +410,7 @@ prompt_template = [{
         "Se o cliente disser que quer mudar os itens do pedido, devo analisar se ele especificou o que deseja alterar:\n"
         "- Se ele **ainda não disse os itens**, respondo: \"Sem problemas! Vamos corrigir. O que você gostaria de mudar?\"\n"
         
-        "- Se ele **já informou o que quer mudar**, respondo: '[alter-order-req]: { json pedido }' então eu gero um novo json do pedido, substituindo o json do pedido antes da alteração"
+        "- Se ele **já informou o que quer mudar**, então eu gero um novo json do pedido, substituindo o json do pedido antes da alteração, e este json deverá ter 'alteracao' como 1"
         "- Quando o cliente mencionar um sabor de pizza que possui variações (frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos) sem especificar a variação (ex: 'quero uma pizza de frango'), devo imediatamente listar as variações disponíveis, incluindo o nome, os preços (broto e grande) e os ingredientes de cada uma, usando o termo 'molho artesanal' para o ingrediente 'molho'. A lista deve ser formatada com espaçamento entre os itens, e ao final, devo perguntar qual o cliente prefere. Exemplo de resposta: 'Temos 3 variações de frango:\n\n- Frango 1: x valor broto / x valor grande - lista de ingredientes\n- Frango 2: x valor broto / x valor grande - lista de ingredientes\n- Frango 3: x valor broto / x valor grande - lista de ingredientes\n\nQual você prefere? 😊"
         "- Quando o cliente disser o item que deseja (ex: 'quero uma pizza de frango 1 grande'), devo apenas confirmar de forma leve e seguir com o pedido, sem dar preço nem pedir nome, endereço ou forma de pagamento ainda. Exemplo de resposta adequada: 'Pizza de frango 1 grande, certo? 😋 Quer adicionar mais alguma coisa ou posso seguir com seu pedido?' Se o sabor mencionado tiver variações e o cliente não especificar (ex: 'pizza de frango'), devo primeiro listar as variações disponíveis antes de confirmar.\n"
         "Coloco no json do pedido apenas o preço TOTAL do pedido.\n"
@@ -979,10 +979,6 @@ async def webhook(request: Request):
             if not enviar_whatsapp(from_num, resposta):
                 print(f"❌ Falha ao enviar resposta para {from_num}")
                 enviar_whatsapp(from_num, "⚠️ Erro ao processar sua mensagem. Tente novamente!")
-                
-        if "```json" in resposta and "[alter-order-req]" not in resposta:
-            json_pedido = extrair_json_da_resposta(resposta)
-            print(f"📋 JSON extraído: {json_pedido}")
             
         json_pedido = extrair_json_da_resposta(resposta)
         print(f"📋 JSON extraído: {json_pedido}")

@@ -85,6 +85,7 @@ const Pedidos = () => {
     })
       .then(res => res.json())
       .then(data => {
+        console.log(data)
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
         setPedidos(pedidosOrdenados);
         buscarPedidosFiltrados();
