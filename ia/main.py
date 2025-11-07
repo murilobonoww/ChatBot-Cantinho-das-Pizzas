@@ -20,6 +20,7 @@ import uuid
 import uvicorn
 from typing import Dict, List
 from pydantic import BaseModel
+import threading
 # from rabbitmq import publish_message
 
 app = FastAPI()
@@ -74,10 +75,9 @@ num_orders = []
 
 def associar_order_ids_a_numeros (num, order_id):
     num_orders.append({'num': f"{num}", 'order_id': order_id})
-    programar_delete(num)
+    threading.Timer(60 * 60, remover_num, args=[num]).start()
     
-def programar_delete (num): #isto é pra remover da memória os pedidos que (provavelmente) já foram entregues
-    sleep(60 * 60)
+def remover_num (num): #isto é pra remover da memória os pedidos que (provavelmente) já foram entregues
     obj = next((o for o in num_orders if o['num'] == num), None)
     if obj:
         num_orders.remove(obj)
@@ -959,42 +959,6 @@ async def webhook(request: Request):
             else:
                 print(f"❌ Falha ao enviar mensagem de atendente real para {from_num}")
             return {"message": "ok"}
-        
-        if "[alter-order-req]" in resposta:
-            
-            enviar_whatsapp(from_num, "Claro! Só 1 minutinho, vou verificar com a equipe se ainda é possível fazer a alteração no seu pedido. 😊")
-            
-            match = re.search(r'\{.*?\}', resposta)
-            new_json_pedido_str = match.group(0)
-            
-            for i in num_orders:
-                if i['num'] == from_num:
-                    id_pedido = i['order_id']
-            
-            try:
-                res = requests.get(f"https://back-cantinho-das-pizzas.onrender.com/pedido/{id_pedido}/status")
-                if res.status_code == 200:
-                    data = res.json()
-                    status = data.get("status")
-                    
-                    if status == 'aberto':
-                        
-                        try:
-                            res_ = requests.get(f"https://back-cantinho-das-pizzas.onrender.com/pedido/{id_pedido}")
-                            pedido = res_.json()
-                        except Exception as e:
-                            print("erro ao fazer o get do pedido:", e)
-                            
-                        try:
-                            response = requests.put(f"https://back-cantinho-das-pizzas.onrender.com/pedido/{id_pedido}", json=new_json_pedido_str)
-                        except Exception as e:
-                            print("erro ao fazer o update do pedido:", e)
-
-                            # if response.status_code == 200:
-                        # entao ele vai alterar o pedido e enviar notificacao pro front
-                        
-            except Exception as e:
-                print(e)
 
         if "sum:" in resposta:
             sum = re.findall(r'\d+\.\d+', resposta)
