@@ -423,7 +423,7 @@ router.get("/pedido/:id/status", (req, res) => {
       return res.status(404).json({ mensagem: "Pedido não encontrado" })
     }
 
-    return res.status(200)
+    return res.status(200).json({ "status": resultado })
   })
 })
 

@@ -390,10 +390,12 @@ prompt_template = [{
         "Se o cliente concluir o pedido de comida e não tiver escolhido nenhuma bebida, posso perguntar gentilmente: \"Deseja incluir alguma bebida para acompanhar? Temos refris, sucos, água e mais 😊\"\n"
         "Se o cliente disser que quer pagar com cartão, devo perguntar: \"Você prefere pagar no débito ou crédito?\" sem emoji nessa frase\n"
         
-        "Se o cliente disser que quer mudar o pedido (isso não se aplica a endereços), devo analisar se ele especificou o que deseja alterar:\n"
+        # ------------------------------------------------------------------------------
+        
+        "Se o cliente disser que quer mudar os itens do pedido, devo analisar se ele especificou o que deseja alterar:\n"
         "- Se ele **ainda não disse os itens**, respondo: \"Sem problemas! Vamos corrigir. O que você gostaria de mudar?\"\n"
         
-        "- Se ele **já informou o que quer mudar**, respondo: \"Claro! Só 1 minutinho, vou verificar com a equipe se ainda é possível fazer a alteração no seu pedido. 😊\"\n"
+        "- Se ele **já informou o que quer mudar**, respondo: '[alter-order-req]: { json pedido }' então eu gero um novo json do pedido, substituindo o json do pedido antes da alteração"
         "- Quando o cliente mencionar um sabor de pizza que possui variações (frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos) sem especificar a variação (ex: 'quero uma pizza de frango'), devo imediatamente listar as variações disponíveis, incluindo o nome, os preços (broto e grande) e os ingredientes de cada uma, usando o termo 'molho artesanal' para o ingrediente 'molho'. A lista deve ser formatada com espaçamento entre os itens, e ao final, devo perguntar qual o cliente prefere. Exemplo de resposta: 'Temos 3 variações de frango:\n\n- Frango 1: x valor broto / x valor grande - lista de ingredientes\n- Frango 2: x valor broto / x valor grande - lista de ingredientes\n- Frango 3: x valor broto / x valor grande - lista de ingredientes\n\nQual você prefere? 😊"
         "- Quando o cliente disser o item que deseja (ex: 'quero uma pizza de frango 1 grande'), devo apenas confirmar de forma leve e seguir com o pedido, sem dar preço nem pedir nome, endereço ou forma de pagamento ainda. Exemplo de resposta adequada: 'Pizza de frango 1 grande, certo? 😋 Quer adicionar mais alguma coisa ou posso seguir com seu pedido?' Se o sabor mencionado tiver variações e o cliente não especificar (ex: 'pizza de frango'), devo primeiro listar as variações disponíveis antes de confirmar.\n"
         "Coloco no json do pedido apenas o preço TOTAL do pedido.\n"
@@ -943,9 +945,41 @@ async def webhook(request: Request):
                 print(f"❌ Falha ao enviar mensagem de atendente real para {from_num}")
             return {"message": "ok"}
         
-        if "alteração no seu pedido" in resposta:
+        if "[alter-order-req]" in resposta:
             
+            enviar_whatsapp(from_num, "Claro! Só 1 minutinho, vou verificar com a equipe se ainda é possível fazer a alteração no seu pedido. 😊")
             
+            match = re.search(r'\{.*?\}', resposta)
+            new_json_pedido_str = match.group(0)
+            
+            for i in num_orders:
+                if i['num'] == from_num:
+                    id_pedido = i['order_id']
+            
+            try:
+                res = requests.get(f"https://back-cantinho-das-pizzas.onrender.com/pedido/{id_pedido}/status")
+                if res.status_code == 200:
+                    data = res.json()
+                    status = data.get("status")
+                    
+                    if status == 'aberto':
+                        
+                        try:
+                            res_ = requests.get(f"https://back-cantinho-das-pizzas.onrender.com/pedido/{id_pedido}")
+                            pedido = res_.json()
+                        except Exception as e:
+                            print("erro ao fazer o get do pedido:", e)
+                            
+                        try:
+                            response = requests.put(f"https://back-cantinho-das-pizzas.onrender.com/pedido/{id_pedido}", json=new_json_pedido_str)
+                        except Exception as e:
+                            print("erro ao fazer o update do pedido:", e)
+
+                            # if response.status_code == 200:
+                        # entao ele vai alterar o pedido e enviar notificacao pro front
+                        
+            except Exception as e:
+                print(e)
 
         if "sum:" in resposta:
             sum = re.findall(r'\d+\.\d+', resposta)
@@ -966,9 +1000,10 @@ async def webhook(request: Request):
             if not enviar_whatsapp(from_num, resposta):
                 print(f"❌ Falha ao enviar resposta para {from_num}")
                 enviar_whatsapp(from_num, "⚠️ Erro ao processar sua mensagem. Tente novamente!")
-
-        json_pedido = extrair_json_da_resposta(resposta)
-        print(f"📋 JSON extraído: {json_pedido}")
+                
+        if "```json" in resposta and "[alter-order-req]" not in resposta:
+            json_pedido = extrair_json_da_resposta(resposta)
+            print(f"📋 JSON extraído: {json_pedido}")
 
         if json_pedido:
             endereco = json_pedido.get("endereco_entrega")
