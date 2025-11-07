@@ -324,7 +324,14 @@ const Pedidos = () => {
       }
 
     })
-    doc.text(`Pedido: ${orderID}\nCliente: ${order.nome_cliente}\nEndereço de entrega: ${order.endereco_entrega}\nForma de pagamento: ${order.forma_pagamento}\nTaxa de entrega: R$${(order.taxa_entrega).replace(".", ",")}\nTotal: R$${(order.preco_total).replace(".", ",")}`, 10, 10)
+
+    if(pedido.alteracao !== 0 && pedido.alteracao !== null){
+      doc.text(`Pedido: ${orderID}\nCliente: ${order.nome_cliente}\nEndereço de entrega: ${order.endereco_entrega}\nForma de pagamento: ${order.forma_pagamento}\nTaxa de entrega: R$${(order.taxa_entrega).replace(".", ",")}\nTotal: R$${(order.preco_total).replace(".", ",")}`, 10, 10)
+    }
+    else{
+      doc.text(`Alteração de pedido: ${pedido.alteracao}\nCliente: ${order.nome_cliente}\nEndereço de entrega: ${order.endereco_entrega}\nForma de pagamento: ${order.forma_pagamento}\nTaxa de entrega: R$${(order.taxa_entrega).replace(".", ",")}\nTotal: R$${(order.preco_total).replace(".", ",")}`, 10, 10)
+    }
+
     doc.save(`Pedido_${orderID}.pdf`)
   }
 
@@ -812,6 +819,8 @@ const Pedidos = () => {
                           {pedido.status_pedido}
                         </button>
                       )}
+
+                      {pedido.alteracao !== 0 && pedido.alteracao !== null && <p>Alteração de #{pedido.alteracao}</p>}
 
                     </div>
 

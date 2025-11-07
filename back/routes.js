@@ -183,12 +183,13 @@ router.post("/pedido/post", (req, res) => {
     itens,
     latitude,
     longitude,
+    alteracao,
   } = pedido;
 
   const sqlPedido = `
     INSERT INTO pedido (
-      nome_cliente, endereco_entrega, taxa_entrega, preco_total, forma_pagamento, status_pedido, data_pedido
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      nome_cliente, endereco_entrega, taxa_entrega, preco_total, forma_pagamento, status_pedido, data_pedido, alteracao
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const valoresPedido = [
@@ -198,7 +199,8 @@ router.post("/pedido/post", (req, res) => {
     preco_total,
     forma_pagamento,
     status_pedido || "aberto",
-    data_pedido
+    data_pedido,
+    altera
   ];
 
   db.query(sqlPedido, valoresPedido, (err, resultado) => {
@@ -249,7 +251,7 @@ router.get("/pedido/getAll", autenticar, (req, res) => {
   let sql = `
     SELECT
       p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, p.preco_total, 
-      p.forma_pagamento, p.status_pedido, p.data_pedido, p.printed,
+      p.forma_pagamento, p.status_pedido, p.data_pedido, p.printed, p.alteracao
       i.id AS id_item, i.produto, i.sabor, i.quantidade, i.observacao, i.preco
     FROM pedido p
     LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk
@@ -302,6 +304,7 @@ router.get("/pedido/getAll", autenticar, (req, res) => {
           data_pedido: row.data_pedido,
           printed: row.printed,
           itens: [],
+          alteracao: row.alteracao,
         };
       }
 
@@ -328,7 +331,7 @@ router.get("/pedido/:id", (req, res) => {
   const sql = `
     SELECT
       p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, 
-      p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido,
+      p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido, p.alteracao,
       i.id, i.produto, i.sabor, i.quantidade, i.observacao
     FROM pedido p
     LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk
@@ -356,6 +359,7 @@ router.get("/pedido/:id", (req, res) => {
       data_pedido: resultados[0].data_pedido,
       printed: resultados[0].printed,
       itens: [],
+      alteracao: resultados[0].alteracao
     };
 
     resultados.forEach((row) => {

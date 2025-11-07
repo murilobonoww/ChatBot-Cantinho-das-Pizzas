@@ -1,11 +1,11 @@
+import eventlet
+eventlet.monkey_patch()
 import asyncio
 from datetime import datetime, timedelta
 import pytz
 from fastapi import FastAPI, WebSocket, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
-import eventlet
-eventlet.monkey_patch()
 from time import sleep
 import traceback
 import requests
@@ -74,6 +74,18 @@ num_orders = []
 
 def associar_order_ids_a_numeros (num, order_id):
     num_orders.append({'num': f"{num}", 'order_id': order_id})
+    programar_delete(num)
+    
+def programar_delete (num): #isto é pra remover da memória os pedidos que (provavelmente) já foram entregues
+    sleep(60 * 60)
+    obj = next((o for o in num_orders if o['num'] == num), None)
+    if obj:
+        num_orders.remove(obj)
+        
+def get_order_id_from_num (num):
+    for o in num_orders:
+        if o['num'] == num:
+            return o['order_id']
 
 def setTokensToGetnet ():
     url_ = "https://api-homologacao.getnet.com.br/auth/oauth/v2/token"
@@ -341,6 +353,7 @@ prompt_template = [{
         '  "longitude": 0.0,\n'
         '  "houseNumber": 0,\n'
         '  "street": "",\n'
+        '  "alteracao": 1 / 0,\n'
         '  "itens": [\n'
         '    {\n'
         '      "produto": "pizza",\n'
@@ -391,6 +404,8 @@ prompt_template = [{
         "Se o cliente disser que quer pagar com cartão, devo perguntar: \"Você prefere pagar no débito ou crédito?\" sem emoji nessa frase\n"
         
         # ------------------------------------------------------------------------------
+        
+        f"Caso o pedido seja uma alteração de um pedido já feito por este cliente, no json_pedido você deve colocar 'alteracao' como 1, caso contrário 0"
         
         "Se o cliente disser que quer mudar os itens do pedido, devo analisar se ele especificou o que deseja alterar:\n"
         "- Se ele **ainda não disse os itens**, respondo: \"Sem problemas! Vamos corrigir. O que você gostaria de mudar?\"\n"
@@ -1004,6 +1019,9 @@ async def webhook(request: Request):
         if "```json" in resposta and "[alter-order-req]" not in resposta:
             json_pedido = extrair_json_da_resposta(resposta)
             print(f"📋 JSON extraído: {json_pedido}")
+            
+        json_pedido = extrair_json_da_resposta(resposta)
+        print(f"📋 JSON extraído: {json_pedido}")
 
         if json_pedido:
             endereco = json_pedido.get("endereco_entrega")
@@ -1039,6 +1057,9 @@ async def webhook(request: Request):
                 json_pedido["latitude"] = lat if lat is not None else 0.0
                 json_pedido["longitude"] = lng if lng is not None else 0.0
                 print(f"🗺️ Coordenadas: lat={lat}, lng={lng}")
+                
+                if json_pedido.get('alteracao') == 1:
+                    json_pedido['alteracao'] = get_order_id_from_num(from_num)
                 
                 agora = datetime.now()
                 data_formatada = agora.strftime("%Y-%m-%d %H:%M:%S")
