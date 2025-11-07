@@ -259,8 +259,11 @@ const Pedidos = () => {
   };
 
   const formatarDataHora = (dataString) => {
+    if (dataString !== null) {
+      dataString = dataString.replace("Z", "")
+    }
     const data = new Date(dataString);
-    
+
     const dia = String(data.getDate()).padStart(2, "0");
     const mes = String(data.getMonth() + 1).padStart(2, "0");
     const ano = data.getFullYear();
@@ -326,10 +329,10 @@ const Pedidos = () => {
 
     })
 
-    if(pedido.alteracao !== 0 && pedido.alteracao !== null){
+    if (pedido.alteracao !== 0 && pedido.alteracao !== null) {
       doc.text(`Pedido: ${orderID}\nCliente: ${order.nome_cliente}\nEndereço de entrega: ${order.endereco_entrega}\nForma de pagamento: ${order.forma_pagamento}\nTaxa de entrega: R$${(order.taxa_entrega).replace(".", ",")}\nTotal: R$${(order.preco_total).replace(".", ",")}`, 10, 10)
     }
-    else{
+    else {
       doc.text(`Alteração de pedido: ${pedido.alteracao}\nCliente: ${order.nome_cliente}\nEndereço de entrega: ${order.endereco_entrega}\nForma de pagamento: ${order.forma_pagamento}\nTaxa de entrega: R$${(order.taxa_entrega).replace(".", ",")}\nTotal: R$${(order.preco_total).replace(".", ",")}`, 10, 10)
     }
 
@@ -371,13 +374,13 @@ const Pedidos = () => {
 
           if (res.status === 200) {
             setChangeOpened((prev) => !prev)
-            toast.success("Pedido alterado com sucesso!", {autoClose: 5000})
+            toast.success("Pedido alterado com sucesso!", { autoClose: 5000 })
           }
         }
 
         catch (err) {
           console.log(item.id, err)
-          toast.error("Falha ao alterar pedido.", {autoClose: 5000})
+          toast.error("Falha ao alterar pedido.", { autoClose: 5000 })
         }
       }
       changeItem()
