@@ -1030,6 +1030,8 @@ async def webhook(request: Request):
                     "role": "system",
                     "content": f"A taxa de entrega é {taxa:.2f} reais."
                 })
+                
+                print(json_pedido)
 
             try:
                 itens = json_pedido.get("itens")

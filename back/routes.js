@@ -249,13 +249,27 @@ router.get("/pedido/getAll", autenticar, (req, res) => {
   const { id, inicio, fim, cliente } = req.query;
 
   let sql = `
-    SELECT
-      p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, p.preco_total, 
-      p.forma_pagamento, p.status_pedido, p.data_pedido, p.printed, p.alteracao
-      i.id AS id_item, i.produto, i.sabor, i.quantidade, i.observacao, i.preco
-    FROM pedido p
-    LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk
-  `;
+  SELECT
+    p.id_pedido,
+    p.nome_cliente,
+    p.endereco_entrega,
+    p.taxa_entrega,
+    p.preco_total,
+    p.forma_pagamento,
+    p.status_pedido,
+    p.data_pedido,
+    p.printed,
+    p.alteracao,
+    i.id AS id_item,
+    i.produto,
+    i.sabor,
+    i.quantidade,
+    i.observacao,
+    i.preco
+  FROM pedido p
+  LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk
+`;
+
 
   const conditions = [];
   const params = [];
