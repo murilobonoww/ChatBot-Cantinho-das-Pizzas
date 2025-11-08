@@ -768,3 +768,13 @@ input[type="password"]{
   width: 200px;
 
 }
+
+.pedido_card_second_line{
+  display: flex;
+}
+
+#alter_lbl_alert{
+  width: 180px;
+  margin-top: 0;
+  margin-left: 10px;
+}

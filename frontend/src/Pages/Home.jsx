@@ -166,7 +166,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
             const toastId = `notificacao_nova-${data.data.id_notificacao}`;
             if (!toast.isActive(toastId)) { // Fixed: Removed .current
               toast.info(
-                `Cliente ${data.data.numero_cliente} solicitou um atendente real`,
+                `Cliente ${data.data.numero_cliente} ${data.data.mensagem}`,
                 { autoClose: 5000, toastId }
               );
               console.log("🍞 Toast disparado:", toastId);
@@ -380,8 +380,8 @@ export default function Home({ enviarListaDeNovosIDs }) {
                 role="listitem"
               >
                 <span>
-                  <strong>{notificacao.numero_cliente}</strong> solicitou um atendente real às{" "}
-                  {formatarHora(notificacao.timestamp)}
+                  {notificacao.mensagem}
+                  <div id="hour_notifications">-{formatarHora(notificacao.timestamp)}</div>
                 </span>
                 {notificacao.status === "pendente" && (
                   <button
