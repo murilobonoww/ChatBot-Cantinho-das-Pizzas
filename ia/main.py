@@ -75,7 +75,8 @@ num_orders = []
 
 def associar_order_ids_a_numeros (num, order_id):
     num_orders.append({'num': f"{num}", 'order_id': order_id})
-    threading.Timer(60 * 60, remover_num, args=[num]).start()
+    print("num_orders logo após inserção:",num_orders)
+    # threading.Timer(60 * 60, remover_num, args=[num]).start()
     
 def remover_num (num): #isto é pra remover da memória os pedidos que (provavelmente) já foram entregues
     obj = next((o for o in num_orders if o['num'] == num), None)
@@ -83,9 +84,15 @@ def remover_num (num): #isto é pra remover da memória os pedidos que (provavel
         num_orders.remove(obj)
         
 def get_order_id_from_num (num):
+    orderIDS_list = []
+    
     for o in num_orders:
         if o['num'] == num:
-            return o['order_id']
+            orderIDS_list.append(o['order_id'])
+            
+    orderIDS_list.sort(reverse=True)
+    return orderIDS_list[0]
+
 
 def setTokensToGetnet ():
     url_ = "https://api-homologacao.getnet.com.br/auth/oauth/v2/token"
@@ -405,8 +412,9 @@ prompt_template = [{
         
         # ------------------------------------------------------------------------------
         
-        f"Caso o pedido seja uma alteração de um pedido já feito por este cliente, no json_pedido você deve colocar 'alteracao' como 1, caso contrário 0"
-        
+        f"Caso o pedido seja uma alteração de um pedido já feito por este cliente, ou o cliente peça pra incluir algo mais neste pedido já feito, no json_pedido você deve colocar 'alteracao' como 1, caso contrário 0"
+        "Se o cliente pedir pra incluir mais algum produto no pedido, eu devo perguntar 'Será uma alteração ou um novo pedido?'" 
+        "Caso seja uma alteração, 'alteracao' do novo json_pedido deve ser 1, POIS É UMA ALTERAÇÃO" 
         "Se o cliente disser que quer mudar os itens do pedido, devo analisar se ele especificou o que deseja alterar:\n"
         "- Se ele **ainda não disse os itens**, respondo: \"Sem problemas! Vamos corrigir. O que você gostaria de mudar?\"\n"
         
@@ -736,14 +744,13 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
         
         
         mensagem = (
-            f"Pedido *{id_pedido}*\n"
-            f"🍕 Seu pedido ficou assim:\n\n"
+            f"🍕 Pedido *{id_pedido}*\n"
             f"{chr(10).join(itens_formatados)}\n"
+            f"-💳 {pagamento}\n"
+            f"-📍 {endereco}\n\n"
             f"- Taxa de entrega: R$ {f'{taxa:.2f}'.replace('.',',')}\n"
-            f"- Total a pagar: R$ {f'{total:.2f}'.replace('.',',')}\n\n"
-            f"🧾 Pagamento: {pagamento}\n"
-            f"📍 Entrega em: {endereco}\n\n"
-            "O pagamento será feito pessoalmente na entrega\n\n"
+            f"- Total: R$ {f'{total:.2f}'.replace('.',',')}\n\n"
+            "*O pagamento será feito pessoalmente na entrega*\n\n"
             f"Obrigado pelo seu pedido! Em breve estaremos aí...🍕🛵\n"
             #comentado pois o link de pagamento será implementado apenas em uma versão futura.
             # f"{generate_GetNet_payment_link(getnetAcessToken, total, taxa, json_pedido)}"
@@ -1020,6 +1027,21 @@ async def webhook(request: Request):
                 
                 if json_pedido.get('alteracao') == 1:
                     json_pedido['alteracao'] = get_order_id_from_num(from_num)
+                    
+                    id_notificacao = str(uuid.uuid4())
+                    timestamp = datetime.now(pytz.timezone("America/Sao_Paulo")).strftime("%Y-%m-%d %H:%M:%S")
+                    notificacao = {
+                        "id_notificacao": id_notificacao,
+                        "numero_cliente": from_num,
+                        "mensagem": f"Pedido {get_order_id_from_num(from_num)} foi alterado.",
+                        "tipo": "alteração",
+                        "status": "pendente",
+                        "timestamp": timestamp
+                    }
+                    salvar_notificacao_no_banco(notificacao)
+                    notificacoes_ativas[id_notificacao] = notificacao
+                    await broadcast({"event": "notificacao_nova", "data": notificacao})
+                    print(f"📡 Notificação emitida via WebSocket: {id_notificacao}")
                 
                 agora = datetime.now()
                 data_formatada = agora.strftime("%Y-%m-%d %H:%M:%S")
@@ -1041,7 +1063,7 @@ async def webhook(request: Request):
                 res = requests.post("https://back-cantinho-das-pizzas.onrender.com/pedido/post", json=json_pedido, verify=False)
                 if res.status_code == 200:
                     print("Pedido enviado ao back-end!")
-                    associar_order_ids_a_numeros(from_num, pegar_ultimo_id_pedido()+1)
+                    associar_order_ids_a_numeros(from_num, pegar_ultimo_id_pedido())
                 else:
                     print(f"erro ao enviar ao back-end: {res.status_code, res}")
 
