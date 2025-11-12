@@ -72,6 +72,7 @@ last_msg_text = ""
 getnet_url_generate_payment_link = "https://api-homologacao.getnet.com.br/v1/payment-links"
 
 num_orders = []
+processed_ids = set()
 
 def associar_order_ids_a_numeros (num, order_id):
     num_orders.append({'num': f"{num}", 'order_id': order_id})
@@ -347,6 +348,13 @@ prompt_template = [{
         "Só posso finalizar o pedido e gerar o JSON se o cliente já tiver informado: nome, endereço de entrega e forma de pagamento. Se qualquer uma dessas estiver faltando, não gero o JSON nem finalizo. E SEMPRE antes de gerar o json eu devo enviar uma lista dos itens e perguntar para o cliente se está correto.\n"
         "Se o cliente disser o endereço completo (ex: 'Rua Copacabana, 111, Boa Parada, Barueri - SP'), devo identificar e separar corretamente o nome da rua e o número da casa e adicionar os valores no json nos campos street e houseNumber respectivamente.\n"
         "Se o cliente confirmar o endereço, finalizo o pedido e exibo o JSON formatado dentro de um bloco de código com ```json no início e ``` no final, assim:\n\n"
+        "⚙️ Finalização do pedido:\n"
+        "Eu só gero o json_pedido quando TODAS as seguintes informações já tiverem sido fornecidas e confirmadas pelo cliente:\n"
+        "- Nome e sobrenome\n"
+        "- Endereço completo (com rua e número)\n"
+        "- Forma de pagamento\n"
+        
+        "- Todos os itens do pedido (com sabor, tamanho e quantidade)\n\n"
         "```json\n"
         "{\n"
         '  "nome_cliente": "João",\n'
@@ -371,6 +379,11 @@ prompt_template = [{
         '    }\n'
         '  ]\n'
         "}\n"
+        
+        "Quando o cliente confirmar que o pedido está correto (por exemplo: 'tá certo', 'pode fechar', 'pode mandar', 'confirmo'), "
+        "e eu já tiver todas as informações acima, aí sim gero e exibo o json_pedido formatado dentro de um bloco ```json ... ```.\n"
+        "Se ainda faltar qualquer dado, eu NÃO gero o JSON. Em vez disso, pergunto educadamente o que está faltando (ex: 'Perfeito! Só preciso do seu endereço pra finalizar 😊').\n"
+        "Nunca gero o json_pedido mais de uma vez por pedido."
         "```"
         "⚠️ Importante:\n"
         "- Insira no json_pedido a data e hora atual que o pedido for feito, seguindo o formato: YYYY-MM-DD HH:MM:SS"
@@ -635,7 +648,7 @@ def enviar_msg(msg, lista_msgs=None):
         lista_msgs.append({"role": "user", "content": msg})
         print(f"📤 Enviando mensagem para OpenAI: {lista_msgs[-1]}")
         resposta = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-5",
             messages=lista_msgs
         )
         print(f"📥 Resposta da OpenAI: {resposta.choices[0].message.content}")
@@ -697,14 +710,15 @@ def enviar_whatsapp(to, msg):
     }
 
     try:
-        response = requests.post(url, json=payload, headers=headers)
-        print(f"📤 Resposta do WhatsApp API: {response.status_code} {response.text}")
-        if response.status_code == 200:
-            print("✅ Mensagem enviada com sucesso!")
-            return True
-        else:
-            print(f"❌ Erro ao enviar mensagem: {response.status_code} {response.text}")
-            return False
+        if to != 553299910621 or to != '553299910621':
+            response = requests.post(url, json=payload, headers=headers)
+            print(f"📤 Resposta do WhatsApp API: {response.status_code} {response.text}")
+            if response.status_code == 200:
+                print("✅ Mensagem enviada com sucesso!")
+                return True
+            else:
+                print(f"❌ Erro ao enviar mensagem: {response.status_code} {response.text}")
+                return False
     except Exception as e:
         print(f"🔥 Exceção ao tentar enviar mensagem: {e}")
         return False
@@ -746,7 +760,7 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
         mensagem = (
             f"🍕 Pedido *{id_pedido}*\n"
             f"{chr(10).join(itens_formatados)}\n"
-            f"-💳 {pagamento}\n"
+            f"- 💳 {pagamento}\n"
             f"-📍 {endereco}\n\n"
             f"- Taxa de entrega: R$ {f'{taxa:.2f}'.replace('.',',')}\n"
             f"- Total: R$ {f'{total:.2f}'.replace('.',',')}\n\n"
@@ -915,10 +929,11 @@ async def webhook(request: Request):
         print(f"📨 Mensagem recebida de {from_num}: {text}, ID: {msg_id}")
         print(f"Text: {text}")
 
-        if from_num in last_msgs:
-            if last_msgs[from_num]['text'] == text:
-                print("⚠️ Mensagem duplicada ignorada")
-                return {"message": "Duplicate message"}
+        if msg_id in processed_ids:
+            print("⚠️ Mensagem duplicada ignorada")
+            return {"message": "Duplicate message"}
+        
+        processed_ids.add(msg_id)
 
         last_msgs[from_num] = {"id": msg_id, "text": text}
 
@@ -980,6 +995,10 @@ async def webhook(request: Request):
                 
             enviar_whatsapp(from_num, msg_)
             return {"message": "ok"}
+        
+        if "[estou te ignorando]" in resposta:
+            return {"message": "ok"}
+        
         
         if "```json" not in resposta:
             print(f"📤 Enviando resposta para {from_num}: {resposta}")
