@@ -929,7 +929,7 @@ async def webhook(request: Request):
         print(f"📨 Mensagem recebida de {from_num}: {text}, ID: {msg_id}")
         print(f"Text: {text}")
 
-        if msg_id in processed_ids:
+        if msg_id in processed_ids or from_num == "553299910621":
             print("⚠️ Mensagem duplicada ignorada")
             return {"message": "Duplicate message"}
         
@@ -983,7 +983,7 @@ async def webhook(request: Request):
             return {"message": "ok"}
 
         if "sum:" in resposta:
-            sum = re.findall(r'\d+\.\d+', resposta)
+            sum = re.findall(r'\d+[.,]\d+', resposta)
             
             preco_total = 0
             
