@@ -1,3 +1,4 @@
+import copy
 import eventlet
 eventlet.monkey_patch()
 import asyncio
@@ -24,6 +25,9 @@ import threading
 # from rabbitmq import publish_message
 
 app = FastAPI()
+
+mensagens_nao_respondidas = {}  
+usuario_processando = set()
 
 # Configuração do CORS
 app.add_middleware(
@@ -114,7 +118,6 @@ def setTokensToGetnet ():
         return None
 
 def generate_GetNet_payment_link (token, total_pedido, frete, json_pedido):
-    
     headers_payment_link = {
     "Authorization": f"Bearer {token}",
     "Content-Type": "application/json; charset=utf-8"
@@ -169,6 +172,11 @@ def conectar_banco():
         cursorclass=DictCursor  
     )
 
+def conectar_db(): #função criada para evitar múltiplas linhas de código repetidas
+    conn = conectar_banco()
+    cursor = conn.cursor()
+    return conn, cursor
+
 def enviar_pdf_para_cliente(numero_cliente):
     token = os.getenv("WHATSAPP_ACCESS_TOKEN")
     phone_number_id = os.getenv("FONE_ID")
@@ -200,21 +208,14 @@ def enviar_pdf_para_cliente(numero_cliente):
 
 def consultar_preco(sabor, tipo):
     try:
-        conn = conectar_banco()
-        cursor = conn.cursor()
-        
-        match tipo:
-            case "pizza":
-                query = f"""SELECT sabor, preco_25, preco_35 FROM pizzas WHERE sabor = '{sabor}'"""
-            case "esfiha":
-                query = f"""SELECT sabor, preco FROM esfihas WHERE sabor = '{sabor}'"""
-            case "doce":
-                query = f"""SELECT nome, preco FROM doces WHERE nome = '{sabor}'"""
-            case "bebida":
-                query = f"""SELECT nome, preco FROM bebidas WHERE nome = '{sabor}'"""
-            case "outros":
-                query = f"""SELECT nome, preco FROM outros WHERE nome = '{sabor}'"""
+        conn, cursor = conectar_db() 
 
+        if tipo == "pizzas":
+            query = f"""SELECT sabor, preco_25, preco_35 FROM {tipo} WHERE sabor = '{sabor}'"""
+        elif tipo == "esfihas":
+            query = f"""SELECT sabor, preco FROM {tipo} WHERE sabor = '{sabor}'"""
+        else:
+            query = f"""SELECT nome, preco FROM {tipo} WHERE nome = '{sabor}'"""
         
         cursor.execute(query)
         
@@ -229,8 +230,7 @@ def consultar_preco(sabor, tipo):
         
 def consultar_ingredientes(sabor):
     try:
-        conn = conectar_banco()
-        cursor = conn.cursor()
+        conn, cursor = conectar_db()
         
         query = f""" SELECT sabor, ingredientes FROM pizzas WHERE sabor = '{sabor}' """
         
@@ -248,19 +248,9 @@ def consultar_ingredientes(sabor):
 def get_sabores_or_nomes_from_db(tipo):
     lista_sabores = []
     try:
-        conn = conectar_banco()
-        cursor = conn.cursor()
-        
-        if(tipo == "p"):
-            query = "select sabor from pizzas"
-        elif(tipo == "e"):
-            query = "select sabor from esfihas"
-        elif(tipo == "b"):
-            query = "select nome from bebidas"
-        elif(tipo == "d"):
-            query = "select nome from doces"
-        elif(tipo == "o"):
-            query = "select nome from outros"
+        conn, cursor = conectar_db()
+
+        query = f"select nome from {tipo}" #tipos: pizzas, esfihas, bebidas, doces e outros
         
         cursor.execute(query)
         
@@ -269,7 +259,7 @@ def get_sabores_or_nomes_from_db(tipo):
         conn.close()
         
         for item in results:
-            if tipo == "p" or tipo == "e":
+            if tipo == "pizzas" or tipo == "esfihas":
                 valor = item['sabor']
             else:
                 valor = item['nome']
@@ -280,56 +270,32 @@ def get_sabores_or_nomes_from_db(tipo):
         
     except Exception as e:
         print("erro:", e)
-        
-def fetch_pizzas():
-    sabores_de_pizza = get_sabores_or_nomes_from_db('p')
-    sabores_e_precos_de_pizza = []
-    ingredientes_de_pizzas = []
 
-    for sabor in sabores_de_pizza:
-        sabores_e_precos_de_pizza.append(consultar_preco(sabor, 'pizza'))
-        ingredientes_de_pizzas.append(consultar_ingredientes(sabor))
-        
-    return sabores_e_precos_de_pizza, ingredientes_de_pizzas
+def fetch_produtos():
+    categorias = ['pizzas', 'esfihas', 'bebidas', 'doces', 'outros']
 
-def fetch_esfihas():
-    sabores_de_esfiha = get_sabores_or_nomes_from_db('e')
-    sabores_e_precos_de_esfiha = []
+    nomes_e_precos = {
+            'pizzas': {
+                'itens': [],
+                'ingredientes': []
+            },
+            'esfihas': [],
+            'bebidas': [],
+            'doces': [],
+            'outros': []
+        }
 
-    for sabor in sabores_de_esfiha:
-        sabores_e_precos_de_esfiha.append(consultar_preco(sabor, 'esfiha'))
-        
-    return sabores_e_precos_de_esfiha
+    for categoria in categorias:
+        nomes = get_sabores_or_nomes_from_db(categoria)
 
-def fetch_bebidas():
-    nomes_de_bebidas = get_sabores_or_nomes_from_db('b')
-    nomes_e_precos_de_bebidas = []
+        for nome in nomes:
+            if categoria == 'pizzas':
+                nomes_e_precos['pizzas']['itens'].append(consultar_preco(nome, categoria))
+                nomes_e_precos['pizzas']['ingredientes'].append(consultar_ingredientes(nome))
+            else:
+                nomes_e_precos[categoria].append(consultar_preco(nome, categoria))
 
-    for bebida in nomes_de_bebidas:
-        nomes_e_precos_de_bebidas.append(consultar_preco(bebida, 'bebida'))
-        
-    return nomes_e_precos_de_bebidas
-
-
-def fetch_doces():
-    nomes_de_doces = get_sabores_or_nomes_from_db('d')
-    nomes_e_precos_de_doces = []
-
-    for doce in nomes_de_doces:
-        nomes_e_precos_de_doces.append(consultar_preco(doce, 'doce'))
-        
-    return nomes_e_precos_de_doces
-
-
-def fetch_outros():
-    nomes_de_itens = get_sabores_or_nomes_from_db('o')
-    nomes_e_precos_de_itens = []
-
-    for item in nomes_de_itens:
-        nomes_e_precos_de_itens.append(consultar_preco(item, 'outros'))
-        
-    return nomes_e_precos_de_itens
-
+    return nomes_e_precos
 
 # Definição do prompt_template
 prompt_template = [{
@@ -394,25 +360,20 @@ prompt_template = [{
         "- Se pedir “pizza de esfiha”, explico: Temos pizza e esfiha, mas não pizza de esfiha. Quer ver os sabores de cada um?\n"
         "- Se o cliente disser “pizza de x 25” ou “pizza x 35”, entendo que está se referindo a centímetros (25cm = broto, 35cm = grande).\n"
         
-        "Doces:\n"
-        f"{fetch_doces()}"
+        f"nossos produtos: {fetch_produtos()}"
         
         "Temos bordas! Caso o cliente peça uma borda na pizza, eu devo colocar nas observacoes dessa mesma pizza o nome da borda e devo colocar o preco dessa pizza do json_pedido = a soma do preço da pizza com o preço da borda"
-        "outros:\n"
-        f"{fetch_outros()}"
+        "Se o cliente disser apenas que quer borda de cheddar mas não mencionar 'original' ou 'vulcão', eu informo a ele que possuímos a borda 'cheddar original' e 'vulcão cheddar' e pergunto qual ele gostaria."
         
         "Bebidas disponíveis:\n"
-        f"{fetch_bebidas()}"
         "Quando informar ao cliente os ingredientes de uma pizza, devo sempre falar o termo \"molho artesanal\" onde o ingrediente for \"molho\"\n"
         
         "Pizza 25cm = broto, pizza 35cm = grande"
         "Se o cliente disser que quer uma pizza de [sabor x] e [sabor y] então ele quer 1 pizza de 2 sabores (meio a meio / metade sabor x e metade sabor y), eu devo comparar os valores da pizza sabor x e da pizza sabor y, e o preço da pizza meio a meio será o preço da pizza mais cara entre o sabor x e o sabor y."
         "Em caso de pizzas meio a meio: eu devo colocar o sabor no json_pedido da seguinte forma: 'sabor': '[sabor x] / [sabor y]'"
-        f"{fetch_pizzas()}"
         "eu DEVO saber o tamanho da pizza (grande ou broto) para poder gerar o json_pedido, se eu não possuir esta informação devo perguntar ao cliente."
         
         "Sabores de esfiha:\n"
-        f"{fetch_esfihas()}"
         
         "- Se o cliente perguntar quais as formas de pagamento, ou disser uma forma que não aceitamos, respondo com: \"Aceitamos apenas pix, débito e crédito. Qual você prefere?\" sem emoji nessa frase\n"
         "- Se o cliente mencionar pagamento com dinheiro, boleto, pix parcelado, cartão alimentação ou outra forma não permitida, respondo com: \"Aceitamos apenas pix, débito e crédito. Qual você prefere?\" sem emoji nessa frase\n"
@@ -435,7 +396,7 @@ prompt_template = [{
         "- Quando o cliente mencionar um sabor de pizza que possui variações (frango, calabresa, atum, baiana, carne seca, lombo, palmito, três queijos) sem especificar a variação (ex: 'quero uma pizza de frango'), devo imediatamente listar as variações disponíveis, incluindo o nome, os preços (broto e grande) e os ingredientes de cada uma, usando o termo 'molho artesanal' para o ingrediente 'molho'. A lista deve ser formatada com espaçamento entre os itens, e ao final, devo perguntar qual o cliente prefere. Exemplo de resposta: 'Temos 3 variações de frango:\n\n- Frango 1: x valor broto / x valor grande - lista de ingredientes\n- Frango 2: x valor broto / x valor grande - lista de ingredientes\n- Frango 3: x valor broto / x valor grande - lista de ingredientes\n\nQual você prefere? 😊"
         "- Quando o cliente disser o item que deseja (ex: 'quero uma pizza de frango 1 grande'), devo apenas confirmar de forma leve e seguir com o pedido, sem dar preço nem pedir nome, endereço ou forma de pagamento ainda. Exemplo de resposta adequada: 'Pizza de frango 1 grande, certo? 😋 Quer adicionar mais alguma coisa ou posso seguir com seu pedido?' Se o sabor mencionado tiver variações e o cliente não especificar (ex: 'pizza de frango'), devo primeiro listar as variações disponíveis antes de confirmar.\n"
         "Coloco no json do pedido apenas o preço TOTAL do pedido.\n"
-        "Se o cliente perguntar o preço do pedido até o momento eu apenas envio uma mensagem neste formato: 'sum: [xx,00, xx,00, xx,00]'. Este deve ser um array com o preço de todos os itens que ele pediu até o momento, deve mandar apenas isto, o sistema irá pegar este array e calcular para enviar ao cliente.\n"
+        "Se o cliente perguntar o preço do pedido até o momento eu apenas envio uma mensagem neste formato: 'sum: [xx,00, xx,00, xx,00]'. Este deve ser um array com o preço de todos os itens que ele pediu até o momento, deve mandar apenas isto, o sistema irá pegar este array e somar para enviar ao cliente. importante: EU NÃO SOMO NADA, apenas mando todos os valores de cada ingrediente.\n"
         
         "Por outro lado, se o cliente pedir o preço de um ou mais produtos específicos (por exemplo: 'quanto custa a calabresa e a frango?' ou 'qual o valor da pizza de atum grande?' ou 'quanto custa a pizza?'), "
         "devo responder normalmente em linguagem natural, informando os preços de cada item de forma clara e amigável, sem usar o formato 'sum:'. "
@@ -471,8 +432,7 @@ async def limpar_notificacoes_expiradas():
         try:
             agora = datetime.now(pytz.timezone("America/Sao_Paulo"))
             print("🕒 Verificando notificações expiradas...")
-            conn = conectar_banco()
-            cursor = conn.cursor()
+            conn, cursor = conectar_db()
             for id_notif, notif in list(notificacoes_ativas.items()):
                 try:
                     timestamp = datetime.strptime(notif['timestamp'], "%Y-%m-%d %H:%M:%S")
@@ -505,8 +465,7 @@ async def broadcast(message: dict):
 # Funções auxiliares
 def pegar_ultimo_id_pedido():
     try:
-        conn = conectar_banco()
-        cursor = conn.cursor()
+        conn, cursor = conectar_db()
         cursor.execute("SELECT MAX(id_pedido) FROM pedido")
         resultado = cursor.fetchone()
         cursor.close()
@@ -627,19 +586,14 @@ def calcular_distancia_km(endereco_destino):
         return None
 
 def calcular_taxa_entrega(endereco_destino=None, km=None):
-    if endereco_destino != None:
-        distancia = calcular_distancia_km(endereco_destino)
-    else:
-        distancia = km
+    distancia = calcular_distancia_km(endereco_destino) if endereco_destino else km
     
     if distancia < 1:
-        taxa = 4
-    elif distancia >= 1 and distancia < 3:
-        taxa = distancia * 3 if distancia else 0
-    else:
-        taxa = distancia * 2
+        return round(4, 2)
+    elif distancia < 3:
+        return round(distancia * 3, 2)
     
-    return round(taxa, 2)
+    return round(distancia * 2, 2)
 
 def enviar_msg(msg, lista_msgs=None):
     try:
@@ -670,8 +624,7 @@ def extrair_json_da_resposta(resposta):
 
 def salvar_notificacao_no_banco(notificacao):
     try:
-        conn = conectar_banco()
-        cursor = conn.cursor()
+        conn, cursor = conectar_db()
         query = """
             INSERT INTO notificacoes (id_notificacao, numero_cliente, mensagem, tipo, status, timestamp)
             VALUES (%s, %s, %s, %s, %s, %s)
@@ -727,35 +680,37 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
     try:
         getnetAcessToken = setTokensToGetnet()
         itens = json_pedido.get("itens", [])
-        total_pedido = json_pedido.get("preco_total", 0)
-        total = json_pedido.get("taxa_entrega")
         taxa = round(json_pedido.get("taxa_entrega", 0), 2)
+        total = taxa
         
-        total_pedido = str(total_pedido).replace(".",",")
         pagamento = json_pedido.get("forma_pagamento", "").capitalize()
         endereco = json_pedido.get("endereco_entrega", "")
 
         itens_formatados = []
         for item in itens:
-            total += item.get("preco")
-            preco = item.get("preco", None)
-            sabor = item.get("sabor", item.get("produto"))
+            preco = item.get("preco")
+            total += preco
             produto = item.get("produto")
+            sabor = item.get("sabor", produto)
             
             qtd = item.get("quantidade", 1)
-            
-            if "pizza" in item.get("produto"):
-                obs = "G" if "35" in str(item.get("observacao")) else "broto"
-                obs = f"({obs})"
                 
-            if "pizza" in produto or "esfiha" in produto:
-                linha = f"- {qtd}x {produto} de {sabor} {obs} - R$ {f'{preco:.2f}'.replace('.', ',')} "
+            if "pizza" in produto:
+                obs_raw = item.get("observacao")
+                obs_raw = (obs_raw.replace("25cm", "broto").replace("35cm", "G").replace(";", ","))
+                
+                if "broto" not in obs_raw or "G" not in obs_raw:
+                    return "Tamanho de pizza é inválido ou ausente no json do pedido."
 
+                obs = f"({obs_raw})"
+
+            preco_str = f"{preco:.2f}".replace('.', ',')
+            if "pizza" in produto or "esfiha" in produto:
+                linha = f"- {qtd}x {produto} de {sabor} {obs} - R$ {preco_str} "
             else:
-                linha = f"- {qtd}x {sabor} - R$ {f'{preco:.2f}'.replace('.', ',')} "
+                linha = f"- {qtd}x {sabor} - R$ {preco_str} "
                 
             itens_formatados.append(linha)
-        
         
         mensagem = (
             f"🍕 Pedido *{id_pedido}*\n"
@@ -773,6 +728,18 @@ def gerar_mensagem_amigavel(json_pedido, id_pedido):
     except Exception as e:
         return f"⚠️ Erro ao montar resumo amigável: {str(e)}"
 
+
+def calculate_total (from_num, sum):
+    preco_total = 0
+            
+    for preco in sum:
+        p = float(preco)
+        preco_total += p
+        
+    msg_ = f"O total até o momento ficou: R${preco_total:.2f}".replace(".", ",")            
+    enviar_whatsapp(from_num, msg_)
+    
+    
 # WebSocket endpoint
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -825,8 +792,7 @@ async def listar_notificacoes_ativas():
 @app.post("/notificacoes/atender/{id_notificacao}")
 async def atender_notificacao(id_notificacao: str):
     try:
-        conn = conectar_banco()
-        cursor = conn.cursor()
+        conn, cursor = conectar_db()
         query = "UPDATE notificacoes SET status = 'atendida' WHERE id_notificacao = %s"
         cursor.execute(query, (id_notificacao,))
         conn.commit()
@@ -911,193 +877,262 @@ async def webhook_verify(request: Request):
         return PlainTextResponse(challenge)
     raise HTTPException(status_code=403, detail="Token inválido!")
 
-@app.post("/webhook")
-async def webhook(request: Request):
-    print("📥 Recebido POST no webhook")
-    data = await request.json()
-    try:
-        value = data['entry'][0]['changes'][0]['value']
-        if 'messages' not in value:
-            return {"message": "No new message"}
+#funcoes auxiliares do webhook de post, que é o coração deste código
 
-        msg = value['messages'][0]
-        from_num = msg['from']
-        msg_id = msg.get('id')
-        
-        text = msg.get('text', {}).get('body', '').lower()
-        
-        print(f"📨 Mensagem recebida de {from_num}: {text}, ID: {msg_id}")
-        print(f"Text: {text}")
+def saudacao(from_num):
+    enviar_whatsapp(from_num, f"Olá! Sou a Laryssa, assistente virtual do Cantinho das Pizzas e do Açaí. Como posso ajudar você hoje? 😊")
+    enviar_whatsapp(from_num, enviar_pdf_para_cliente(from_num))
 
-        if msg_id in processed_ids or from_num == "553299910621":
-            print("⚠️ Mensagem duplicada ignorada")
-            return {"message": "Duplicate message"}
-        
-        processed_ids.add(msg_id)
-
-        last_msgs[from_num] = {"id": msg_id, "text": text}
-
-        if from_num not in historico_usuarios:
-            historico_usuarios[from_num] = prompt_template.copy()
-
-        historico_usuarios[from_num].append({"role": "user", "content": text})
-        resposta = enviar_msg("", historico_usuarios[from_num])
-        print(f"🤖 Resposta do chatbot: {resposta}")
-        historico_usuarios[from_num].append({"role": "assistant", "content": resposta})
-        
-        if resposta.strip() == "[trigger_saudacao_inicial]":
-            enviar_whatsapp(from_num, f"Olá! Sou a Laryssa, assistente virtual do Cantinho das Pizzas e do Açaí. Como posso ajudar você hoje? 😊")
-            enviar_whatsapp(from_num, enviar_pdf_para_cliente(from_num))
-            return {"message": "Ok"}
-            
-        if resposta.strip() == "[ENVIAR_CARDAPIO_PDF]":
-            print("📄 Solicitação de envio de cardápio PDF")
-            resultado_upload = upload_pdf_para_whatsapp()
-            media_id = resultado_upload
-            if media_id:
-                enviar_pdf_para_cliente(from_num)
-            else:
-                print("❌ Erro ao fazer upload do PDF:", resultado_upload)
-                enviar_whatsapp(from_num, "⚠️ Erro ao enviar o cardápio. Tente novamente!")
-            return {"message": "ok"}
-
-        if resposta.strip() == "Beleza, já chamei um atendente pra te ajudar! 😊 É só aguardar um pouquinho, tá?":
-            print(f"📞 Solicitação de atendente real para {from_num}")
-            if enviar_whatsapp(from_num, resposta):
-                id_notificacao = str(uuid.uuid4())
-                timestamp = datetime.now(pytz.timezone("America/Sao_Paulo")).strftime("%Y-%m-%d %H:%M:%S")
-                notificacao = {
+async def solicitar_atendente(from_num, resposta):
+    print(f"📞 Solicitação de atendente real para {from_num}")
+    if enviar_whatsapp(from_num, resposta):
+        id_notificacao = str(uuid.uuid4())
+        timestamp = datetime.now(pytz.timezone("America/Sao_Paulo")).strftime("%Y-%m-%d %H:%M:%S")
+        notificacao = {
                     "id_notificacao": id_notificacao,
                     "numero_cliente": from_num,
                     "mensagem": f"{from_num} está solicitando um atendente real.",
                     "tipo": "atendente_real",
                     "status": "pendente",
                     "timestamp": timestamp
-                }
-                salvar_notificacao_no_banco(notificacao)
-                notificacoes_ativas[id_notificacao] = notificacao
-                await broadcast({"event": "notificacao_nova", "data": notificacao})
-                print(f"📡 Notificação emitida via WebSocket: {id_notificacao}")
-            else:
-                print(f"❌ Falha ao enviar mensagem de atendente real para {from_num}")
-            return {"message": "ok"}
+        }
+        salvar_notificacao_no_banco(notificacao)
+        notificacoes_ativas[id_notificacao] = notificacao
+        await broadcast({"event": "notificacao_nova", "data": notificacao})
+        print(f"📡 Notificação emitida via WebSocket: {id_notificacao}")
+    else:
+        print(f"❌ Falha ao enviar mensagem de atendente real para {from_num}")
 
-        if "sum:" in resposta:
-            sum = re.findall(r'\d+[.,]\d+', resposta)
-            
-            preco_total = 0
-            
-            for preco in sum:
-                p = float(preco)
-                preco_total += p
+def get_from_json_pedido(pedido):
+    return(
+        pedido.get("endereco_entrega"),
+        pedido.get("taxa_entrega"),
+        pedido.get("itens"),
+        pedido.get('alteracao')
+    )
+
+def tratar_excecoes_de_distancia (distancia, from_num):
+    if distancia == None:
+        enviar_whatsapp(from_num, "❌ Endereço inválido. Verifique e envie novamente.")
+        return {"message": "ENDERECO_INVALIDO"}
+
+    if distancia > 15:
+        print("🚫 Endereço fora do raio de entrega")
+        enviar_whatsapp(from_num, "🚫 Fora do nosso raio de entrega (15 km).")
+        return {"message": "FORA_RAIO"}
+
+    return {"message": "ok"}
+
+async def handle_alteracao_de_pedido(json, from_num, alteracao):
+    if alteracao == 1:
+        json['alteracao'] = get_order_id_from_num(from_num)
+                    
+        id_notificacao = str(uuid.uuid4())
+        timestamp = datetime.now(pytz.timezone("America/Sao_Paulo")).strftime("%Y-%m-%d %H:%M:%S")
+        notificacao = {
+            "id_notificacao": id_notificacao,
+            "numero_cliente": from_num,
+            "mensagem": f"Pedido {get_order_id_from_num(from_num)} foi alterado.",
+            "tipo": "alteração",
+            "status": "pendente",
+            "timestamp": timestamp
+            }
+        salvar_notificacao_no_banco(notificacao)
+        notificacoes_ativas[id_notificacao] = notificacao
+        await broadcast({"event": "notificacao_nova", "data": notificacao})
+        print(f"📡 Notificação emitida via WebSocket: {id_notificacao}")
+
+def processar_resposta (resposta, num):
+    resposta = resposta.strip()
+    acoes = {
+        "[trigger_saudacao_inicial]" : lambda: saudacao(num),
+        "[ENVIAR_CARDAPIO_PDF]" : lambda: enviar_pdf_para_cliente(num),
+        "Beleza, já chamei um atendente pra te ajudar! 😊 É só aguardar um pouquinho, tá?": lambda: solicitar_atendente(num, resposta)
+    }
+
+    if resposta in acoes:
+        acoes[resposta]()
+        return {'message': 'ok'}
+
+    return None
+
+def finalizar_pedido(num, pedido):
+    resumo = gerar_mensagem_amigavel(pedido, id_pedido=pegar_ultimo_id_pedido()+1)
+    enviar_whatsapp(num, resumo)
+    res = requests.post("https://back-cantinho-das-pizzas.onrender.com/pedido/post", json=pedido, verify=False)
+    if res.status_code == 200:
+        print("Pedido enviado ao back-end!")
+        associar_order_ids_a_numeros(num, pegar_ultimo_id_pedido())
+    else:
+        print(f"erro ao enviar ao back-end: {res.status_code, res}")
+
+def fatal_error(num, e): #💀
+    print("⚠️ Erro ao processar mensagem:", str(e))
+    traceback.print_exc()
+    enviar_whatsapp(num, "⚠️ Erro ao processar sua mensagem. Tente novamente!")
+
+def inserir_data_no_json_pedido(pedido):
+    agora = datetime.now()
+    data_formatada = agora.strftime("%Y-%m-%d %H:%M:%S")
+    pedido["data_pedido"] = f"{data_formatada}"
+
+def handle_taxa_de_entrega(pedido, endereco, num, itens):
+    print(f"📍 Processando endereço: {endereco}")
+    street, houseNumber = extrair_rua_numero(endereco)
+    pedido["street"] = street
+    pedido["houseNumber"] = houseNumber
+
+    distancia_km = calcular_distancia_km(endereco)
+    tratar_excecoes_de_distancia(distancia_km, num)
                 
-            msg_ = f"O total até o momento ficou: R${preco_total:.2f}".replace(".", ",")
+    taxa = calcular_taxa_entrega(endereco_destino=None, km=distancia_km)
+    pedido["taxa_entrega"] = taxa
                 
-            enviar_whatsapp(from_num, msg_)
-            return {"message": "ok"}
-        
-        if "[estou te ignorando]" in resposta:
-            return {"message": "ok"}
-        
-        
-        if "```json" not in resposta:
-            print(f"📤 Enviando resposta para {from_num}: {resposta}")
-            if not enviar_whatsapp(from_num, resposta):
-                print(f"❌ Falha ao enviar resposta para {from_num}")
-                enviar_whatsapp(from_num, "⚠️ Erro ao processar sua mensagem. Tente novamente!")
-            
+    for i in itens:
+        total += i.get("preco")
+    pedido["preco_total"] = round(total, 2)
+    print(f"💰 Taxa de entrega calculada: R${taxa}")
+
+    lat, lng = pegar_coordenadas(endereco)
+    pedido["latitude"] = lat if lat is not None else 0.0
+    pedido["longitude"] = lng if lng is not None else 0.0
+    print(f"🗺️ Coordenadas: lat={lat}, lng={lng}")
+
+    historico_usuarios[num].append({
+        "role": "system",
+        "content": f"A taxa de entrega é {taxa:.2f} reais."
+    })
+
+def ignorar_mf(msg_id, num):
+    if msg_id in processed_ids or num == "553299910621":
+        print("⚠️ Mensagem duplicada ignorada")
+        return {"message": "Duplicate message"}
+
+def extrair_mensagem(data):
+    value = data['entry'][0]['changes'][0]['value']
+    if 'messages' not in value:
+        raise ValueError("No new message")
+    
+    msg = value['messages'][0]
+    from_num = msg['from']
+    msg_id = msg.get('id')
+    text = msg.get('text', {}).get('body', '').lower()
+    #mensagens_nao_respondidas[num] =  adicionar numero do usuario pois ainda nao foi respondido
+
+    print(f"📨 Msg de {from_num}: {text}, ID: {msg_id}")
+    return msg, from_num, msg_id, text
+
+def registrar_mensagem_recebida(msg_id, from_num, text):
+    processed_ids.add(msg_id)
+    last_msgs[from_num] = {"id": msg_id, "text": text}
+
+    if from_num not in historico_usuarios:
+        historico_usuarios[from_num] = copy.deepcopy(prompt_template)
+
+    if from_num not in mensagens_nao_respondidas:
+        mensagens_nao_respondidas[from_num] = []
+
+    mensagens_nao_respondidas[from_num].append(text)
+
+def obter_mensagem_unificada(num):
+    mensagens = mensagens_nao_respondidas.get(num, [])
+
+    if not mensagens:
+        return ""
+
+    texto_unificado = " ".join(mensagens)
+    mensagens_nao_respondidas[num] = []
+
+    return texto_unificado
+
+
+def gerar_resposta_do_chatbot(num, text):
+    historico_usuarios[num].append({"role": "user", "content": text})
+    resposta = enviar_msg("", historico_usuarios[num])
+    historico_usuarios[num].append({"role": "assistant", "content": resposta})
+
+    print(f"🤖 Resposta: {resposta}")
+    return resposta
+
+def lidar_com_soma(resposta, num):
+    if "sum:" not in resposta:
+        return False
+
+    valores = re.findall(r'\d+[.,]\d+', resposta)
+    valores = [v.replace(",", ".") for v in valores]
+
+    try:
+        calculate_total(num, valores)
+        return True
+    except Exception as e:
+        print("Erro ao calcular soma:", e)
+        return False
+    
+def enviar_resposta(resposta, num):
+    if "```json" not in resposta:
+            print(f"📤 Enviando resposta para {num}: {resposta}")
+            if not enviar_whatsapp(num, resposta):
+                print(f"❌ Falha ao enviar resposta para {num}")
+                enviar_whatsapp(num, "⚠️ Erro ao processar sua mensagem. Tente novamente!")
+
+def processar_json_pedido(pedido, num):
+    endereco, total, itens, alteracao = get_from_json_pedido(pedido)
+
+    handle_taxa_de_entrega(pedido, endereco, num, itens)
+    handle_alteracao_de_pedido(pedido, num, alteracao)
+
+    inserir_data_no_json_pedido(pedido)
+                
+    print(pedido)
+    try:
+        finalizar_pedido(num, pedido)
+    except Exception as e:
+        print(f"❌ Erro de conexão com o backend: {e}")
+        enviar_whatsapp(num, "⚠️ Erro ao conectar com o sistema. Tente novamente!")
+
+
+async def processar_usuario(num):
+    if num in usuario_processando:
+        return
+
+    usuario_processando.add(num)
+
+    try:
+        texto_final = obter_mensagem_unificada(num)
+        if not texto_final:
+            return
+
+        resposta = gerar_resposta_do_chatbot(num, texto_final)
+        processar_resposta(resposta, num)
+        lidar_com_soma(resposta, num)
+        enviar_resposta(resposta, num)
+
         json_pedido = extrair_json_da_resposta(resposta)
-        print(f"📋 JSON extraído: {json_pedido}")
-
         if json_pedido:
-            endereco = json_pedido.get("endereco_entrega")
-            if endereco:
-                print(f"📍 Processando endereço: {endereco}")
-                street, houseNumber = extrair_rua_numero(endereco)
-                json_pedido["street"] = street
-                json_pedido["houseNumber"] = houseNumber
+            processar_json_pedido(json_pedido, num)
 
-                distancia_km = calcular_distancia_km(endereco)
-                if distancia_km is None:
-                    print("❌ Endereço inválido detectado")
-                    enviar_whatsapp(from_num, "❌ Endereço inválido. Verifique e envie novamente.")
-                    return {"message": "ENDERECO_INVALIDO"}
+    finally:
+        usuario_processando.remove(num)
+        if mensagens_nao_respondidas.get(num):
+            await processar_usuario(num)
 
-                if distancia_km > 15:
-                    print("🚫 Endereço fora do raio de entrega")
-                    enviar_whatsapp(from_num, "🚫 Fora do nosso raio de entrega (15 km).")
-                    return {"message": "FORA_RAIO"}
-                
-                taxa = calcular_taxa_entrega(endereco_destino=None, km=distancia_km)
-                    
-                json_pedido["taxa_entrega"] = taxa
-                total = json_pedido.get("taxa_entrega")
-                itens = json_pedido.get("itens")
-                
-                for i in itens:
-                    total += i.get("preco")
-                json_pedido["preco_total"] = round(total, 2)
-                print(f"💰 Taxa de entrega calculada: R${taxa}")
+@app.post("/webhook")
+async def webhook(request: Request):
+    print("📥 Recebido POST no webhook")
+    data = await request.json()
+    try:
+        msg, from_num, msg_id, text = extrair_mensagem(data)
+        ignorar_mf(msg_id, processed_ids, from_num)
 
-                lat, lng = pegar_coordenadas(endereco)
-                json_pedido["latitude"] = lat if lat is not None else 0.0
-                json_pedido["longitude"] = lng if lng is not None else 0.0
-                print(f"🗺️ Coordenadas: lat={lat}, lng={lng}")
-                
-                if json_pedido.get('alteracao') == 1:
-                    json_pedido['alteracao'] = get_order_id_from_num(from_num)
-                    
-                    id_notificacao = str(uuid.uuid4())
-                    timestamp = datetime.now(pytz.timezone("America/Sao_Paulo")).strftime("%Y-%m-%d %H:%M:%S")
-                    notificacao = {
-                        "id_notificacao": id_notificacao,
-                        "numero_cliente": from_num,
-                        "mensagem": f"Pedido {get_order_id_from_num(from_num)} foi alterado.",
-                        "tipo": "alteração",
-                        "status": "pendente",
-                        "timestamp": timestamp
-                    }
-                    salvar_notificacao_no_banco(notificacao)
-                    notificacoes_ativas[id_notificacao] = notificacao
-                    await broadcast({"event": "notificacao_nova", "data": notificacao})
-                    print(f"📡 Notificação emitida via WebSocket: {id_notificacao}")
-                
-                agora = datetime.now()
-                data_formatada = agora.strftime("%Y-%m-%d %H:%M:%S")
-                json_pedido["data_pedido"] = f"{data_formatada}"
-                
+        registrar_mensagem_recebida(msg_id, from_num, text)
 
-                historico_usuarios[from_num].append({
-                    "role": "system",
-                    "content": f"A taxa de entrega é {taxa:.2f} reais."
-                })
-                
-                print(json_pedido)
-
-            try:
-                itens = json_pedido.get("itens")
-                
-                resumo = gerar_mensagem_amigavel(json_pedido, id_pedido=pegar_ultimo_id_pedido()+1)
-                enviar_whatsapp(from_num, resumo)
-                res = requests.post("https://back-cantinho-das-pizzas.onrender.com/pedido/post", json=json_pedido, verify=False)
-                if res.status_code == 200:
-                    print("Pedido enviado ao back-end!")
-                    associar_order_ids_a_numeros(from_num, pegar_ultimo_id_pedido())
-                else:
-                    print(f"erro ao enviar ao back-end: {res.status_code, res}")
-
-            except Exception as e:
-                print(f"❌ Erro de conexão com o backend: {e}")
-                enviar_whatsapp(from_num, "⚠️ Erro ao conectar com o sistema. Tente novamente!")
+        await processar_usuario(from_num)
 
         return {"message": "EVENT_RECEIVED"}
+
     except Exception as e:
-        print("⚠️ Erro ao processar mensagem:", str(e))
-        traceback.print_exc()
-        enviar_whatsapp(from_num, "⚠️ Erro ao processar sua mensagem. Tente novamente!")
+        fatal_error(from_num, e)
         return {"message": "ERROR", "detail": str(e)}
-
-
 
 if __name__ == "__main__":
     print("🚀 Iniciando servidor FastAPI...")
