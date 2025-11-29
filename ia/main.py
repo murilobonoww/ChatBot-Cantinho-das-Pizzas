@@ -1015,6 +1015,7 @@ def ignorar_mf(msg_id, num):
 def extrair_mensagem(data):
     value = data['entry'][0]['changes'][0]['value']
     if 'messages' not in value:
+        print(data)
         raise ValueError("No new message")
     
     msg = value['messages'][0]
