@@ -250,7 +250,11 @@ def get_sabores_or_nomes_from_db(tipo):
     try:
         conn, cursor = conectar_db()
 
-        query = f"select nome from {tipo}" #tipos: pizzas, esfihas, bebidas, doces e outros
+        match tipo:
+            case "pizzas" | "esfihas":
+                query = f"select sabor from {tipo}" #tipos: pizzas, esfihas, bebidas, doces e outros
+            case _:
+                query = f"select nome from {tipo}" #tipos: pizzas, esfihas, bebidas, doces e outros
         
         cursor.execute(query)
         
@@ -259,7 +263,7 @@ def get_sabores_or_nomes_from_db(tipo):
         conn.close()
         
         for item in results:
-            if tipo == "pizzas" or tipo == "esfihas":
+            if tipo in ("pizzas", "esfihas"):
                 valor = item['sabor']
             else:
                 valor = item['nome']
