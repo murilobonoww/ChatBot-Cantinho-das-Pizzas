@@ -1014,17 +1014,18 @@ def ignorar_mf(msg_id, num):
 
 def extrair_mensagem(data):
     value = data['entry'][0]['changes'][0]['value']
-    if 'messages' not in value:
-        print(data)
+
+    messages = value.get('messages')
+    if not messages:
         raise ValueError("No new message")
-    
-    msg = value['messages'][0]
+
+    msg = messages[0]
     from_num = msg['from']
     msg_id = msg.get('id')
     text = msg.get('text', {}).get('body', '').lower()
 
-    print(f"📨 Msg de {from_num}: {text}, ID: {msg_id}")
     return msg, from_num, msg_id, text
+
 
 def registrar_mensagem_recebida(msg_id, from_num, text):
     processed_ids.add(msg_id)
@@ -1123,6 +1124,13 @@ async def processar_usuario(num):
 async def webhook(request: Request):
     print("📥 Recebido POST no webhook")
     data = await request.json()
+    
+    value = data["entry"][0]["changes"][0]["value"]
+
+    if "statuses" in value and "messages" not in value:
+        print("ℹ️ Evento de status recebido. Ignorando...")
+        return {"message": "STATUS_IGNORED"}
+    
     print(data)
     try:
         msg, from_num, msg_id, text = extrair_mensagem(data)
