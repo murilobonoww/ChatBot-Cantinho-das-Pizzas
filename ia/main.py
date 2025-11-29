@@ -1021,7 +1021,6 @@ def extrair_mensagem(data):
     from_num = msg['from']
     msg_id = msg.get('id')
     text = msg.get('text', {}).get('body', '').lower()
-    #mensagens_nao_respondidas[num] =  adicionar numero do usuario pois ainda nao foi respondido
 
     print(f"📨 Msg de {from_num}: {text}, ID: {msg_id}")
     return msg, from_num, msg_id, text
@@ -1048,7 +1047,6 @@ def obter_mensagem_unificada(num):
     mensagens_nao_respondidas[num] = []
 
     return texto_unificado
-
 
 def gerar_resposta_do_chatbot(num, text):
     historico_usuarios[num].append({"role": "user", "content": text})
@@ -1124,6 +1122,7 @@ async def processar_usuario(num):
 async def webhook(request: Request):
     print("📥 Recebido POST no webhook")
     data = await request.json()
+    print(data)
     try:
         msg, from_num, msg_id, text = extrair_mensagem(data)
         ignorar_mf(msg_id, processed_ids, from_num)
