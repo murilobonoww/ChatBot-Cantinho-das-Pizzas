@@ -1007,7 +1007,7 @@ def handle_taxa_de_entrega(pedido, endereco, num, itens):
         "content": f"A taxa de entrega é {taxa:.2f} reais."
     })
 
-def ignorar_mf(msg_id, num):
+def ignorar_mf(msg_id, processed_ids, num):
     if msg_id in processed_ids or num == "553299910621":
         print("⚠️ Mensagem duplicada ignorada")
         return {"message": "Duplicate message"}
