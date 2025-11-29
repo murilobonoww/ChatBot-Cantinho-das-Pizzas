@@ -1107,8 +1107,10 @@ async def processar_usuario(num):
             return
 
         resposta = gerar_resposta_do_chatbot(num, texto_final)
-        processar_resposta(resposta, num)
-        lidar_com_soma(resposta, num)
+        if processar_resposta(resposta, num):
+            return
+        if lidar_com_soma(resposta, num):
+            return
         enviar_resposta(resposta, num)
 
         json_pedido = extrair_json_da_resposta(resposta)
