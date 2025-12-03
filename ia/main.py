@@ -1012,8 +1012,8 @@ def extrair_mensagem(data):
 
     return msg, from_num, msg_id, text
 
-
 def registrar_mensagem_recebida(msg_id, from_num, text):
+    processed_ids.add(msg_id)
     last_msgs[from_num] = {"id": msg_id, "text": text}
 
     if from_num not in historico_usuarios:
@@ -1079,7 +1079,6 @@ def processar_json_pedido(pedido, num):
         print(f"❌ Erro de conexão com o backend: {e}")
         enviar_whatsapp(num, "⚠️ Erro ao conectar com o sistema. Tente novamente!")
 
-
 async def processar_usuario(num):
     if num in usuario_processando:
         return
@@ -1115,46 +1114,52 @@ def ignorar_duplicada(msg_id, processed_ids):
     if msg_id in processed_ids:
         return True
     
-    processed_ids.add(msg_id)
     return False
 
 def ignorar_mensagens_que_nao_sejam_texto(type):
     return type != 'text'
 
 
+async def processar_evento(from_num, text, msg_id, msg_type):
+    try:
+        if ignorar_mensagens_que_nao_sejam_texto(msg_type):
+            return
+        
+        if ignorar_duplicada(msg_id, processed_ids):
+            return
+        
+        if ignorar_mf(from_num) == True:
+            return
+        
+        # Aqui sim você usa GPT e envia a resposta
+        await processar_usuario(from_num)
+
+    except Exception as e:
+        print("❌ Erro no processamento assíncrono:", e)
+
+
 @app.post("/webhook")
 async def webhook(request: Request):
-    print("📥 Recebido POST no webhook")
-    data = await request.json()
-    
-    value = data["entry"][0]["changes"][0]["value"]
-
-    if "statuses" in value and "messages" not in value:
-        print("ℹ️ Evento de status recebido. Ignorando...")
-        return {"message": "STATUS_IGNORED"}
-    
-    print(data)
     try:
-        msg, from_num, msg_id, text, type = extrair_mensagem(data)
+        data = await request.json()
+        print("📥 Recebido POST no webhook: \n\n", data)
+        value = data["entry"][0]["changes"][0]["value"]
 
-        if ignorar_mensagens_que_nao_sejam_texto(type):
-            return {"message": "NON_TEXT_IGNORED"}
-
-        if ignorar_duplicada(msg_id, processed_ids):
-            return {"message": "DUPLICATE_IGNORED"}
-
-        if ignorar_mf(from_num) == True:
-            return {"message": "MF_IGNORED"}
+        if "messages" not in value:
+            return {"message": "STATUS_IGNORED"}
+    
+        msg, from_num, msg_id, text, msg_type = extrair_mensagem(data)
 
         registrar_mensagem_recebida(msg_id, from_num, text)
 
-        await processar_usuario(from_num)
+        asyncio.create_task(processar_evento(from_num, text, msg_id, msg_type))
 
+        # Responde instantâneo para o WhatsApp
         return {"message": "EVENT_RECEIVED"}
 
     except Exception as e:
-        fatal_error(from_num, e)
-        return {"message": "ERROR", "detail": str(e)}
+        print("❌ ERRO NO WEBHOOK:", e)
+        return {"message": "EVENT_RECEIVED"}
 
 if __name__ == "__main__":
     print("🚀 Iniciando servidor FastAPI...")
