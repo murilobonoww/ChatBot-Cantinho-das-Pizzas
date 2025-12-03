@@ -978,6 +978,7 @@ def handle_taxa_de_entrega(pedido, endereco, num, itens):
                 
     taxa = calcular_taxa_entrega(endereco_destino=None, km=distancia_km)
     pedido["taxa_entrega"] = taxa
+    total = taxa
                 
     for i in itens:
         total += i.get("preco")
@@ -994,7 +995,7 @@ def handle_taxa_de_entrega(pedido, endereco, num, itens):
         "content": f"A taxa de entrega é {taxa:.2f} reais."
     })
 
-def ignorar_mf(msg_id, processed_ids, num):
+def ignorar_mf(num):
     if num == "553299910621":
         return True
 
@@ -1011,7 +1012,7 @@ def extrair_mensagem(data):
     text = msg.get('text', {}).get('body', '').lower()
     type = msg.get('type')
 
-    return msg, from_num, msg_id, text
+    return msg, from_num, msg_id, text, type
 
 def registrar_mensagem_recebida(msg_id, from_num, text):
     processed_ids.add(msg_id)
@@ -1134,7 +1135,7 @@ def ignorar_duplicada(msg_id, processed_ids):
 def ignorar_mensagens_que_nao_sejam_texto(type):
     return type != 'text'
 
-async def processar_evento(from_num, text, msg_id, msg_type):
+async def processar_evento(from_num, msg_id, msg_type):
     try:
         if ignorar_mensagens_que_nao_sejam_texto(msg_type):
             return
@@ -1144,6 +1145,11 @@ async def processar_evento(from_num, text, msg_id, msg_type):
         
         if ignorar_mf(from_num) == True:
             return
+        
+        
+        state = get_estado(from_num)
+        state["waiting_for_user"] = False
+        set_estado(from_num, state)
         
         # Aqui sim você usa GPT e envia a resposta
         await processar_usuario(from_num)
@@ -1164,14 +1170,9 @@ async def webhook(request: Request):
     
         msg, from_num, msg_id, text, msg_type = extrair_mensagem(data)
 
-        state = get_estado(from_num)
-        state["waiting_for_user"] = False
-        set_estado(from_num, state)
-
-
         registrar_mensagem_recebida(msg_id, from_num, text)
 
-        asyncio.create_task(processar_evento(from_num, text, msg_id, msg_type))
+        asyncio.create_task(processar_evento(from_num, msg_id, msg_type))
 
         # Responde instantâneo para o WhatsApp
         return {"message": "EVENT_RECEIVED"}
