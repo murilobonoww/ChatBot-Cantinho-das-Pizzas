@@ -28,6 +28,7 @@ app = FastAPI()
 
 mensagens_nao_respondidas = {}  
 usuario_processando = set()
+estados = {}
 
 # Configuração do CORS
 app.add_middleware(
@@ -1079,7 +1080,15 @@ def processar_json_pedido(pedido, num):
         print(f"❌ Erro de conexão com o backend: {e}")
         enviar_whatsapp(num, "⚠️ Erro ao conectar com o sistema. Tente novamente!")
 
+def get_estado(user):
+    return estados.get(user, {"waiting_for_user": False})
+
+def set_estado(user, state):
+    estados[user] = state
+
 async def processar_usuario(num):
+    estado = get_estado(num)
+    
     if num in usuario_processando:
         return
 
@@ -1091,7 +1100,13 @@ async def processar_usuario(num):
         if not texto_final.strip():
             return
 
+        if estado.get("waiting_for_user"):
+            print("⏸ Aguardando resposta do usuário, não enviar nada.")
+            return
+
         resposta = gerar_resposta_do_chatbot(num, texto_final)
+
+        set_estado(num, {"waiting_for_user": True })
 
         if processar_resposta(resposta, num):
             return
@@ -1118,7 +1133,6 @@ def ignorar_duplicada(msg_id, processed_ids):
 
 def ignorar_mensagens_que_nao_sejam_texto(type):
     return type != 'text'
-
 
 async def processar_evento(from_num, text, msg_id, msg_type):
     try:
@@ -1149,6 +1163,11 @@ async def webhook(request: Request):
             return {"message": "STATUS_IGNORED"}
     
         msg, from_num, msg_id, text, msg_type = extrair_mensagem(data)
+
+        state = get_estado(from_num)
+        state["waiting_for_user"] = False
+        set_estado(from_num, state)
+
 
         registrar_mensagem_recebida(msg_id, from_num, text)
 
