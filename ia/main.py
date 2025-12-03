@@ -301,7 +301,7 @@ def fetch_produtos():
 
     return nomes_e_precos
 
-json_example = """{"endereco": "",
+json_model = """{"endereco": "",
    "pagamento": "",
    "itens": [
      {
@@ -331,7 +331,7 @@ prompt_template = [{
         #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         "6- QUANDO GERAR O JSON: Você só gera JSON quando: categoria, sabor, tamanho (se aplicável), borda (se aplicável) e quantidade estiverem definidos. Nunca envie JSON incompleto. Nunca envie JSON repetido. Nunca envie dois JSON na mesma resposta."
         #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        f"7- MODELO DO JSON: O JSON deve seguir exatamente: {json_example}"
+        f"7- MODELO DO JSON: O JSON deve seguir exatamente: {json_model}"
         #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         "8- REGRAS DE ENDEREÇO E PAGAMENTO: Após fechar TODOS os itens: 1.Pergunte endereço; 2.Pergunte forma de pagamento; 3.Envie o JSON completo."
         #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1019,31 +1019,46 @@ def processar_json_pedido(pedido, num):
 
 
 async def processar_usuario(num):
+    # Evita reentrância simultânea para o mesmo usuário
     if num in usuario_processando:
         return
 
     usuario_processando.add(num)
 
     try:
+        # Pega tudo que o usuário mandou até agora e zera a fila
         texto_final = obter_mensagem_unificada(num)
-        if not texto_final:
+
+        # Se não há nada para processar, não faz nada
+        if not texto_final.strip():
             return
 
+        # 1. Gera resposta da IA
         resposta = gerar_resposta_do_chatbot(num, texto_final)
+
+        # 2. Primeiro trata comandos especiais / triggers
         if processar_resposta(resposta, num):
             return
+
+        # 3. Checa se a IA pediu soma
         if lidar_com_soma(resposta, num):
             return
+
+        # 4. Tenta extrair JSON
+        json_pedido = extrair_json_da_resposta(resposta)
+
+        if json_pedido:
+            # Se tem JSON, processa o pedido e não envia a resposta textual da IA
+            processar_json_pedido(json_pedido, num)
+            return
+
+        # 5. Se NÃO é JSON, manda a resposta textual normalmente
         enviar_resposta(resposta, num)
 
-        json_pedido = extrair_json_da_resposta(resposta)
-        if json_pedido:
-            processar_json_pedido(json_pedido, num)
-
     finally:
+        # Marca que o usuário terminou o ciclo nesse request
         usuario_processando.remove(num)
-        if mensagens_nao_respondidas.get(num):
-            await processar_usuario(num)
+
 
 @app.post("/webhook")
 async def webhook(request: Request):
