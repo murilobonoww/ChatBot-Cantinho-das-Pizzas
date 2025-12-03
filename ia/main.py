@@ -1014,7 +1014,6 @@ def extrair_mensagem(data):
 
 
 def registrar_mensagem_recebida(msg_id, from_num, text):
-    processed_ids.add(msg_id)
     last_msgs[from_num] = {"id": msg_id, "text": text}
 
     if from_num not in historico_usuarios:
@@ -1122,6 +1121,13 @@ async def processar_usuario(num):
         # Marca que o usuário terminou o ciclo nesse request
         usuario_processando.remove(num)
 
+def ignorar_duplicada(msg_id, processed_ids):
+    if msg_id in processed_ids:
+        return True
+    
+    processed_ids.add(msg_id)
+    return False
+
 
 @app.post("/webhook")
 async def webhook(request: Request):
@@ -1137,6 +1143,10 @@ async def webhook(request: Request):
     print(data)
     try:
         msg, from_num, msg_id, text = extrair_mensagem(data)
+
+        if ignorar_duplicada(msg_id, processed_ids):
+            return {"message": "DUPLICATE_IGNORED"}
+
         ignorar_mf(msg_id, processed_ids, from_num)
 
         registrar_mensagem_recebida(msg_id, from_num, text)
