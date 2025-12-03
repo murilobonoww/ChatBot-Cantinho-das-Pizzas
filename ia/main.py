@@ -316,7 +316,7 @@ json_model = """{"endereco": "",
 }"""
 
 # Definição do prompt_template
-# prompt_template = [{
+# prompt = [{
 #     "role": "system",
 #     "content": (
 #         "1- IDENTIDADE: Você é Laryssa, assistente virtual da pizzaria Cantinho das Pizzas e do Açaí. Seu objetivo é montar o pedido do cliente de forma rápida, clara e educada."
@@ -344,7 +344,7 @@ json_model = """{"endereco": "",
 # }]
 
 
-prompt_template = [{
+prompt = [{
     "role": "system",
     "content": (
         "IDENTIDADE: Você é Laryssa, assistente virtual da pizzaria Cantinho das Pizzas e do Açaí. "
@@ -994,9 +994,8 @@ def handle_taxa_de_entrega(pedido, endereco, num, itens):
     })
 
 def ignorar_mf(msg_id, processed_ids, num):
-    if msg_id in processed_ids or num == "553299910621":
-        print("⚠️ Mensagem duplicada ignorada")
-        return {"message": "Duplicate message"}
+    if num == "553299910621":
+        return True
 
 def extrair_mensagem(data):
     value = data['entry'][0]['changes'][0]['value']
@@ -1009,6 +1008,7 @@ def extrair_mensagem(data):
     from_num = msg['from']
     msg_id = msg.get('id')
     text = msg.get('text', {}).get('body', '').lower()
+    type = msg.get('type')
 
     return msg, from_num, msg_id, text
 
@@ -1017,7 +1017,7 @@ def registrar_mensagem_recebida(msg_id, from_num, text):
     last_msgs[from_num] = {"id": msg_id, "text": text}
 
     if from_num not in historico_usuarios:
-        historico_usuarios[from_num] = copy.deepcopy(prompt_template)
+        historico_usuarios[from_num] = copy.deepcopy(prompt)
 
     if from_num not in mensagens_nao_respondidas:
         mensagens_nao_respondidas[from_num] = []
@@ -1081,44 +1081,34 @@ def processar_json_pedido(pedido, num):
 
 
 async def processar_usuario(num):
-    # Evita reentrância simultânea para o mesmo usuário
     if num in usuario_processando:
         return
 
     usuario_processando.add(num)
 
     try:
-        # Pega tudo que o usuário mandou até agora e zera a fila
         texto_final = obter_mensagem_unificada(num)
 
-        # Se não há nada para processar, não faz nada
         if not texto_final.strip():
             return
 
-        # 1. Gera resposta da IA
         resposta = gerar_resposta_do_chatbot(num, texto_final)
 
-        # 2. Primeiro trata comandos especiais / triggers
         if processar_resposta(resposta, num):
             return
 
-        # 3. Checa se a IA pediu soma
         if lidar_com_soma(resposta, num):
             return
 
-        # 4. Tenta extrair JSON
         json_pedido = extrair_json_da_resposta(resposta)
 
         if json_pedido:
-            # Se tem JSON, processa o pedido e não envia a resposta textual da IA
             processar_json_pedido(json_pedido, num)
             return
 
-        # 5. Se NÃO é JSON, manda a resposta textual normalmente
         enviar_resposta(resposta, num)
 
     finally:
-        # Marca que o usuário terminou o ciclo nesse request
         usuario_processando.remove(num)
 
 def ignorar_duplicada(msg_id, processed_ids):
@@ -1127,6 +1117,9 @@ def ignorar_duplicada(msg_id, processed_ids):
     
     processed_ids.add(msg_id)
     return False
+
+def ignorar_mensagens_que_nao_sejam_texto(type):
+    return type != 'text'
 
 
 @app.post("/webhook")
@@ -1142,12 +1135,16 @@ async def webhook(request: Request):
     
     print(data)
     try:
-        msg, from_num, msg_id, text = extrair_mensagem(data)
+        msg, from_num, msg_id, text, type = extrair_mensagem(data)
+
+        if ignorar_mensagens_que_nao_sejam_texto(type):
+            return {"message": "NON_TEXT_IGNORED"}
 
         if ignorar_duplicada(msg_id, processed_ids):
             return {"message": "DUPLICATE_IGNORED"}
 
-        ignorar_mf(msg_id, processed_ids, from_num)
+        if ignorar_mf(from_num) == True:
+            return {"message": "MF_IGNORED"}
 
         registrar_mensagem_recebida(msg_id, from_num, text)
 
