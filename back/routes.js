@@ -9,12 +9,12 @@ const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit");
 const mysqlPromise = require("mysql2/promise");
 
-
+const MAPS_API_KEY = process.env.MAPS_API_KEY;
 const CODE_HASH = process.env.COMPANY_CODE_HASH;
 const SECRET_KEY = process.env.JWT_SECRET;
 
 router.post("/check-auth", autenticar, (req, res) => {
-    return res.status(200).json({ logged: true })
+  return res.status(200).json({ logged: true })
 })
 
 router.post("/logout", (req, res) => {
@@ -168,82 +168,194 @@ async function enviarParaFoody(pedido, id_pedido, lat, lng) {
   }
 }
 
-router.post("/pedido/post", (req, res) => {
-  console.log(req.body);
-  const pedido = req.body;
+const get_id_pedido = async () => {
+  const query = `SELECT MAX(id_pedido) AS ultimo_id FROM pedido;`
 
-  const {
-    nome_cliente,
-    endereco_entrega,
-    taxa_entrega,
-    preco_total,
-    forma_pagamento,
-    status_pedido,
-    data_pedido,
-    itens,
-    latitude,
-    longitude,
-    alteracao,
-  } = pedido;
+  const [rows] = await db.query(query);
+  const ultimoId = rows[0].ultimo_id;
 
-  const sqlPedido = `
-    INSERT INTO pedido (
-      nome_cliente, endereco_entrega, taxa_entrega, preco_total, forma_pagamento, status_pedido, data_pedido, alteracao
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+  if (!rows || rows.length === 0) {
+    throw new Error("Consulta ao banco falhou.");
+  }
 
-  const valoresPedido = [
-    nome_cliente,
-    endereco_entrega,
-    taxa_entrega,
-    preco_total,
-    forma_pagamento,
-    status_pedido || "aberto",
-    data_pedido,
-    alteracao
-  ];
+  if (isNaN(ultimoId)) {
+    throw new Error("Erro ao gerar id para pedido.")
+  }
+  return ultimoId
+}
 
-  db.query(sqlPedido, valoresPedido, (err, resultado) => {
-    if (err) {
-      console.error("❌ Erro ao inserir pedido:", err);
-      return res.status(500).json({ mensagem: "Erro ao registrar o pedido" });
+
+// Calcula a distância em KM entre o endereço fixo e o destino
+async function calcularDistanciaKm(enderecoDestino) {
+  const origem = "R. Copacabana, 111 - Jardim Maria Helena, Barueri - SP, 06445-060";
+  const url = "https://routes.googleapis.com/directions/v2:computeRoutes";
+
+  const body = {
+    origin: { address: origem },
+    destination: { address: enderecoDestino },
+    travelMode: "DRIVE"
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": mapsApiKey,
+        "X-Goog-FieldMask": "routes.duration,routes.distanceMeters"
+      },
+      body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+    console.log("🛰 API Google Maps:", response.status, JSON.stringify(data));
+
+    const route = data?.routes?.[0];
+    if (!route?.distanceMeters) {
+      console.log("❌ 'distanceMeters' ausente na resposta.");
+      return null;
     }
 
-    const id_pedido = resultado.insertId;
+    return route.distanceMeters / 1000;
+  } catch (err) {
+    console.log("❌ Erro ao calcular distância:", err);
+    return null;
+  }
+}
 
-    const sqlItem = `
-      INSERT INTO item_pedido (pedido_id_fk, produto, sabor, quantidade, observacao, preco)
-      VALUES ?
-    `;
+// Calcula a taxa de entrega baseada na distância
+function calcularTaxaEntrega(km) {
 
-    const valoresItens = itens.map((item) => [
-      id_pedido,
-      item.produto,
-      item.sabor,
-      item.quantidade,
-      item.observacao || "",
-      item.preco,
-    ]);
+  const distancia = km
 
-    db.query(sqlItem, [valoresItens], (err2) => {
-      if (err2) {
-        console.error("❌ Erro ao inserir itens do pedido:", err2);
-        return res
-          .status(500)
-          .json({ mensagem: "Erro ao registrar os itens do pedido" });
-      }
+  if (distancia == null) return null;
 
-      console.log(
-        `📦 Pedido #${id_pedido} registrado com sucesso. (ainda não enviado pra foody)`
-      );
-      enviarParaFoody(pedido, id_pedido, latitude, longitude); // ← envia para a Foody de forma assíncrona
-      res.status(200).json({
-        mensagem: "✅ Pedido registrado e enviado para a Foody com sucesso!",
-        id_pedido,
-      });
-    });
-  });
+  if (distancia < 1) return 4.00;
+  if (distancia < 3) return parseFloat((distancia * 3).toFixed(2));
+
+  return parseFloat((distancia * 2).toFixed(2));
+}
+
+// ✅ verificar endereço e distancia com a api do google maps
+// ✅ calcular taxa de entrega
+// ✅ registrar pedido no banco de dados
+// enviar mensagem final
+
+router.post("/finalizar-pedido", async (req, res) => {
+  try {
+    const pedido = req.body;
+    const endereco = pedido.endereco_entrega
+
+    const distancia = await calcularDistanciaKm(endereco)
+
+    if (distancia > 15) {
+      throw new Error("Fora do raio de atendimento.")
+    }
+
+    const taxa = calcularTaxaEntrega(distancia)
+
+    pedido.taxa_entrega = taxa
+    const resultado = await inserir_pedido_no_db(pedido)
+    const resultado_json = await resultado.json();
+    const pedido_id = resultado.pedido_id
+
+    return res.send(gerar_msg_final(pedido_id, pedido))
+
+  } catch (error) {
+    console.log(error)
+  }
 });
+
+function gerar_msg_final(id_pedido, pedido) {
+
+  const msg_final = 'mensagem final sla oq'
+  return msg_final
+
+  // let produtos = ``
+
+  // for (const item of pedido.itens) {
+
+  //   if (item.produto === 'pizza' || item.produto === 'esfiha') {
+  //     let item = `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco} (${item.observacao}) \n`
+  //   }
+  //   else {
+  //     let item = `${item.quantidade} x ${item.produto} - R$${item.preco} \n`
+  //   }
+
+  //   produtos = produtos + item
+  // }
+
+  // const title = `🍕 Pedido ${id_pedido}`
+
+  // let msg = `${title}\n${produtos}\n${pedido.endereco}\n${pedido.taxa}`
+}
+
+
+
+
+//retorna o SQL de inserir_pedido_no_db
+function query_pedido() {
+  return `INSERT INTO pedido (nome_cliente, endereco_entrega, taxa_entrega, preco_total, forma_pagamento, status_pedido, data_pedido, alteracao) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+}
+
+//retorna o SQL de inserir_pedido_no_db
+function query_item_pedido() {
+  return `INSERT INTO item_pedido (pedido_id_fk, produto, sabor, quantidade, observacao, preco VALUES (?, ?, ?, ?, ?, ?)`;
+}
+
+//retorna valores do SQL de inserir_pedido_no_db
+function valores_pedido(p) {
+  return [
+    p.nome_cliente,
+    p.endereco_entrega,
+    p.taxa_entrega,
+    p.preco_total,
+    p.forma_pagamento,
+    p.status_pedido || "aberto",
+    p.data_pedido,
+    p.alteracao
+  ];
+}
+
+//retorna valores do SQL **DOS ITENS DO PEDIDO** de inserir_pedido_no_db
+function valores_item_pedido(i, pedido_id) {
+  return [
+    pedido_id,
+    i.produto,
+    i.sabor,
+    i.quantidade,
+    i.observacao,
+    i.preco
+  ];
+}
+
+async function inserir_pedido_no_db(pedido) {
+
+  try {
+    const [resultadoPedido] = await db.execute(query_pedido(), valores_pedido(pedido));
+    const pedido_id = resultadoPedido.insertId;
+
+    if (pedido.itens.length > 0) {
+      for (const item of pedido.itens) {
+
+        const [resultadoItem] = await db.execute(query_item_pedido(), valores_item_pedido(item, pedido_id));
+      }
+    }
+
+    console.log(
+      `📦 Pedido #${pedido_id} registrado com sucesso. (ainda não enviado pra foody)`
+    );
+
+    enviarParaFoody(pedido, pedido_id, latitude, longitude); // ← envia para a Foody de forma assíncrona
+    res.status(200).json({
+      mensagem: "✅ Pedido registrado e enviado para a Foody com sucesso!",
+      pedido_id,
+    });
+
+  } catch (error) {
+    console.error("Erro ao inserir pedido no database: ", error)
+  }
+}
 
 router.get("/pedido/getAll", autenticar, (req, res) => {
   const { id, inicio, fim, cliente } = req.query;
@@ -433,11 +545,11 @@ router.get("/pedido/:id/status", (req, res) => {
 
   const sql = `SELECT status_pedido FROM pedido where id_pedido = ${id}`;
   db.query(sql, (err, resultado) => {
-    if(err){
+    if (err) {
       console.error("Erro ao pegar status de pedido: ", err)
     }
 
-    if(resultado.affectedRows === 0){
+    if (resultado.affectedRows === 0) {
       return res.status(404).json({ mensagem: "Pedido não encontrado" })
     }
 
@@ -569,10 +681,10 @@ router.get("/relatorios/financeiro", (req, res) => {
           let sabor_mais_vendido =
             resultFlavor.length > 0 ? resultFlavor[0].sabor : null;
 
-          
+
           mais_vendido = String(mais_vendido + " de " + sabor_mais_vendido);
 
-          if(mais_vendido === null || sabor_mais_vendido === null){
+          if (mais_vendido === null || sabor_mais_vendido === null) {
             mais_vendido = "Não há dados suficientes"
           }
 
