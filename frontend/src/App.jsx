@@ -11,7 +11,6 @@ import PrivateRoute from "./Pages/PrivateRoute";
 import Login from "./Pages/Login";
 import "./Style/App.css"
 
-
 function AppContent() {
   const [pedidos, setPedidos] = useState([]);
   const [abertos, setAbertos] = useState({});
@@ -24,6 +23,23 @@ function AppContent() {
   const [modoFiltro, setModoFiltro] = useState("OU");
   const [novosIDs, setNovosIDs] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+      const ping_ = async () => {
+        const agr = new Date();
+        const hora_atual = agr.getHours();
+        if (hora_atual >= 14 && hora_atual <= 23) {
+          try {
+            const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/keep-server-on')
+          } catch (error) {
+            console.log("Erro no ping:", error)
+          }
+        }
+      }
+      const interval = setInterval(ping_, 10000)
+      ping_()
+      return () => clearInterval(interval)
+    }, [])
 
   const fetchPedidos = () => {
     fetch("https://back-cantinho-das-pizzas.onrender.com/pedido/getAll", {credentials: "include"})

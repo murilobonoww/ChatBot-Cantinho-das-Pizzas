@@ -13,6 +13,10 @@ const MAPS_API_KEY = process.env.MAPS_API_KEY;
 const CODE_HASH = process.env.COMPANY_CODE_HASH;
 const SECRET_KEY = process.env.JWT_SECRET;
 
+router.get("/keep-server-on", (req, res) => {
+  return res.sendStatus(200)
+})
+
 router.post("/check-auth", autenticar, (req, res) => {
   return res.status(200).json({ logged: true })
 })

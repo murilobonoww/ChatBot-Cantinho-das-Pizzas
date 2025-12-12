@@ -37,22 +37,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
   const [toggle_badge, setToggle_badge] = useState(false);
   const [ids_novos_pedidos, setIds_novos_pedidos] = useState([]);
 
-  useEffect(() => {
-    const ping_ = async () => {
-      const agr = new Date();
-      const hora_atual = agr.getHours();
-      if (hora_atual >= 14 && hora_atual <= 23) {
-        try {
-          const res = await axios.get('https://chatbot-cantinho-das-pizzas-production.up.railway.app/')
-        } catch (error) {
-          console.log("Erro no ping:", error)
-        }
-      }
-    }
-    const interval = setInterval(ping_, 10000)
-    ping_()
-    return () => clearInterval(interval)
-  }, [])
+  
 
   const playSound = () => {
     const audio = new Audio(bell_sound);
@@ -92,10 +77,6 @@ export default function Home({ enviarListaDeNovosIDs }) {
     const intervalFetch = setInterval(fetchPedidos, 5000)
     return () => clearInterval(intervalFetch)
   }, [])
-
-
-
-
 
   // Function to format timestamp to HH:mm
   const formatarHora = (timestamp) => {
@@ -229,7 +210,6 @@ export default function Home({ enviarListaDeNovosIDs }) {
             toastId: `error-${Date.now()}`,
           });
         }
-        // Removed: console.log(toastId); // This was causing undefined errors
       };
 
       socketRef.current.onerror = (error) => {
@@ -274,8 +254,6 @@ export default function Home({ enviarListaDeNovosIDs }) {
     const intervalo = setInterval(verificarPedidosNovos, 4000);
     return () => clearInterval(intervalo);
   }, []);
-
-
 
   // Mark notification as attended
   const atualizarStatusNotificacao = async (id_notificacao) => {
