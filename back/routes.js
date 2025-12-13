@@ -283,8 +283,7 @@ router.post("/finalizar-pedido", async (req, res) => {
 });
 
 function gerar_msg_final(id_pedido, pedido) {
-
-  const msg_final = 'mensagem final sla oq'
+  const msg_final = `🍕 Pedido *${id_pedido}*\n${pedido.itens}`
   return msg_final
 
   // let produtos = ``
