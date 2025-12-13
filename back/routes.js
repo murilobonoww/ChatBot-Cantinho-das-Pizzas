@@ -263,9 +263,7 @@ router.post("/finalizar-pedido", async (req, res) => {
     const distancia = await calcularDistanciaKm(endereco)
 
     if (distancia == null) {
-      return res.status(500).json({
-        error: "Não foi possível calcular a distância"
-      });
+      return res.status(500).json({ error: `Não foi possível calcular a distância : ${req.body}`, });
     }
 
     if (distancia > 15) {
