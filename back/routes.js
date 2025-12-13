@@ -283,7 +283,34 @@ router.post("/finalizar-pedido", async (req, res) => {
 });
 
 function gerar_msg_final(id_pedido, pedido) {
-  const msg_final = `🍕 Pedido *${id_pedido}*\n${pedido.itens}`
+  const title = `🍕 Pedido *${id_pedido}*`
+  const itens = ''
+
+  for (const item of pedido.itens) {
+    if (item.produto === 'pizza') {
+      itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2)} (${item.observacao})`
+    }
+    else if (item.produto === 'esfiha') {
+      itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2)}`
+    }
+    else{
+      itens += `${item.quantidade} x ${item.produto} - R$${item.preco.toFixed(2)}`
+    }
+  }
+
+  const forma_de_pagamento = `• 💳 Forma de pagamento: ${pedido.forma_pagamento}`
+
+  const endereco = `• 📍 Endereço: ${pedido.endereco_entrega}`
+
+  const taxa = `• 🚚 Taxa de entrega: R$${pedido.taxa_entrega.toFixed(2)}`
+
+  const preco_total = `• Total: R$${pedido.preco_total.toFixed(2)}`
+
+  const aviso = "*O pagamento será feito na entrega.*"
+
+  const agradecimento = "Obrigado pelo seu pedido! Em breve estaremos aí... 🍕🏍️"
+
+  const msg_final = `${title}\n${itens}\n${forma_de_pagamento}\n${endereco}\n${taxa}\n${preco_total}\n${aviso}\n${agradecimento}`
   return msg_final
 
   // let produtos = ``
