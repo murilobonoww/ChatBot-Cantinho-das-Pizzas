@@ -284,7 +284,7 @@ router.post("/finalizar-pedido", async (req, res) => {
 
 function gerar_msg_final(id_pedido, pedido) {
   const title = `🍕 Pedido *${id_pedido}*`
-  const itens = ''
+  let itens = ''
 
   for (const item of pedido.itens) {
     if (item.produto === 'pizza') {
