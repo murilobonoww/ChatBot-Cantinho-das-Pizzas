@@ -247,44 +247,42 @@ function calcularTaxaEntrega(km) {
 // ✅ registrar pedido no banco de dados
 // enviar mensagem final
 
-router.get("/finalizar-pedido", async (req, res) => {
-  console.log("🔵 1 - rota entrou");
-  const ok = "olá cliente, seu pedido foi finalizado com sucesso"
-  return res.status(200).send("olá cliente, seu pedido foi finalizado com sucesso");
-});
-
-
-
-// router.post("/finalizar-pedido", async (req, res) => {
-//   try {
-//     console.log(req.body)
-//     console.log("executando finalizar-pedido")
-//     const pedido = req.body;
-//     const endereco = pedido.endereco_entrega
-
-//     const distancia = await calcularDistanciaKm(endereco)
-
-//     if (distancia == null) {
-//       return res.status(500).json({
-//         error: "Não foi possível calcular a distância"
-//       });
-//     }
-
-//     if (distancia > 15) {
-//       return res.status(500).json({ error: "Fora do raio de atendimento." })
-//     }
-
-//     const taxa = calcularTaxaEntrega(distancia)
-
-//     pedido.taxa_entrega = taxa
-//     const pedido_id = await inserir_pedido_no_db(pedido)
-
-//     return res.send(gerar_msg_final(pedido_id, pedido))
-
-//   } catch (err) {
-//     return res.status(500).json({ error: err.message })
-//   }
+// router.get("/finalizar-pedido", async (req, res) => {
+//   console.log("🔵 1 - rota entrou");
+//   const ok = "olá cliente, seu pedido foi finalizado com sucesso"
+//   return res.status(200).send("olá cliente, seu pedido foi finalizado com sucesso");
 // });
+
+router.post("/finalizar-pedido", async (req, res) => {
+  try {
+    console.log(req.body)
+    console.log("executando finalizar-pedido")
+    const pedido = req.body;
+    const endereco = pedido.endereco_entrega
+
+    const distancia = await calcularDistanciaKm(endereco)
+
+    if (distancia == null) {
+      return res.status(500).json({
+        error: "Não foi possível calcular a distância"
+      });
+    }
+
+    if (distancia > 15) {
+      return res.status(500).json({ error: "Fora do raio de atendimento." })
+    }
+
+    const taxa = calcularTaxaEntrega(distancia)
+
+    pedido.taxa_entrega = taxa
+    const pedido_id = await inserir_pedido_no_db(pedido)
+
+    return res.send(gerar_msg_final(pedido_id, pedido))
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message })
+  }
+});
 
 function gerar_msg_final(id_pedido, pedido) {
 
