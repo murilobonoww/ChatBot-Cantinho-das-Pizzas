@@ -313,7 +313,7 @@ function query_pedido() {
 
 //retorna o SQL de inserir_pedido_no_db
 function query_item_pedido() {
-  return `INSERT INTO item_pedido (pedido_id_fk, produto, sabor, quantidade, observacao, preco VALUES (?, ?, ?, ?, ?, ?)`;
+  return `INSERT INTO item_pedido (pedido_id_fk, produto, sabor, quantidade, observacao, preco) VALUES (?, ?, ?, ?, ?, ?)`;
 }
 
 //retorna valores do SQL de inserir_pedido_no_db
