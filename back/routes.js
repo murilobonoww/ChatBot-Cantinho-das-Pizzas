@@ -7,7 +7,6 @@ const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit");
-const mysqlPromise = require("mysql2/promise");
 
 const MAPS_API_KEY = process.env.MAPS_API_KEY;
 const CODE_HASH = process.env.COMPANY_CODE_HASH;
@@ -188,9 +187,11 @@ const get_id_pedido = async () => {
   return ultimoId
 }
 
-
 // Calcula a distância em KM entre o endereço fixo e o destino
 async function calcularDistanciaKm(enderecoDestino) {
+
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), 15000);
   const origem = "R. Copacabana, 111 - Jardim Maria Helena, Barueri - SP, 06445-060";
   const url = "https://routes.googleapis.com/directions/v2:computeRoutes";
 
@@ -208,7 +209,8 @@ async function calcularDistanciaKm(enderecoDestino) {
         "X-Goog-Api-Key": mapsApiKey,
         "X-Goog-FieldMask": "routes.duration,routes.distanceMeters"
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      signal: controller.signal
     });
 
     const data = await response.json();
@@ -245,30 +247,44 @@ function calcularTaxaEntrega(km) {
 // ✅ registrar pedido no banco de dados
 // enviar mensagem final
 
-router.post("/finalizar-pedido", async (req, res) => {
-  try {
-    const pedido = req.body;
-    const endereco = pedido.endereco_entrega
-
-    const distancia = await calcularDistanciaKm(endereco)
-
-    if (distancia > 15) {
-      throw new Error("Fora do raio de atendimento.")
-    }
-
-    const taxa = calcularTaxaEntrega(distancia)
-
-    pedido.taxa_entrega = taxa
-    const resultado = await inserir_pedido_no_db(pedido)
-    const resultado_json = await resultado.json();
-    const pedido_id = resultado.pedido_id
-
-    return res.send(gerar_msg_final(pedido_id, pedido))
-
-  } catch (error) {
-    console.log(error)
-  }
+router.get("/finalizar-pedido", async (req, res) => {
+  console.log("🔵 1 - rota entrou");
+  const ok = "olá cliente, seu pedido foi finalizado com sucesso"
+  return res.status(200).send("olá cliente, seu pedido foi finalizado com sucesso");
 });
+
+
+
+// router.post("/finalizar-pedido", async (req, res) => {
+//   try {
+//     console.log(req.body)
+//     console.log("executando finalizar-pedido")
+//     const pedido = req.body;
+//     const endereco = pedido.endereco_entrega
+
+//     const distancia = await calcularDistanciaKm(endereco)
+
+//     if (distancia == null) {
+//       return res.status(500).json({
+//         error: "Não foi possível calcular a distância"
+//       });
+//     }
+
+//     if (distancia > 15) {
+//       return res.status(500).json({ error: "Fora do raio de atendimento." })
+//     }
+
+//     const taxa = calcularTaxaEntrega(distancia)
+
+//     pedido.taxa_entrega = taxa
+//     const pedido_id = await inserir_pedido_no_db(pedido)
+
+//     return res.send(gerar_msg_final(pedido_id, pedido))
+
+//   } catch (err) {
+//     return res.status(500).json({ error: err.message })
+//   }
+// });
 
 function gerar_msg_final(id_pedido, pedido) {
 
@@ -293,9 +309,6 @@ function gerar_msg_final(id_pedido, pedido) {
 
   // let msg = `${title}\n${produtos}\n${pedido.endereco}\n${pedido.taxa}`
 }
-
-
-
 
 //retorna o SQL de inserir_pedido_no_db
 function query_pedido() {
@@ -339,7 +352,7 @@ async function inserir_pedido_no_db(pedido) {
     const [resultadoPedido] = await db.execute(query_pedido(), valores_pedido(pedido));
     const pedido_id = resultadoPedido.insertId;
 
-    if (pedido.itens.length > 0) {
+    if (Array.isArray(pedido.itens) && pedido.itens.length > 0) {
       for (const item of pedido.itens) {
 
         const [resultadoItem] = await db.execute(query_item_pedido(), valores_item_pedido(item, pedido_id));
@@ -349,74 +362,50 @@ async function inserir_pedido_no_db(pedido) {
     console.log(
       `📦 Pedido #${pedido_id} registrado com sucesso. (ainda não enviado pra foody)`
     );
+    const { latitude, longitude } = pedido;
 
     enviarParaFoody(pedido, pedido_id, latitude, longitude); // ← envia para a Foody de forma assíncrona
-    res.status(200).json({
-      mensagem: "✅ Pedido registrado e enviado para a Foody com sucesso!",
-      pedido_id,
-    });
+    return pedido_id
 
   } catch (error) {
     console.error("Erro ao inserir pedido no database: ", error)
+    throw error;
   }
 }
 
-router.get("/pedido/getAll", autenticar, (req, res) => {
-  const { id, inicio, fim, cliente } = req.query;
+router.get("/pedido/getAll", autenticar, async (req, res) => {
 
-  let sql = `
-  SELECT
-    p.id_pedido,
-    p.nome_cliente,
-    p.endereco_entrega,
-    p.taxa_entrega,
-    p.preco_total,
-    p.forma_pagamento,
-    p.status_pedido,
-    p.data_pedido,
-    p.printed,
-    p.alteracao,
-    i.id AS id_item,
-    i.produto,
-    i.sabor,
-    i.quantidade,
-    i.observacao,
-    i.preco
-  FROM pedido p
-  LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk
-`;
+  try {
+    const { id, inicio, fim, cliente } = req.query;
 
+    let sql = `SELECT p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido, p.printed, p.alteracao, i.id AS id_item, i.produto, i.sabor, i.quantidade, i.observacao, i.preco FROM pedido p LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk`;
 
-  const conditions = [];
-  const params = [];
+    const conditions = [];
+    const params = [];
 
-  if (id) {
-    conditions.push(`p.id_pedido = ?`);
-    console.log(id);
-    params.push(`${id}`);
-  }
-
-  if (inicio && fim) {
-    conditions.push(`p.data_pedido BETWEEN ? AND ?`);
-    params.push(`${inicio} 00:00:00`, `${fim} 23:59:59`);
-  }
-
-  if (cliente) {
-    conditions.push(`p.nome_cliente LIKE ?`);
-    params.push(`%${cliente}%`);
-  }
-
-  if (conditions.length > 0) {
-    sql += ` WHERE ` + conditions.join(" AND ");
-  }
-
-  sql += ` ORDER BY p.id_pedido DESC`;
-
-  db.query(sql, params, (err, resultados) => {
-    if (err) {
-      console.error("❌ Erro ao buscar pedidos:", err);
-      return res.status(500).json({ mensagem: "Erro ao buscar pedidos" });
+    if (id) {
+      conditions.push(`p.id_pedido = ?`);
+      console.log(id);
+      params.push(id);
     }
+
+    if (inicio && fim) {
+      conditions.push(`p.data_pedido BETWEEN ? AND ?`);
+      params.push(`${inicio} 00:00:00`, `${fim} 23:59:59`);
+    }
+
+    if (cliente) {
+      conditions.push(`p.nome_cliente LIKE ?`);
+      params.push(`%${cliente}%`);
+    }
+
+    if (conditions.length > 0) {
+      sql += ` WHERE ` + conditions.join(" AND ");
+    }
+
+    sql += ` ORDER BY p.id_pedido DESC`;
+
+    const [resultados] = await db.query(sql, params);
 
     const pedidosMap = {};
 
@@ -452,29 +441,23 @@ router.get("/pedido/getAll", autenticar, (req, res) => {
 
     const pedidos = Object.values(pedidosMap);
     res.status(200).json(pedidos);
-  });
+
+  } catch (error) {
+    console.error(err);
+    res.status(500).json({ mensagem: "Erro ao buscar pedidos" });
+  }
+
 });
 
-router.get("/pedido/:id", (req, res) => {
-  const idPedido = req.params.id;
+router.get("/pedido/:id", async (req, res) => {
+  try {
+    const idPedido = req.params.id;
 
-  const sql = `
-    SELECT
-      p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, 
-      p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido, p.alteracao,
-      i.id, i.produto, i.sabor, i.quantidade, i.observacao
-    FROM pedido p
-    LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk
-    WHERE p.id_pedido = ?
-  `;
+    const sql = `SELECT p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega,  p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido, p.alteracao, i.id, i.produto, i.sabor, i.quantidade, i.observacao FROM pedido p LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk WHERE p.id_pedido = ? `;
 
-  db.query(sql, [idPedido], (err, resultados) => {
-    if (err) {
-      console.error("❌ Erro ao buscar pedido:", err);
-      return res.status(500).json({ mensagem: "Erro ao buscar pedido" });
-    }
+    const [resultados] = await db.query(sql, [idPedido]);
 
-    if (resultados.length === 0) {
+    if (!resultados.length) {
       return res.status(404).json({ mensagem: "Pedido não encontrado" });
     }
 
@@ -506,85 +489,78 @@ router.get("/pedido/:id", (req, res) => {
     });
 
     res.status(200).json(pedido);
-  });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensagem: "Erro ao buscar pedido" });
+  }
 });
 
-router.delete("/pedido/:id", (req, res) => {
+router.delete("/pedido/:id", async (req, res) => {
   const idPedido = req.params.id;
 
-  // Primeiro, exclui os itens vinculados ao pedido
   const sqlDeleteItens = `DELETE FROM item_pedido WHERE pedido_id_fk = ?`;
+  const sqlDeletePedido = `DELETE FROM pedido WHERE id_pedido = ?`;
 
-  db.query(sqlDeleteItens, [idPedido], (err1) => {
-    if (err1) {
-      console.error("❌ Erro ao deletar itens do pedido:", err1);
-      return res
-        .status(500)
-        .json({ mensagem: "Erro ao deletar itens do pedido" });
+  try {
+    const [resultado_itens] = await db.query(sqlDeleteItens, [idPedido]);
+    const [resultado_pedido] = await db.query(sqlDeletePedido, [idPedido]);
+
+    if (resultado_pedido.affectedRows === 0) {
+      return res.status(404).json({ mensagem: "Pedido não encontrado" });
+    }
+    else if (resultado_itens.affectedRows === 0) {
+      return res.status(404).json({ mensagem: "Pedido não encontrado" });
     }
 
-    // Depois, exclui o próprio pedido
-    const sqlDeletePedido = `DELETE FROM pedido WHERE id_pedido = ?`;
-
-    db.query(sqlDeletePedido, [idPedido], (err2, resultado) => {
-      if (err2) {
-        console.error("❌ Erro ao deletar pedido:", err2);
-        return res.status(500).json({ mensagem: "Erro ao deletar pedido" });
-      }
-
-      if (resultado.affectedRows === 0) {
-        return res.status(404).json({ mensagem: "Pedido não encontrado" });
-      }
-
-      console.log(`🗑️ Pedido #${idPedido} e seus itens foram deletados.`);
-      res
-        .status(200)
-        .json({ mensagem: `✅ Pedido #${idPedido} deletado com sucesso.` });
-    });
+    console.log(`🗑️ Pedido #${idPedido} e seus itens foram deletados.`);
+    return res.status(200).json({ mensagem: `✅ Pedido #${idPedido} deletado com sucesso.` });
+  } catch (error) {
+    console.error("❌ Erro ao deletar itens do pedido:", error);
+    return res.status(500).json({ mensagem: "Erro ao deletar itens do pedido ou o pedido em si." });
+  }
   });
-});
 
-router.get("/pedido/:id/status", (req, res) => {
+router.get("/pedido/:id/status", async (req, res) => {
   const id = req.params.id;
 
   const sql = `SELECT status_pedido FROM pedido where id_pedido = ${id}`;
-  db.query(sql, (err, resultado) => {
-    if (err) {
-      console.error("Erro ao pegar status de pedido: ", err)
-    }
 
+  try {
+    const [resultado] = await db.query(sql);
     if (resultado.affectedRows === 0) {
       return res.status(404).json({ mensagem: "Pedido não encontrado" })
     }
-
     return res.status(200).json({ "status": resultado })
-  })
+
+  } catch (error) {
+    console.error("Erro ao pegar status de pedido: ", error)
+    return res.status(500).json({ mensagem: "Erro ao pegar status de pedido" })
+  }
 })
 
-router.put("/pedido/:id/status", (req, res) => {
+router.put("/pedido/:id/status", async (req, res) => {
   const id = req.params.id;
   const { novoStatus } = req.body;
 
   const sql = `UPDATE pedido SET status_pedido = ? WHERE id_pedido = ?`;
 
-  db.query(sql, [novoStatus, id], (err, resultado) => {
-    if (err) {
-      console.error("❌ Erro ao atualizar status do pedido:", err);
-      return res
-        .status(500)
-        .json({ mensagem: "Erro ao atualizar status do pedido" });
-    }
+  try {
+    const [resultado] = await db.query(sql, [novoStatus, id])
 
     if (resultado.affectedRows === 0) {
       return res.status(404).json({ mensagem: "Pedido não encontrado" });
     }
-
     console.log(`✅ Status do pedido #${id} atualizado para '${novoStatus}'`);
     res.status(200).json({ mensagem: "Status atualizado com sucesso!" });
-  });
+
+  } catch (error) {
+    console.error("❌ Erro ao atualizar status do pedido:", error);
+    return res.status(500).json({ mensagem: "Erro ao atualizar status do pedido" });
+  }
 });
 
-router.get("/relatorios/financeiro", (req, res) => {
+router.get("/relatorios/financeiro", async (req, res) => {
   const token = req.headers["authorization"];
   const SENHA_GERENCIA = process.env.SENHA_GERENCIA;
 
@@ -593,14 +569,7 @@ router.get("/relatorios/financeiro", (req, res) => {
   }
   const { inicio, fim } = req.query;
 
-  let sql = `
-    SELECT 
-      p.data_pedido,
-      p.nome_cliente,
-      p.forma_pagamento,
-      p.preco_total
-    FROM pedido p
-  `;
+  let sql = `SELECT p.data_pedido, p.nome_cliente, p.forma_pagamento, p.preco_total FROM pedido p`;
 
   const valores = [];
 
@@ -611,13 +580,8 @@ router.get("/relatorios/financeiro", (req, res) => {
 
   sql += ` ORDER BY p.data_pedido DESC LIMIT 100`;
 
-  db.query(sql, valores, (err, resultados) => {
-    if (err) {
-      console.error("❌ Erro ao buscar dados financeiros:", err);
-      return res
-        .status(500)
-        .json({ mensagem: "Erro ao buscar relatório financeiro" });
-    }
+  try {
+    const [resultados] = await db.query(sql, valores);
 
     let total_vendas = 0;
     let total_pedidos = resultados.length;
@@ -642,84 +606,44 @@ router.get("/relatorios/financeiro", (req, res) => {
     });
 
     const ticket_medio = total_pedidos > 0 ? total_vendas / total_pedidos : 0;
+    let most_selled_product_query = `SELECT produto FROM item_pedido GROUP BY produto ORDER BY COUNT(produto) DESC LIMIT 1;`;
+    const [resultProduct] = await db.query(most_selled_product_query);
 
-    let most_selled_product_query = `
-  SELECT produto 
-  FROM item_pedido
-  GROUP BY produto
-  ORDER BY COUNT(produto) DESC
-  LIMIT 1;
-`;
+    let mais_vendido = resultProduct.length > 0 ? resultProduct[0].produto : null;
+    let most_selled_flavor_query = `SELECT sabor FROM item_pedido WHERE produto = ? GROUP BY sabor ORDER BY SUM(quantidade) DESC LIMIT 1;`;
 
-    db.query(most_selled_product_query, (err, resultProduct) => {
-      if (err) {
-        console.error("❌ Erro ao buscar produto mais vendido:", err);
-        return res
-          .status(500)
-          .json({ mensagem: "Erro ao buscar produto mais vendido" });
-      }
+    const [resultFlavor] = await db.query(most_selled_flavor_query, [mais_vendido]);
 
-      let mais_vendido =
-        resultProduct.length > 0 ? resultProduct[0].produto : null;
+    let sabor_mais_vendido = resultFlavor.length > 0 ? resultFlavor[0].sabor : null;
 
-      let most_selled_flavor_query = `
-    SELECT sabor
-    FROM item_pedido
-    WHERE produto = ?
-    GROUP BY sabor
-    ORDER BY SUM(quantidade) DESC
-    LIMIT 1;
-  `;
+    mais_vendido = String(mais_vendido + " de " + sabor_mais_vendido);
 
-      db.query(
-        most_selled_flavor_query,
-        [mais_vendido],
-        (err, resultFlavor) => {
-          if (err) {
-            console.error("❌ Erro ao buscar sabor mais vendido:", err);
-            return res
-              .status(500)
-              .json({ mensagem: "Erro ao buscar sabor mais vendido" });
-          }
+    if (mais_vendido === null || sabor_mais_vendido === null) {
+      mais_vendido = "Não há dados suficientes"
+    }
 
-          let sabor_mais_vendido =
-            resultFlavor.length > 0 ? resultFlavor[0].sabor : null;
+    res.status(200).json({ total_vendas, total_pedidos, ticket_medio, mais_vendido, sabor_mais_vendido, pagamentos, pedidos: pedidosFormatados });
 
-
-          mais_vendido = String(mais_vendido + " de " + sabor_mais_vendido);
-
-          if (mais_vendido === null || sabor_mais_vendido === null) {
-            mais_vendido = "Não há dados suficientes"
-          }
-
-          res.status(200).json({
-            total_vendas,
-            total_pedidos,
-            ticket_medio,
-            mais_vendido,
-            sabor_mais_vendido,
-            pagamentos,
-            pedidos: pedidosFormatados,
-          });
-        }
-      );
-    });
-  });
+  } catch (error) {
+    console.error("❌ Erro ao gerar relatório financeiro: ", error);
+    return res.status(500).json({ mensagem: "Erro ao gerar relatório financeiro" });
+  }
 });
 
-router.put("/pedido/setPrinted/:id", (req, res) => {
+
+router.put("/pedido/setPrinted/:id", async (req, res) => {
   const id = req.params.id;
+  const sql = `UPDATE pedido SET printed = true WHERE id_pedido = ?`;
+  try {
+    const [resultado] = await db.query(sql, [id]);
+    return res.status(200).json({ mensagem: "Printed setted to true" });
 
-  db.query(`UPDATE pedido SET printed = true WHERE id_pedido = ?`, [id]),
-    (err) => {
-      if (err) {
-        console.log("Erro ao modificar printed");
-      }
-      console.log("Printed setted to true");
-    };
+  } catch (error) {
+    return res.status(200).json({ mensagem: "Erro ao modificar printed" });
+  }
 });
 
-router.put("/item-pedido/:id", (req, res) => {
+router.put("/item-pedido/:id", async (req, res) => {
   const id = req.params.id;
   console.log(req);
 
@@ -730,26 +654,22 @@ router.put("/item-pedido/:id", (req, res) => {
     novaOBS: obs,
   } = req.body;
 
-  db.query(
-    `UPDATE item_pedido
-    SET produto = ?, sabor = ?, quantidade = ?, observacao = ?
-    WHERE id = ?
-    `,
-    [produto, sabor, quantidade, obs, id],
-    (err, resultado) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ mensagem: "Erro ao atualizar pedido." });
-      }
-      if (resultado.affectedRows === 0) {
-        return res.status(404).json({ mensagem: "Pedido não encontrado" });
-      }
-      return res.status(200).json({ mensagem: "Pedido alterado com sucesso!" });
+  const sql = `UPDATE item_pedido SET produto = ?, sabor = ?, quantidade = ?, observacao = ? WHERE id = ?`;
+
+  try {
+    const [resultado] = await db.execute(sql, [produto, sabor, quantidade, obs, id]);
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({ mensagem: "Pedido não encontrado" });
     }
-  );
+    return res.status(200).json({ mensagem: "Pedido alterado com sucesso!" });
+
+  } catch (error) {
+    console.error(err);
+    return res.status(500).json({ mensagem: "Erro ao atualizar pedido." });
+  }
 });
 
-router.put("/pedido/:id", (req, res) => {
+router.put("/pedido/:id", async (req, res) => {
   const id = req.params.id;
   console.log(req.body);
   const {
@@ -761,51 +681,34 @@ router.put("/pedido/:id", (req, res) => {
     preco_total,
   } = req.body;
 
-  const sql = `
-    UPDATE pedido
-    SET nome_cliente = ?, endereco_entrega = ?, forma_pagamento = ?, status_pedido = ?, taxa_entrega = ?, preco_total = ?
-    WHERE id_pedido = ?
-  `;
+  const sql = `UPDATE pedido SET nome_cliente = ?, endereco_entrega = ?, forma_pagamento = ?, status_pedido = ?, taxa_entrega = ?, preco_total = ? WHERE id_pedido = ?`;
 
-  db.query(
-    sql,
-    [
-      nome_cliente,
-      endereco_entrega,
-      forma_pagamento,
-      status_pedido,
-      taxa_entrega,
-      preco_total,
-      id,
-    ],
-    (err, resultado) => {
-      if (err) {
-        console.error("❌ Erro ao atualizar pedido:", err);
-        return res.status(500).json({ mensagem: "Erro ao atualizar pedido" });
-      }
+  try {
+    const [resultado] = await db.execute(sql, [nome_cliente, endereco_entrega, forma_pagamento, status_pedido, taxa_entrega, preco_total, id,]);
 
-      if (resultado.affectedRows === 0) {
-        return res.status(404).json({ mensagem: "Pedido não encontrado" });
-      }
-
-      console.log(`✅ Pedido #${id} atualizado com sucesso`);
-      res.status(200).json({ mensagem: "Pedido atualizado com sucesso!" });
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({ mensagem: "Pedido não encontrado" });
     }
-  );
+    console.log(`✅ Pedido #${id} atualizado com sucesso`);
+    res.status(200).json({ mensagem: "Pedido atualizado com sucesso!" });
+  } catch (error) {
+    console.error("❌ Erro ao atualizar pedido:", err);
+    res.status(500).json({ mensagem: "Erro ao atualizar pedido" });
+  }
 });
 
-router.get("/pedidos/new", (req, res) => {
-  const sql = `SELECT COUNT(*) AS total FROM pedido WHERE status_pedido = 'aberto'`;
-
-  db.query(sql, (err, resultados) => {
-    if (err) {
-      console.error("❌ Erro ao verificar pedidos novos:", err);
-      return res.status(500).json({ erro: "Erro ao verificar pedidos novos" });
-    }
+router.get("/pedidos/new", async (req, res) => {
+  try {
+    const sql = `SELECT COUNT(*) AS total FROM pedido WHERE status_pedido = 'aberto'`;
+    const [resultados] = await db.query(sql);
 
     const temNovos = resultados[0].total > 0;
-    res.json({ novos: temNovos });
-  });
+    return res.json({ novos: temNovos });
+
+  } catch (error) {
+    console.error("❌ Erro ao verificar pedidos novos:", err);
+    return res.status(500).json({ erro: "Erro ao verificar pedidos novos" });
+  }
 });
 
 router.get("/pedido/foody/:uid", async (req, res) => {
@@ -882,35 +785,21 @@ router.get("/pedido/foody/:uid", async (req, res) => {
       updateDate: pedidoFoody.updateDate,
     };
 
-    res.status(200).json(resposta);
+    return res.status(200).json(resposta);
+
   } catch (error) {
-    console.error(
-      `❌ Erro ao buscar pedido #${uid} na Foody:`,
-      error?.response?.data || error.message
-    );
-    res
-      .status(500)
-      .json({ mensagem: "Erro ao buscar pedido na Foody Delivery" });
+    console.error(`❌ Erro ao buscar pedido #${uid} na Foody:`, error?.response?.data || error.message);
+    return res.status(500).json({ mensagem: "Erro ao buscar pedido na Foody Delivery" });
   }
 });
 
 router.get("/cardapio", async (req, res) => {
   try {
-    const tempConnection = await mysqlPromise.createConnection({
-      host: process.env.HOST,
-      user: process.env.USER,
-      password: process.env.PASS,
-      database: process.env.DB,
-      port: process.env.DB_PORT || 3306,
-    });
-
-    const [pizzas] = await tempConnection.query("SELECT * FROM pizzas");
-    const [esfihas] = await tempConnection.query("SELECT * FROM esfihas");
-    const [bebidas] = await tempConnection.query("SELECT * FROM bebidas");
-    const [doces] = await tempConnection.query("SELECT * FROM doces");
-    const [outros] = await tempConnection.query("SELECT * FROM outros");
-
-    await tempConnection.end();
+    const [pizzas] = await db.query("SELECT * FROM pizzas");
+    const [esfihas] = await db.query("SELECT * FROM esfihas");
+    const [bebidas] = await db.query("SELECT * FROM bebidas");
+    const [doces] = await db.query("SELECT * FROM doces");
+    const [outros] = await db.query("SELECT * FROM outros");
 
     res.json({ pizzas, esfihas, bebidas, doces, outros });
   } catch (err) {
@@ -920,8 +809,7 @@ router.get("/cardapio", async (req, res) => {
 });
 
 router.post("/cardapio", async (req, res) => {
-  const { section, nome, ingredientes, preco, preco_25, preco_35, tamanho } =
-    req.body;
+  const { section, nome, ingredientes, preco, preco_25, preco_35, tamanho } = req.body;
 
   const validSections = ["pizzas", "esfihas", "bebidas", "doces", "outros"];
   if (!validSections.includes(section)) {
@@ -932,28 +820,16 @@ router.post("/cardapio", async (req, res) => {
     return res.status(400).json({ mensagem: "Nome ou sabor é obrigatório" });
   }
   if (section === "pizzas" && (!ingredientes || !preco_25 || !preco_35)) {
-    return res.status(400).json({
-      mensagem: "Ingredientes, preço 25cm e preço 35cm são obrigatórios",
-    });
+    return res.status(400).json({ mensagem: "Ingredientes, preço 25cm e preço 35cm são obrigatórios" });
   }
   if ((section === "esfihas" || section === "doces" || section === "outros") && !preco) {
     return res.status(400).json({ mensagem: "Preço é obrigatório" });
   }
   if (section === "bebidas" && (!tamanho || !preco)) {
-    return res
-      .status(400)
-      .json({ mensagem: "Tamanho e preço são obrigatórios para bebidas" });
+    return res.status(400).json({ mensagem: "Tamanho e preço são obrigatórios para bebidas" });
   }
 
   try {
-    const tempConnection = await mysqlPromise.createConnection({
-      host: process.env.HOST,
-      user: process.env.USER,
-      password: process.env.PASS,
-      database: process.env.DB,
-      port: process.env.DB_PORT || 3306,
-    });
-
     let sql;
     let values;
 
@@ -980,12 +856,9 @@ router.post("/cardapio", async (req, res) => {
         break;
     }
 
-    await tempConnection.query(sql, values);
-    await tempConnection.end();
+    await db.query(sql, values);
+    return res.status(201).json({ mensagem: `Item adicionado com sucesso à seção ${section}` });
 
-    res
-      .status(201)
-      .json({ mensagem: `Item adicionado com sucesso à seção ${section}` });
   } catch (err) {
     console.error(`❌ Erro ao adicionar item na seção ${section}:`, err);
     res.status(500).json({ mensagem: "Erro ao adicionar item ao cardápio" });
@@ -1020,14 +893,6 @@ router.put("/cardapio/:id", async (req, res) => {
   }
 
   try {
-    const tempConnection = await mysqlPromise.createConnection({
-      host: process.env.HOST,
-      user: process.env.USER,
-      password: process.env.PASS,
-      database: process.env.DB,
-      port: process.env.DB_PORT || 3306,
-    });
-
     let sql;
     let values;
 
@@ -1054,18 +919,15 @@ router.put("/cardapio/:id", async (req, res) => {
         break;
     }
 
-    const [result] = await tempConnection.query(sql, values);
+    const [result] = await db.query(sql, values);
 
     if (result.affectedRows === 0) {
-      await tempConnection.end();
       return res.status(404).json({ mensagem: "Item não encontrado" });
     }
 
-    await tempConnection.end();
     console.log(`✅ Item #${id} atualizado com sucesso na seção ${section}`);
-    res
-      .status(200)
-      .json({ mensagem: `Item atualizado com sucesso na seção ${section}` });
+    return res.status(200).json({ mensagem: `Item atualizado com sucesso na seção ${section}` });
+
   } catch (err) {
     console.error(`❌ Erro ao atualizar item #${id} na seção ${section}:`, err);
     res.status(500).json({ mensagem: "Erro ao atualizar item no cardápio" });
@@ -1077,54 +939,33 @@ router.delete("/cardapio", async (req, res) => {
 
   const validSections = ["pizzas", "esfihas", "bebidas", "doces", "outros"];
   if (
-    !validSections.includes(section) ||
-    !Array.isArray(ids) ||
-    ids.length === 0
+    !validSections.includes(section) || !Array.isArray(ids) || ids.length === 0
   ) {
-    return res
-      .status(400)
-      .json({ mensagem: "Seção inválida ou lista de IDs vazia" });
+    return res.status(400).json({ mensagem: "Seção inválida ou lista de IDs vazia" });
   }
 
   try {
     // Sanitizar IDs para números inteiros
-    const sanitizedIds = ids
-      .map((id) => parseInt(id))
-      .filter((id) => !isNaN(id));
+    const sanitizedIds = ids.map((id) => parseInt(id)).filter((id) => !isNaN(id));
     if (sanitizedIds.length === 0) {
       return res.status(400).json({ mensagem: "Nenhum ID válido fornecido" });
     }
 
-    const tempConnection = await mysqlPromise.createConnection({
-      host: process.env.HOST,
-      user: process.env.USER,
-      password: process.env.PASS,
-      database: process.env.DB,
-      port: process.env.DB_PORT || 3306,
-    });
-
     const sql = `DELETE FROM ${section} WHERE id IN (?)`;
-    const [result] = await tempConnection.query(sql, [sanitizedIds]);
-
-    await tempConnection.end();
+    const [result] = await db.query(sql, [sanitizedIds]);
 
     if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ mensagem: "Nenhum item encontrado para exclusão" });
+      return res.status(404).json({ mensagem: "Nenhum item encontrado para exclusão" });
     }
 
     console.log(
       `✅ ${result.affectedRows} item(s) deletado(s) da seção ${section}`
     );
-    res.status(200).json({
-      mensagem: `Item(s) deletado(s) com sucesso da seção ${section}`,
-    });
+    return res.status(200).json({ mensagem: `Item(s) deletado(s) com sucesso da seção ${section}` });
+
   } catch (err) {
     console.error(`❌ Erro ao deletar itens da seção ${section}:`, err);
-    res
-      .status(500)
-      .json({ mensagem: err.message || "Erro ao deletar itens do cardápio" });
+    return res.status(500).json({ mensagem: err.message || "Erro ao deletar itens do cardápio" });
   }
 });
 

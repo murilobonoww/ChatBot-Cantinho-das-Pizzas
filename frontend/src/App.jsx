@@ -25,24 +25,24 @@ function AppContent() {
   const navigate = useNavigate();
 
   useEffect(() => {
-      const ping_ = async () => {
-        const agr = new Date();
-        const hora_atual = agr.getHours();
-        if (hora_atual >= 14 && hora_atual <= 23) {
-          try {
-            const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/keep-server-on')
-          } catch (error) {
-            console.log("Erro no ping:", error)
-          }
-        }
+    const ping_ = async () => {
+      const agr = new Date();
+      const hora_atual = agr.getHours();
+      // if (hora_atual >= 14 && hora_atual <= 23) {
+      try {
+        const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/keep-server-on')
+      } catch (error) {
+        console.log("Erro no ping:", error)
       }
-      const interval = setInterval(ping_, 10000)
-      ping_()
-      return () => clearInterval(interval)
-    }, [])
+      // }
+    }
+    const interval = setInterval(ping_, 10000)
+    ping_()
+    return () => clearInterval(interval)
+  }, [])
 
   const fetchPedidos = () => {
-    fetch("https://back-cantinho-das-pizzas.onrender.com/pedido/getAll", {credentials: "include"})
+    fetch("https://back-cantinho-das-pizzas.onrender.com/pedido/getAll", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
