@@ -206,7 +206,7 @@ async function calcularDistanciaKm(enderecoDestino) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Goog-Api-Key": mapsApiKey,
+        "X-Goog-Api-Key": MAPS_API_KEY,
         "X-Goog-FieldMask": "routes.duration,routes.distanceMeters"
       },
       body: JSON.stringify(body),
