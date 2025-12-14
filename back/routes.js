@@ -259,7 +259,7 @@ const calcularPreco = async (pedido) => {
   for (const item of pedido.itens) {
     let price = 0;
 
-    switch (item.produto) {
+    switch (item.categoria) {
       case 'Pizza': {
         if (item.observacao.includes('25')) {
           const [rows] = await db.execute(
@@ -271,6 +271,7 @@ const calcularPreco = async (pedido) => {
           }
 
           price = rows[0].preco_25;
+          item.preco = price;
           break;
         }
         else if (item.observacao.includes('35')) {
@@ -283,15 +284,13 @@ const calcularPreco = async (pedido) => {
           }
 
           price = rows[0].preco_35;
+          item.preco = price;
           break;
         }
         else {
           console.error("Tamanho de pizza inválido.")
           throw new Error('Tamanho de pizza inválido.')
         }
-
-
-
       }
 
       case 'Esfiha': {
@@ -304,6 +303,7 @@ const calcularPreco = async (pedido) => {
         }
 
         price = rows[0].preco;
+        item.preco = price;
         break;
       }
 
@@ -317,6 +317,7 @@ const calcularPreco = async (pedido) => {
         }
 
         price = rows[0].preco;
+        item.preco = price;
         break;
       }
 
@@ -330,6 +331,7 @@ const calcularPreco = async (pedido) => {
         }
 
         price = rows[0].preco;
+        item.preco = price;
         break;
       }
 
@@ -343,6 +345,7 @@ const calcularPreco = async (pedido) => {
         }
 
         price = rows[0].preco;
+        item.preco = price;
         break;
       }
 
