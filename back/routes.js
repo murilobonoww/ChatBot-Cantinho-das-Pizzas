@@ -253,6 +253,88 @@ function calcularTaxaEntrega(km) {
 //   return res.status(200).send("olá cliente, seu pedido foi finalizado com sucesso");
 // });
 
+const calcularPreco = async (pedido) => {
+  let preco_total = 0;
+
+  for (const item of pedido.itens) {
+    let price = 0;
+
+    switch (item.produto) {
+      case 'Pizza': {
+        const [rows] = await db.execute(
+          'SELECT preco FROM pizzas WHERE sabor = ?',
+          [item.sabor]
+        );
+        if (!rows.length) {
+          throw new Error(`${item.produto} não encontrado`);
+        }
+
+        price = rows[0].preco;
+        break;
+      }
+
+      case 'Esfiha': {
+        const [rows] = await db.execute(
+          'SELECT preco FROM esfihas WHERE sabor = ?',
+          [item.sabor]
+        );
+        if (!rows.length) {
+          throw new Error(`${item.produto} não encontrado`);
+        }
+
+        price = rows[0].preco;
+        break;
+      }
+
+      case 'Bebida': {
+        const [rows] = await db.execute(
+          'SELECT preco FROM bebidas WHERE nome = ?',
+          [item.nome]
+        );
+        if (!rows.length) {
+          throw new Error(`${item.produto} não encontrado`);
+        }
+
+        price = rows[0].preco;
+        break;
+      }
+
+      case 'Doce': {
+        const [rows] = await db.execute(
+          'SELECT preco FROM doces WHERE nome = ?',
+          [item.nome]
+        );
+        if (!rows.length) {
+          throw new Error(`${item.produto} não encontrado`);
+        }
+
+        price = rows[0].preco;
+        break;
+      }
+
+      case 'Outros': {
+        const [rows] = await db.execute(
+          'SELECT preco FROM outros WHERE nome = ?',
+          [item.nome]
+        );
+        if (!rows.length) {
+          throw new Error(`${item.produto} não encontrado`);
+        }
+
+        price = rows[0].preco;
+        break;
+      }
+
+      default:
+        throw new Error(`Produto inválido: ${item.produto}`);
+    }
+
+    preco_total += price * item.quantidade;
+  }
+
+  return Number(preco_total.toFixed(2));
+};
+
 router.post("/finalizar-pedido", async (req, res) => {
   try {
     console.log(req.body)
@@ -273,6 +355,11 @@ router.post("/finalizar-pedido", async (req, res) => {
     const taxa = calcularTaxaEntrega(distancia)
 
     pedido.taxa_entrega = taxa
+
+    const preco_total = await calcularPreco(pedido);
+
+    pedido.preco_total = Number((preco_total + taxa).toFixed(2));
+
     const pedido_id = await inserir_pedido_no_db(pedido)
 
     return res.send(gerar_msg_final(pedido_id, pedido))
@@ -293,7 +380,7 @@ function gerar_msg_final(id_pedido, pedido) {
     else if (item.produto === 'esfiha') {
       itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2)}`
     }
-    else{
+    else {
       itens += `${item.quantidade} x ${item.produto} - R$${item.preco.toFixed(2)}`
     }
   }
@@ -541,7 +628,7 @@ router.delete("/pedido/:id", async (req, res) => {
     console.error("❌ Erro ao deletar itens do pedido:", error);
     return res.status(500).json({ mensagem: "Erro ao deletar itens do pedido ou o pedido em si." });
   }
-  });
+});
 
 router.get("/pedido/:id/status", async (req, res) => {
   const id = req.params.id;

@@ -2,6 +2,10 @@ html {
   scroll-behavior: smooth;
 }
 
+*{
+  user-select: all !important;
+}
+
 .cardapio-container {
   width: 100%;
   max-width: 1200px;
