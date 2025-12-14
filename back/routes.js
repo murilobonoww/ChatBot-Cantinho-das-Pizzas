@@ -257,7 +257,7 @@ router.post("/finalizar-pedido", async (req, res) => {
   try {
     console.log(req.body)
     console.log("executando finalizar-pedido")
-    const pedido = req.body;
+    const pedido = JSON.parse(req.body);
     const endereco = pedido.endereco_entrega
 
     const distancia = await calcularDistanciaKm(endereco)
