@@ -259,7 +259,7 @@ const calcularPreco = async (pedido) => {
   for (const item of pedido.itens) {
     let price = 0;
 
-    switch (item.categoria) {
+    switch (item.produto) {
       case 'Pizza': {
         if (item.observacao.includes('25')) {
           const [rows] = await db.execute(
@@ -271,7 +271,7 @@ const calcularPreco = async (pedido) => {
           }
 
           price = rows[0].preco_25;
-          item.preco = price;
+          item.preco = Number(rows[0].preco_25);
           break;
         }
         else if (item.observacao.includes('35')) {
@@ -284,7 +284,7 @@ const calcularPreco = async (pedido) => {
           }
 
           price = rows[0].preco_35;
-          item.preco = price;
+          item.preco = Number(rows[0].preco_35);
           break;
         }
         else {
@@ -303,7 +303,7 @@ const calcularPreco = async (pedido) => {
         }
 
         price = rows[0].preco;
-        item.preco = price;
+        item.preco = Number(rows[0].preco);
         break;
       }
 
@@ -317,7 +317,7 @@ const calcularPreco = async (pedido) => {
         }
 
         price = rows[0].preco;
-        item.preco = price;
+        item.preco = Number(rows[0].preco);
         break;
       }
 
@@ -331,7 +331,7 @@ const calcularPreco = async (pedido) => {
         }
 
         price = rows[0].preco;
-        item.preco = price;
+        item.preco = Number(rows[0].preco);
         break;
       }
 
@@ -345,7 +345,7 @@ const calcularPreco = async (pedido) => {
         }
 
         price = rows[0].preco;
-        item.preco = price;
+        item.preco = Number(rows[0].preco);
         break;
       }
 
@@ -398,10 +398,10 @@ function gerar_msg_final(id_pedido, pedido) {
   let itens = ''
 
   for (const item of pedido.itens) {
-    if (item.produto === 'pizza') {
+    if (item.produto === 'Pizza') {
       itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2)} (${item.observacao})`
     }
-    else if (item.produto === 'esfiha') {
+    else if (item.produto === 'Esfiha') {
       itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2)}`
     }
     else {
