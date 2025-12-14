@@ -261,13 +261,13 @@ const calcularPreco = async (pedido) => {
 
     switch (item.produto) {
       case 'Pizza': {
-        if (item.observacao === '25cm' || item.observacao === '25') {
+        if (item.observacao.includes('25')) {
           const [rows] = await db.execute(
             `SELECT preco_25 FROM pizzas WHERE sabor = ?`,
             [item.sabor]
           );
         }
-        else if (item.observacao === '35cm' || item.observacao === '35') {
+        else if (item.observacao.includes('35')) {
           const [rows] = await db.execute(
             `SELECT preco_35 FROM pizzas WHERE sabor = ?`,
             [item.sabor]
