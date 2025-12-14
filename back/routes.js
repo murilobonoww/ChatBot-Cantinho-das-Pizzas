@@ -413,9 +413,9 @@ function gerar_msg_final(id_pedido, pedido) {
 
   const endereco = `• 📍 Endereço: ${pedido.endereco_entrega}`
 
-  const taxa = `• 🚚 Taxa de entrega: R$${pedido.taxa_entrega.toFixed(2)}`
+  const taxa = `• 🚚 Taxa de entrega: R$${pedido.taxa_entrega.toFixed(2).replace('.', ',')}`
 
-  const preco_total = `• Total: R$${pedido.preco_total.toFixed(2)}`
+  preco_total = `• Total: R$${pedido.preco_total.toFixed(2).replace('.', ',')}`
 
   const aviso = "*O pagamento será feito na entrega.*"
 
