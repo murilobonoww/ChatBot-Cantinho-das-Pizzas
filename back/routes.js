@@ -261,10 +261,24 @@ const calcularPreco = async (pedido) => {
 
     switch (item.produto) {
       case 'Pizza': {
-        const [rows] = await db.execute(
-          'SELECT preco FROM pizzas WHERE sabor = ?',
-          [item.sabor]
-        );
+        if (item.observacao === '25cm' || item.observacao === '25') {
+          const [rows] = await db.execute(
+            `SELECT preco_25 FROM pizzas WHERE sabor = ?`,
+            [item.sabor]
+          );
+        }
+        else if (item.observacao === '35cm' || item.observacao === '35') {
+          const [rows] = await db.execute(
+            `SELECT preco_35 FROM pizzas WHERE sabor = ?`,
+            [item.sabor]
+          );
+        }
+        else {
+          console.error("Tamanho de pizza inválido.")
+          throw new Error('Tamanho de pizza inválido.')
+        }
+
+
         if (!rows.length) {
           throw new Error(`${item.produto} não encontrado`);
         }
