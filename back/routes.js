@@ -266,12 +266,24 @@ const calcularPreco = async (pedido) => {
             `SELECT preco_25 FROM pizzas WHERE sabor = ?`,
             [item.sabor]
           );
+          if (!rows.length) {
+            throw new Error(`${item.produto} não encontrado`);
+          }
+
+          price = rows[0].preco_25;
+          break;
         }
         else if (item.observacao.includes('35')) {
           const [rows] = await db.execute(
             `SELECT preco_35 FROM pizzas WHERE sabor = ?`,
             [item.sabor]
           );
+          if (!rows.length) {
+            throw new Error(`${item.produto} não encontrado`);
+          }
+
+          price = rows[0].preco_35;
+          break;
         }
         else {
           console.error("Tamanho de pizza inválido.")
@@ -279,12 +291,7 @@ const calcularPreco = async (pedido) => {
         }
 
 
-        if (!rows.length) {
-          throw new Error(`${item.produto} não encontrado`);
-        }
 
-        price = rows[0].preco;
-        break;
       }
 
       case 'Esfiha': {
