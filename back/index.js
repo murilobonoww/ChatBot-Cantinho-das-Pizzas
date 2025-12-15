@@ -26,7 +26,7 @@ global.io = io;
 
 app.use(helmet());
 app.use(cors({
-  origin: "https://cantinho-das-pizzas.vercel.app",
+  origin: ["https://cantinho-das-pizzas.vercel.app", "http://localhost:5173"],
   credentials: true
 }));
 app.use(express.json());

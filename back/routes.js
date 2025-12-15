@@ -361,7 +361,7 @@ const calcularPreco = async (pedido) => {
 
 function formataDataPedido () {
   const agora = new Date();
-  return agora.toISOString().slice(0,19).replace('T', ' ')
+  return agora.toISOString().slice(0,19).replace('T', ' ');
 }
 
 router.post("/finalizar-pedido", async (req, res) => {
