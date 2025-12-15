@@ -359,6 +359,11 @@ const calcularPreco = async (pedido) => {
   return Number(preco_total.toFixed(2));
 };
 
+function formataDataPedido () {
+  const agora = new Date();
+  return agora.toISOString().slice(0,19).replace('T', ' ')
+}
+
 router.post("/finalizar-pedido", async (req, res) => {
   try {
     console.log(req.body)
@@ -377,15 +382,13 @@ router.post("/finalizar-pedido", async (req, res) => {
     }
 
     const taxa = calcularTaxaEntrega(distancia)
-
     pedido.taxa_entrega = taxa
 
     const preco_total = await calcularPreco(pedido);
-
     pedido.preco_total = Number((preco_total + taxa).toFixed(2));
 
+    pedido.data_pedido = formataDataPedido()
     const pedido_id = await inserir_pedido_no_db(pedido)
-
     return res.send(gerar_msg_final(pedido_id, pedido))
 
   } catch (err) {

@@ -10,6 +10,7 @@ import Cardapio from "./Pages/Cardapio";
 import PrivateRoute from "./Pages/PrivateRoute";
 import Login from "./Pages/Login";
 import "./Style/App.css"
+import axios from "axios";
 
 function AppContent() {
   const [pedidos, setPedidos] = useState([]);

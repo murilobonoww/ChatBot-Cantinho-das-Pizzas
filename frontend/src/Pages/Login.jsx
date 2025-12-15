@@ -35,7 +35,7 @@ const Login = () => {
         <form className='login_form' onSubmit={handleSubmit}>
 
           <div className='row_1_login_form'>
-            <input id='login_input' type={show ? 'text' : 'password'} autoFocus placeholder='Digite e pressione enter' onChange={(e) => setCode(e.target.value)} />
+            <input id='login_input' type={show ? 'text' : 'password'} autoComplete="new-password" autoFocus placeholder='Digite e pressione enter' onChange={(e) => setCode(e.target.value)} />
             <button type='button' id='btn_toggle_show_pass_login_page' onClick={() => setShow(prev => !prev)}>
               <img id='img_btn_toggle_show_pass_login_page' src={show ? hide_pass : show_pass} />
             </button>

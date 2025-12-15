@@ -52,23 +52,6 @@ const Pedidos = () => {
   const [authOpenedDelete, setAuthOpenedDelete] = useState(false)
   const [deleteOpened, setDeleteOpened] = useState(false)
 
-  useEffect(() => {
-    const ping_ = async () => {
-      const agr = new Date();
-      const hora_atual = agr.getHours();
-      if (hora_atual >= 14 && hora_atual <= 23) {
-        try {
-          const res = await axios.get('https://chatbot-cantinho-das-pizzas-production.up.railway.app/')
-        } catch (error) {
-          console.log("Erro no ping:", error)
-        }
-      }
-    }
-    const interval = setInterval(ping_, 10000)
-    ping_()
-    return () => clearInterval(interval)
-  }, [])
-
   const playSound = () => {
     const audio = new Audio(bell_sound);
     audio.volume = 0.7;
@@ -295,7 +278,7 @@ const Pedidos = () => {
   };
 
   const adicionarItemFiltro = () => {
-    const item = itemFiltro.trim().toLowerCase();
+    const item = (itemFiltro || "").trim().toLowerCase();
     if (item && !itensSelecionados.includes(item)) {
       setItensSelecionados((prev) => [...prev, item]);
     }
@@ -449,7 +432,7 @@ const Pedidos = () => {
   }, [id_selectedOrder])
 
   const abreviar_nome_completo = (nome_completo, elemento) => {
-    const array_de_partes_do_nome = nome_completo.trim().split(/\s+/)
+    const array_de_partes_do_nome = (nome_completo || "").trim().split(/\s+/)
     const primeiroNome = array_de_partes_do_nome[0]
     const primeiroSobrenome = array_de_partes_do_nome[1] ? array_de_partes_do_nome[1][0] + "." : ""
 
@@ -590,7 +573,10 @@ const Pedidos = () => {
                 <input placeholder="Digite o ID do pedido:"
                   className="inputs_filtro"
                   value={id_filter}
-                  onChange={(e) => setIdFilter(e.target.value)} />
+                  onChange={(e) => setIdFilter(e.target.value)}
+                  type="text"
+                  autoComplete="new-password"
+                />
               </label>
 
               <label>
@@ -600,6 +586,7 @@ const Pedidos = () => {
                   type="date"
                   value={dataInicio}
                   onChange={(e) => setDataInicio(e.target.value)}
+                  autoComplete="new-password"
                 />
               </label>
               <label>
@@ -610,6 +597,7 @@ const Pedidos = () => {
                   value={dataFim}
                   max={new Date().toISOString().split("T")[0]}
                   onChange={(e) => setDataFim(e.target.value)}
+                  autoComplete="new-password"
                 />
               </label>
               <label>
@@ -620,6 +608,7 @@ const Pedidos = () => {
                   value={nomeCliente}
                   onChange={(e) => setNomeCliente(e.target.value)}
                   placeholder="Digite o nome do cliente"
+                  autoComplete="new-password"
                 />
               </label>
               <div className="filtro-itens">
@@ -633,6 +622,7 @@ const Pedidos = () => {
                     onChange={(e) => setItemFiltro(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && adicionarItemFiltro()}
                     placeholder="Digite e pressione enter"
+                    autoComplete="new-password"
                   />
                 </div>
                 {itensSelecionados.length > 0 && (
@@ -818,7 +808,7 @@ const Pedidos = () => {
                     <div className="pedido_card_second_line">
                       {pedido.status_pedido && (
                         <button className={`status-botao ${pedido.status_pedido.replace(" ", "-")}`}>
-                          {pedido.status_pedido}
+                          {pedido.status_pedido === "em andamento" ? "andamento" : pedido.status_pedido}
                         </button>
                       )}
 
