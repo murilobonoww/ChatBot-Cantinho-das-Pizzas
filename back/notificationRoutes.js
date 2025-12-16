@@ -4,6 +4,7 @@ const db = require("./db");
 const dotenv = require("dotenv");
 dotenv.config();
 const axios = require("axios");
+const { randomUUID } = require("crypto");
 
 router.post("/post", async (req, res) => {
     try {
@@ -20,5 +21,14 @@ router.post("/post", async (req, res) => {
         return res.status(200).json({ message: "Erro ao salvar a notificação"}) //Retorna 200 para não interromper fluxo do N8N
     }
 })
+
+// router.get("/pendentes", async (req, res) => {
+//     try {
+//         const sql = 'SELECT * FROM notificacoes where status = ?';
+//         const [rows] = 
+//     } catch (error) {
+        
+//     }
+// })
 
 module.exports = router;
