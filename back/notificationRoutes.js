@@ -26,7 +26,7 @@ router.get("/pendentes", async (req, res) => {
     try {
         const sql = 'SELECT * FROM notificacoes WHERE status = ?';
         const [rows] = await db.query(sql, ['pendente']);
-        return res.status(200).json({ message: "Notificações listadas com sucesso" })
+        return res.status(200).json(rows);
     } catch (error) {
         console.error("Erro ao salvar notificação:", error);
         return res.status(200).json({ message: "Erro ao listar notificações"}) //Retorna 200 para não interromper fluxo do N8N
