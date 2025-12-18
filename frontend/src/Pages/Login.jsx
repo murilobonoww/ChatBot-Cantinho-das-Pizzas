@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import axios from 'axios';
-import "../Style/Login.css"
+import "@/Style/Login.css"
 import hide_pass from "/assets/hide_password.png"
 import show_pass from "/assets/show_password.png"
 import { toast } from 'react-toastify';

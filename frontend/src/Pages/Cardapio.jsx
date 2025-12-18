@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import "../Style/Cardapio.css";
+import "@/Style/Cardapio.css";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import axios from "axios";
 import 'react-toastify/dist/ReactToastify.css';
 import bell_sound from "/assets/bell.mp3"
 import pizza_img from "/assets/pizza.png"
-import { ErrorIcon } from "react-hot-toast";
 
 export default function Cardapio() {
   const [cardapio, setCardapio] = useState({ pizzas: [], esfihas: [], bebidas: [], doces: [], outros: [] });
@@ -349,17 +348,8 @@ export default function Cardapio() {
     </div>
   )
 
-
-
-
-
-
-
-
-
   return (
     <div className="cardapio-container">
-      <ToastContainer position="top-right" autoClose={3000} />
       <div className="topo-fixo" ref={topoFixoRef}>
         <div className="topo-fixo-container">
           <h1>Cardápio</h1>

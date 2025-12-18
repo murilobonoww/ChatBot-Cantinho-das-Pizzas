@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
-import "../Style/Pedidos.css";
+import "@/Style/Pedidos.css";
 import expandir_img from "/assets/folder.webp";
 import recolher_img from "/assets/open-folder.webp";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css'; // Importe o CSS
 import none_result from "/assets/nenhum-resultado-encontrado.png";
 import { Link, useLocation } from "react-router-dom";

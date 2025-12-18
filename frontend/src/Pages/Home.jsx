@@ -1,25 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
-import "../Style/Home.css";
-import relatorios from "/assets/statistics.webp";
-import historico from "/assets/historico.webp";
-import menu from "/assets/menu.webp";
-import config from "/assets/control.webp";
-import entregadores from "/assets/entregador.webp";
+import "@/Style/Home.css";
 import { data, Link, Navigate, useNavigate } from "react-router-dom";
-import entregas_icon2 from "/assets/entregas.webp";
-import notificacao_icone from "/assets/notification_icon.webp";
-import bug_report from "/assets/bug-report.webp"
-import bell_sound from "/assets/bell.mp3"
 import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { bell_sound, bug_report, notification_icon, entregas, entregador, menu, historico, statistics } from "../assets/assets_index";
 
 const cards = [
   { icon: <img id="menu_img" src={historico} />, title: "Pedidos", to: "/pedidos" },
-  { icon: <img id="menu_img" src={entregas_icon2} />, title: "Entregas", external: true, to: "https://app.foodydelivery.com/u/0/home" },
-  { icon: <img id="menu_img_entregadores" src={entregadores} />, title: "Entregadores", external: true, to: "https://app.foodydelivery.com/u/0/couriers" },
-  { icon: <img id="menu_img" src={relatorios} />, title: "Faturamento", to: "/relatorios" },
+  { icon: <img id="menu_img" src={entregas} />, title: "Entregas", external: true, to: "https://app.foodydelivery.com/u/0/home" },
+  { icon: <img id="menu_img_entregadores" src={entregador} />, title: "Entregadores", external: true, to: "https://app.foodydelivery.com/u/0/couriers" },
+  { icon: <img id="menu_img" src={statistics} />, title: "Faturamento", to: "/relatorios" },
   { icon: <img id="menu_img" src={menu} />, title: "Menu", to: "/cardapio" },
   { icon: <img id="menu_img" src={bug_report} />, title: "Reportar bug", to: "https://wa.me/5548992254888" }
 ];
@@ -37,14 +28,11 @@ export default function Home({ enviarListaDeNovosIDs }) {
   const [toggle_badge, setToggle_badge] = useState(false);
   const [ids_novos_pedidos, setIds_novos_pedidos] = useState([]);
 
-  
-
   const playSound = () => {
     const audio = new Audio(bell_sound);
     audio.volume = 0.7;
     audio.play();
   }
-
 
   useEffect(() => {
     const fetchPedidos = async () => {
@@ -95,11 +83,10 @@ export default function Home({ enviarListaDeNovosIDs }) {
     }
   };
 
-  // Load initial notifications
   useEffect(() => {
     async function carregarNotificacoesIniciais() {
       try {
-        const response = await axios.get("https://chatbot-cantinho-das-pizzas-production.up.railway.app/notificacoes/ativas");
+        const response = await axios.get("https://back-cantinho-das-pizzas.onrender.com/notification/pendentes");
         setNotificacoes(response.data);
         setTemNotificacoesNaoLidas(response.data.some((n) => n.status === "pendente"));
       } catch (error) {
@@ -110,7 +97,22 @@ export default function Home({ enviarListaDeNovosIDs }) {
       }
     }
     carregarNotificacoesIniciais();
-  }, []);
+  }, [notificacoes]);
+
+  const limparNot = async (id_not) => {
+    try {
+      const body = { id: id_not, status: 'atendida'}
+      const res = await axios.put('https://back-cantinho-das-pizzas.onrender.com/notification/atualizar', body)
+      toast.success('Notificação apagada com sucesso!', {autoClose: 1500, closeOnClick: true})
+    } catch (error) {
+      console.log(error)
+      throw error;
+    }
+  }
+
+
+
+
 
   // WebSocket setup
   useEffect(() => {
@@ -322,7 +324,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
       <div className="logout"><button onClick={logOut} id="logout_btn">Sair</button></div>
       <div className="notification-icon-container">
         <img
-          src={notificacao_icone}
+          src={notification_icon}
           id="not_icon"
           draggable="false"
           alt="Ícone de Notificação"
@@ -363,7 +365,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
                 </span>
                 {notificacao.status === "pendente" && (
                   <button
-                    onClick={() => atualizarStatusNotificacao(notificacao.id_notificacao)}
+                    onClick={() => limparNot(notificacao.id_notificacao)}
                     className="atender-button"
                     aria-label={`Marcar notificação ${notificacao.id_notificacao.slice(0, 8)} como atendida`}
                   >
