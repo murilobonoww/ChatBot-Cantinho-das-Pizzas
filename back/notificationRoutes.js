@@ -9,14 +9,13 @@ const { randomUUID } = require("crypto");
 function emitirNotificacao(id, numero, mensagem, tipo, status_default) {
     try {
         if (tipo === 'cancelamento') {
-        global.io.emit('notificacao_cancelamento', { id, numero, mensagem, tipo, status_default })
-    }
-    else if (tipo === 'atendente real') {
-        global.io.emit('notificacao_atendente', { id, numero, mensagem, tipo, status_default })
-    }
-    else {
-        global.io.emit('notificacao', { id, numero, mensagem, tipo, status_default })
-    }
+            global.io.emit('notificacao_cancelamento', { id, numero, mensagem, tipo, status_default })
+        }
+        
+        else {
+            global.io.emit('notificacao', { id, numero, mensagem, tipo, status_default })
+        }
+
     } catch (error) {
         console.log("Erro ao emitir notificação: ", error)
         throw new error

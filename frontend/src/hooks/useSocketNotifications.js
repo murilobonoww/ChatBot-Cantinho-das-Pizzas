@@ -9,7 +9,7 @@ export function useSocketNotifications() {
             console.log('Conectado socket: ', socket.id);
         })
 
-        socket.on('nova_notificacao', (dados) => {
+        socket.on('notificacao', (dados) => {
             toast.warning(dados.mensagem)
             playSound();
         })
