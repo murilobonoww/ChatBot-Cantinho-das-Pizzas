@@ -6,10 +6,10 @@ dotenv.config();
 const axios = require("axios");
 const { randomUUID } = require("crypto");
 
-function emitirNotificacao(id, numero, mensagem, tipo, status_default) {
+function emitirNotificacao(id, numero, mensagem, tipo, status_default, id_pedido) {
     try {
         if (tipo === 'cancelamento') {
-            global.io.emit('notificacao_cancelamento', { id, numero, mensagem, tipo, status_default })
+            global.io.emit('notificacao_cancelamento', { id, numero, mensagem, tipo, status_default, id_pedido })
         }
         
         else {
@@ -24,7 +24,7 @@ function emitirNotificacao(id, numero, mensagem, tipo, status_default) {
 
 router.post("/post", async (req, res) => {
     try {
-        const { numero, mensagem, tipo } = req.body;
+        const { numero, mensagem, tipo, id_pedido } = req.body;
         const id = randomUUID();
         const status_default = 'pendente'; //status default
         let values = [id, numero, mensagem, tipo, status_default];
@@ -33,7 +33,7 @@ router.post("/post", async (req, res) => {
         const [rows] = await db.execute(sql, values)
 
         if (global.io) {
-            emitirNotificacao(id, numero, mensagem, tipo, status_default)
+            emitirNotificacao(id, numero, mensagem, tipo, status_default, id_pedido)
         }
         else {
             console.warn("⚠️ Socket.IO não inicializado");
