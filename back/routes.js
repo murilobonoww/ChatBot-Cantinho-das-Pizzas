@@ -493,6 +493,10 @@ async function inserir_pedido_no_db(pedido) {
       console.log('Nome resolvido:', saborItem);
       console.log('---------------------');
       itensResolvidos.push({ ...item, saborItem });
+
+      if (saborItem === 'NAO_ENCONTRADO') {
+        throw new Error(`Item não encontrado no cardápio: ${item.sabor}`);
+      }
     }
 
     for (const item of itensResolvidos) {
@@ -549,9 +553,7 @@ Retorne apenas o resultado.
       ]
     });
 
-    if (saborItem === 'NAO_ENCONTRADO') {
-      throw new Error(`Item não encontrado no cardápio: ${item.sabor}`);
-    }
+
 
     return response.choices[0].message.content;
   } catch (error) {
