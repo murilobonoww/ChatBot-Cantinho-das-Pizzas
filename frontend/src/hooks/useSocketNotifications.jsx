@@ -2,26 +2,39 @@ import { useEffect } from "react";
 import socket from "@/services/socket";
 import { toast } from "react-toastify";
 import bell_sound from "/assets/bell.mp3"
+import axios from "axios";
 
 export function useSocketNotifications() {
     console.log("🚀 useSocketNotifications EXECUTADO");
 
-    function toastCancelamento(numero) {
+    async function cancelarPedido(id) {
+        try {
+            const res = await axios.delete(`https://back-cantinho-das-pizzas.onrender.com/pedido/${id}`)
+            toast.success('Pedido cancelado com sucesso!')
+        } catch (error) {
+            console.log('Erro ao cancelar pedido: ', error)
+            throw new error
+        }
+    }
+
+
+    function toastCancelamento(numero, id_pedido) {
         toast(
             ({ closeToast }) => (
                 <div>
-                    <strong>{numero}</strong> pede cancelamento de <strong>#75</strong>
+                    Solicitação de cancelamento para <strong>#{id_pedido}</strong>
+
                     <div style={{ marginTop: 10 }}>
-                        <button style={{ backgroundColor: '#ff6185', color: 'white' }}
-                            onClick={() => {
-                                console.log("pedido cancelado")
-                            }}
+                        <button style={{ backgroundColor: '#7adb72', color: 'white' }}
+                            onClick={() => { cancelarPedido(id_pedido) }}
                         >
                             Aceitar
                         </button>
 
-                        <button onClick={closeToast} style={{ marginLeft: 8, backgroundColor: '#7adb72', color: 'white' }}>
-                            Recusar
+                        <button style={{ marginLeft: '10px', backgroundColor: '#ff6185', color: 'white' }}
+                            onClick={() => { closeToast() }}
+                        >
+                            Rejeitar
                         </button>
                     </div>
                 </div>
@@ -39,14 +52,14 @@ export function useSocketNotifications() {
         })
 
         socket.on('notificacao', (dados) => {
-            toast.warning(dados.mensagem, {autoClose: false})
+            toast.warning(dados.mensagem, { autoClose: false })
             playSound();
         })
 
         socket.on('notificacao_cancelamento', (dados) => {
             console.log("pedido cancelado")
             playSound();
-            toastCancelamento(dados.numero);
+            toastCancelamento(dados.numero, dados.id_pedido);
         })
 
         return () => {

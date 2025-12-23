@@ -812,7 +812,7 @@ const Pedidos = () => {
                         </button>
                       )}
 
-                      {pedido.alteracao !== 0 && pedido.alteracao !== null && <p id="alter_lbl_alert">(alteração de <strong>#{pedido.alteracao}</strong>)</p>}
+                      {pedido.alteracao !== 0 && pedido.alteracao !== null && <p id="alter_lbl_alert">(alteração)</p>}
 
                     </div>
 

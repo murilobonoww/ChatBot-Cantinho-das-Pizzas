@@ -20,6 +20,8 @@ export default function Cardapio() {
   const [selectedItems, setSelectedItems] = useState({ section: null, ids: [] });
   const carregamentoInicial = useRef(true)
   const last_time_data = useRef([]);
+  const collator = new Intl.Collator("pt-BR");
+  
   const [newItem, setNewItem] = useState({
     section: "pizzas",
     nome: "",
@@ -117,7 +119,7 @@ export default function Cardapio() {
 
   const filtrarItens = useMemo(() => {
     return (lista) => {
-      return lista.filter(item => {
+      return lista.sort((a, b) => collator.compare(a.sabor || a.nome, b.sabor || b.nome)).filter(item => {
         const campoSabor = item.sabor || item.nome || "";
         const campoIngredientes = item.ingredientes || "";
         return (
@@ -420,11 +422,6 @@ export default function Cardapio() {
               stroke-linecap="round"
 
             ></path></svg></button>
-
-
-
-
-
 
             <button
               aria-label={isDeleting ? "Confirmar exclusão de itens" : "Entrar no modo de exclusão"}

@@ -8,6 +8,13 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit");
 
+const OpenAI = require("openai");
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+
 const MAPS_API_KEY = process.env.MAPS_API_KEY;
 const CODE_HASH = process.env.COMPANY_CODE_HASH;
 const SECRET_KEY = process.env.JWT_SECRET;
@@ -359,9 +366,9 @@ const calcularPreco = async (pedido) => {
   return Number(preco_total.toFixed(2));
 };
 
-function formataDataPedido () {
+function formataDataPedido() {
   const agora = new Date();
-  return agora.toISOString().slice(0,19).replace('T', ' ');
+  return agora.toISOString().slice(0, 19).replace('T', ' ');
 }
 
 router.post("/finalizar-pedido", async (req, res) => {
@@ -388,6 +395,7 @@ router.post("/finalizar-pedido", async (req, res) => {
     pedido.preco_total = Number((preco_total + taxa).toFixed(2));
 
     pedido.data_pedido = formataDataPedido()
+
     const pedido_id = await inserir_pedido_no_db(pedido)
     return res.send(gerar_msg_final(pedido_id, pedido))
 
@@ -469,30 +477,28 @@ function valores_pedido(p) {
     p.alteracao
   ];
 }
-
-//retorna valores do SQL **DOS ITENS DO PEDIDO** de inserir_pedido_no_db
-function valores_item_pedido(i, pedido_id) {
-  return [
-    pedido_id,
-    i.produto,
-    i.sabor,
-    i.quantidade,
-    i.observacao,
-    i.preco
-  ];
-}
-
 async function inserir_pedido_no_db(pedido) {
 
   try {
     const [resultadoPedido] = await db.execute(query_pedido(), valores_pedido(pedido));
     const pedido_id = resultadoPedido.insertId;
 
-    if (Array.isArray(pedido.itens) && pedido.itens.length > 0) {
-      for (const item of pedido.itens) {
+    const itensResolvidos = [];
 
-        const [resultadoItem] = await db.execute(query_item_pedido(), valores_item_pedido(item, pedido_id));
-      }
+    for (const item of pedido.itens) {
+      const saborItem = await askOpenAI(item.sabor);
+      itensResolvidos.push({ ...item, saborItem });
+    }
+
+    for (const item of itensResolvidos) {
+      await db.execute(query_item_pedido(), [
+        pedido_id,
+        item.produto,
+        item.saborItem,
+        item.quantidade,
+        item.observacao,
+        item.preco
+      ]);
     }
 
     console.log(
@@ -504,10 +510,157 @@ async function inserir_pedido_no_db(pedido) {
     return pedido_id
 
   } catch (error) {
+    // tratar404();
     console.error("Erro ao inserir pedido no database: ", error)
     throw error;
   }
 }
+
+
+// const tratar404 = (error) => {
+//   if (error?.message.includes("não encontrado")) {
+
+//   }
+// }
+
+async function askOpenAI(nomeItem, categoriaItem) {
+  try {
+    const menu = getAllNames;
+    const response = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      temperature: 0.3,
+      messages: [
+        {
+          role: "user", content: `Você deve verificar se o item informado existe no cardápio.
+
+Entrada do usuário:
+- Nome informado: "${nomeItem}"
+- Categoria: "${categoriaItem}"
+
+Cardápio disponível:
+${menu}
+
+Regras:
+1. Compare o nome informado com os nomes do cardápio da categoria informada.
+2. Se existir um nome igual ou muito parecido no cardápio, retorne **exatamente o nome como está escrito no cardápio** (sem alterar letras, acentos ou números).
+3. Se houver mais de uma opção parecida (ex: "frango 1" e "frango 2"), retorne apenas a que tiver o número "1" no final, ou caso não haja número no final, retorne a opção mais neutra possível.
+4. Se não existir nenhuma opção correspondente, responda exatamente: "NAO_ENCONTRADO".
+5. Não explique o raciocínio e não invente nomes.
+
+Retorne apenas o resultado.
+` }
+      ]
+    });
+
+    return response.choices[0].message.content;
+  } catch (error) {
+    console.error("Erro OpenAI:", error);
+    throw error;
+  }
+}
+
+
+////////////////////////////////////////////////////////////// PIZZAS
+function queryNamesPizzas() {
+  return `SELECT sabor FROM pizzas;`
+}
+
+async function getAllNamesPizzas() {
+  try {
+    const [rows] = await db.query(queryNamesPizzas)
+    return rows.map(row => row.name)
+
+  } catch (error) {
+    throw new error
+  }
+}
+
+////////////////////////////////////////////////////////////// ESFIHAS
+function queryNamesEsfihas() {
+  return `SELECT sabor FROM esfihas;`
+}
+
+async function getAllNamesEsfihas() {
+  try {
+    const [rows] = await db.query(queryNamesEsfihas)
+    return rows.map(row => row.name)
+
+  } catch (error) {
+    throw new error
+  }
+}
+
+////////////////////////////////////////////////////////////// BEBIDAS
+function queryNamesBebidas() {
+  return `SELECT nome FROM bebidas;`
+}
+
+async function getAllNamesBebidas() {
+  try {
+    const [rows] = await db.query(queryNamesBebidas)
+    return rows.map(row => row.name)
+
+  } catch (error) {
+    throw new error
+  }
+}
+
+////////////////////////////////////////////////////////////// DOCES
+function queryNamesDoces() {
+  return `SELECT nome FROM doces;`
+}
+
+async function getAllNamesDoces() {
+  try {
+    const [rows] = await db.query(queryNamesDoces)
+    return rows.map(row => row.name)
+
+  } catch (error) {
+    throw new error
+  }
+}
+
+////////////////////////////////////////////////////////////// OUTROS
+function queryNamesOutros() {
+  return `SELECT nome FROM outros;`
+}
+
+async function getAllNamesOutros() {
+  try {
+    const [rows] = await db.query(queryNamesOutros)
+    return rows.map(row => row.name)
+
+  } catch (error) {
+    throw new error
+  }
+}
+
+async function getAllNames() {
+  const pizzas = 'pizzas: ' + await getAllNamesPizzas
+  const esfihas = 'esfihas: ' + await getAllNamesEsfihas
+  const bebidas = 'bebidas: ' + await getAllNamesBebidas
+  const doces = 'doces: ' + await getAllNamesDoces
+  const outros = 'outros: ' + await getAllNamesOutros
+
+  const all = pizzas + esfihas + bebidas + doces + outros
+  return all;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 router.get("/pedido/getAll", autenticar, async (req, res) => {
 
