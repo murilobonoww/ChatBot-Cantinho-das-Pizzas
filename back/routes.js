@@ -510,18 +510,10 @@ async function inserir_pedido_no_db(pedido) {
     return pedido_id
 
   } catch (error) {
-    // tratar404();
-    console.error("Erro ao inserir pedido no database: ", error)
-    throw error;
+    
+    throw new Error('Erro ao inserir pedido no db. Nome(s) do(s) item(s): ', itensResolvidos, {cause: error});
   }
 }
-
-
-// const tratar404 = (error) => {
-//   if (error?.message.includes("não encontrado")) {
-
-//   }
-// }
 
 async function askOpenAI(nomeItem, categoriaItem) {
   try {
