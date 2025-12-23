@@ -486,7 +486,7 @@ async function inserir_pedido_no_db(pedido) {
     const itensResolvidos = [];
 
     for (const item of pedido.itens) {
-      const saborItem = await askOpenAI(item.sabor);
+      const saborItem = await askOpenAI(item.sabor, item.produto);
       itensResolvidos.push({ ...item, saborItem });
     }
 
@@ -525,7 +525,7 @@ async function inserir_pedido_no_db(pedido) {
 
 async function askOpenAI(nomeItem, categoriaItem) {
   try {
-    const menu = getAllNames;
+    const menu = getAllNames(categoriaItem);
     const response = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       temperature: 0.3,
@@ -537,11 +537,11 @@ Entrada do usuário:
 - Nome informado: "${nomeItem}"
 - Categoria: "${categoriaItem}"
 
-Cardápio disponível:
+Cardápio da categoria:
 ${menu}
 
 Regras:
-1. Compare o nome informado com os nomes do cardápio da categoria informada.
+1. Compare o nome informado com os nomes do cardápio informado.
 2. Se existir um nome igual ou muito parecido no cardápio, retorne **exatamente o nome como está escrito no cardápio** (sem alterar letras, acentos ou números).
 3. Se houver mais de uma opção parecida (ex: "frango 1" e "frango 2"), retorne apenas a que tiver o número "1" no final, ou caso não haja número no final, retorne a opção mais neutra possível.
 4. Se não existir nenhuma opção correspondente, responda exatamente: "NAO_ENCONTRADO".
@@ -559,93 +559,16 @@ Retorne apenas o resultado.
   }
 }
 
-
-////////////////////////////////////////////////////////////// PIZZAS
-function queryNamesPizzas() {
-  return `SELECT sabor FROM pizzas;`
-}
-
-async function getAllNamesPizzas() {
+async function getAllNames(categoria) {
   try {
-    const [rows] = await db.query(queryNamesPizzas)
-    return rows.map(row => row.name)
+    const coluna = categoria === 'pizzas' || categoria === 'esfihas' ? 'sabor' : 'nome'
+    const [rows] = await db.query(`SELECT ? from ?`, [coluna, categoria])
 
+    return rows.map(row => row.name)
   } catch (error) {
     throw new error
   }
 }
-
-////////////////////////////////////////////////////////////// ESFIHAS
-function queryNamesEsfihas() {
-  return `SELECT sabor FROM esfihas;`
-}
-
-async function getAllNamesEsfihas() {
-  try {
-    const [rows] = await db.query(queryNamesEsfihas)
-    return rows.map(row => row.name)
-
-  } catch (error) {
-    throw new error
-  }
-}
-
-////////////////////////////////////////////////////////////// BEBIDAS
-function queryNamesBebidas() {
-  return `SELECT nome FROM bebidas;`
-}
-
-async function getAllNamesBebidas() {
-  try {
-    const [rows] = await db.query(queryNamesBebidas)
-    return rows.map(row => row.name)
-
-  } catch (error) {
-    throw new error
-  }
-}
-
-////////////////////////////////////////////////////////////// DOCES
-function queryNamesDoces() {
-  return `SELECT nome FROM doces;`
-}
-
-async function getAllNamesDoces() {
-  try {
-    const [rows] = await db.query(queryNamesDoces)
-    return rows.map(row => row.name)
-
-  } catch (error) {
-    throw new error
-  }
-}
-
-////////////////////////////////////////////////////////////// OUTROS
-function queryNamesOutros() {
-  return `SELECT nome FROM outros;`
-}
-
-async function getAllNamesOutros() {
-  try {
-    const [rows] = await db.query(queryNamesOutros)
-    return rows.map(row => row.name)
-
-  } catch (error) {
-    throw new error
-  }
-}
-
-async function getAllNames() {
-  const pizzas = 'pizzas: ' + await getAllNamesPizzas
-  const esfihas = 'esfihas: ' + await getAllNamesEsfihas
-  const bebidas = 'bebidas: ' + await getAllNamesBebidas
-  const doces = 'doces: ' + await getAllNamesDoces
-  const outros = 'outros: ' + await getAllNamesOutros
-
-  const all = pizzas + esfihas + bebidas + doces + outros
-  return all;
-}
-
 
 
 
