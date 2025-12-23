@@ -18,7 +18,7 @@ function emitirNotificacao(id, numero, mensagem, tipo, status_default, id_pedido
 
     } catch (error) {
         console.log("Erro ao emitir notificação: ", error)
-        throw new error
+        throw error
     }
 }
 

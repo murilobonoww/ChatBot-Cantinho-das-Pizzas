@@ -426,7 +426,7 @@ function gerar_msg_final(id_pedido, pedido) {
 
   const taxa = `• 🚚 Taxa de entrega: R$${pedido.taxa_entrega.toFixed(2).replace('.', ',')}`
 
-  preco_total = `• Total: R$${pedido.preco_total.toFixed(2).replace('.', ',')}`
+  const preco_total = `• Total: R$${pedido.preco_total.toFixed(2).replace('.', ',')}`
 
   const aviso = "*O pagamento será feito na entrega.*"
 
@@ -487,7 +487,11 @@ async function inserir_pedido_no_db(pedido) {
 
     for (const item of pedido.itens) {
       const saborItem = await askOpenAI(item.sabor, item.produto);
-      console.log(saborItem)
+      console.log('🔍 RESOLUÇÃO DE ITEM');
+      console.log('Produto:', item.produto);
+      console.log('Nome enviado:', item.sabor);
+      console.log('Nome resolvido:', saborItem);
+      console.log('---------------------');
       itensResolvidos.push({ ...item, saborItem });
     }
 
@@ -511,8 +515,8 @@ async function inserir_pedido_no_db(pedido) {
     return pedido_id
 
   } catch (error) {
-    
-    throw new Error('Erro ao inserir pedido no db. Nome(s) do(s) item(s): ', itensResolvidos, {cause: error});
+
+    throw error;
   }
 }
 
@@ -554,12 +558,29 @@ Retorne apenas o resultado.
 
 async function getAllNames(categoria) {
   try {
-    const coluna = categoria === 'pizzas' || categoria === 'esfihas' ? 'sabor' : 'nome'
-    const [rows] = await db.query(`SELECT ? from ?`, [coluna, categoria])
+    if (categoria === 'Pizza') {
+      const [rows] = await db.query(`SELECT sabor FROM pizzas`)
+    }
+
+    else if (categoria === 'Esfiha') {
+      const [rows] = await db.query(`SELECT sabor FROM pizzas`)
+    }
+
+    else if (categoria === 'Bebida') {
+      const [rows] = await db.query(`SELECT nome FROM bebidas`)
+    }
+
+    else if (categoria === 'Doce') {
+      const [rows] = await db.query(`SELECT nome FROM doces`)
+    }
+
+    else if (categoria === 'Outros') {
+      const [rows] = await db.query(`SELECT nome FROM outros`)
+    }
 
     return rows.map(row => row.name)
   } catch (error) {
-    throw new error
+    throw error
   }
 }
 
