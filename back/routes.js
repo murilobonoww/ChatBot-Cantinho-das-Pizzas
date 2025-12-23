@@ -522,7 +522,7 @@ async function inserir_pedido_no_db(pedido) {
 
 async function askOpenAI(nomeItem, categoriaItem) {
   try {
-    const menu = getAllNames(categoriaItem);
+    const menu = (await getAllNames(categoriaItem)).join('\n');
     const response = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       temperature: 0.3,
@@ -549,6 +549,10 @@ Retorne apenas o resultado.
       ]
     });
 
+    if (saborItem === 'NAO_ENCONTRADO') {
+      throw new Error(`Item não encontrado no cardápio: ${item.sabor}`);
+    }
+
     return response.choices[0].message.content;
   } catch (error) {
     console.error("Erro OpenAI:", error);
@@ -560,25 +564,29 @@ async function getAllNames(categoria) {
   try {
     if (categoria === 'Pizza') {
       const [rows] = await db.query(`SELECT sabor FROM pizzas`)
+      return rows.map(row => row.name)
     }
 
     else if (categoria === 'Esfiha') {
       const [rows] = await db.query(`SELECT sabor FROM pizzas`)
+      return rows.map(row => row.name)
     }
 
     else if (categoria === 'Bebida') {
       const [rows] = await db.query(`SELECT nome FROM bebidas`)
+      return rows.map(row => row.name)
     }
 
     else if (categoria === 'Doce') {
       const [rows] = await db.query(`SELECT nome FROM doces`)
+      return rows.map(row => row.name)
     }
 
     else if (categoria === 'Outros') {
       const [rows] = await db.query(`SELECT nome FROM outros`)
+      return rows.map(row => row.name)
     }
 
-    return rows.map(row => row.name)
   } catch (error) {
     throw error
   }
