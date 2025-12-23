@@ -487,6 +487,7 @@ async function inserir_pedido_no_db(pedido) {
 
     for (const item of pedido.itens) {
       const saborItem = await askOpenAI(item.sabor, item.produto);
+      console.log(saborItem)
       itensResolvidos.push({ ...item, saborItem });
     }
 
