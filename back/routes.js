@@ -309,7 +309,7 @@ const calcularPreco = async (pedido) => {
           [sabor]
         );
         if (!rows.length) {
-          throw new Error(`${item.produto} não encontrado`);
+          throw new Error(`${sabor} não encontrado`);
         }
 
         price = rows[0].preco;
