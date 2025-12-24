@@ -495,7 +495,7 @@ async function inserir_pedido_no_db(pedido) {
       itensResolvidos.push({ ...item, saborItem });
 
       if (saborItem === 'NAO_ENCONTRADO') {
-        throw new Error(`Item não encontrado no cardápio: ${item.sabor}`);
+        throw new Error(`sabor não encontrado no cardápio: ${item.sabor}`);
       }
     }
 
@@ -523,7 +523,7 @@ async function inserir_pedido_no_db(pedido) {
     throw error;
   }
 }
-
+                        //'calabresa', 'Esfiha'
 async function askOpenAI(nomeItem, categoriaItem) {
   try {
     const menu = (await getAllNames(categoriaItem)).join('\n');
@@ -532,10 +532,8 @@ async function askOpenAI(nomeItem, categoriaItem) {
       temperature: 0.3,
       messages: [
         {
-          role: "user", content: `Você deve verificar se o item informado existe no cardápio.
-
-Entrada do usuário:
-- Nome informado: "${nomeItem}"
+          role: "user", content: `Você deve verificar se o item informado existe no cardápio. Entrada do usuário:
+- Nome/sabor informado: "${nomeItem}"
 - Categoria: "${categoriaItem}"
 
 Cardápio da categoria:
@@ -566,27 +564,27 @@ async function getAllNames(categoria) {
   try {
     if (categoria === 'Pizza') {
       const [rows] = await db.query(`SELECT sabor FROM pizzas`)
-      return rows.map(row => row.name)
+      return rows.map(row => row.sabor)
     }
 
     else if (categoria === 'Esfiha') {
-      const [rows] = await db.query(`SELECT sabor FROM pizzas`)
-      return rows.map(row => row.name)
+      const [rows] = await db.query(`SELECT sabor FROM esfihas`)
+      return rows.map(row => row.sabor)
     }
 
     else if (categoria === 'Bebida') {
       const [rows] = await db.query(`SELECT nome FROM bebidas`)
-      return rows.map(row => row.name)
+      return rows.map(row => row.nome)
     }
 
     else if (categoria === 'Doce') {
       const [rows] = await db.query(`SELECT nome FROM doces`)
-      return rows.map(row => row.name)
+      return rows.map(row => row.nome)
     }
 
     else if (categoria === 'Outros') {
       const [rows] = await db.query(`SELECT nome FROM outros`)
-      return rows.map(row => row.name)
+      return rows.map(row => row.nome)
     }
 
   } catch (error) {
