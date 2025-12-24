@@ -438,8 +438,14 @@ function gerar_msg_final(id_pedido, pedido) {
 
   const agradecimento = "Obrigado pelo seu pedido! Em breve estaremos aí... 🍕🏍️"
 
-  const msg_final = `${title}\n${itens}${forma_de_pagamento}\n${endereco}\n${taxa}\n${preco_total}\n${aviso}\n${agradecimento}`
-  return msg_final
+  if (pedido.alteracao === 1) {
+    const msg_final = `*(Alteração de pedido)*\n${title}\n${itens}${forma_de_pagamento}\n${endereco}\n${taxa}\n${preco_total}\n${aviso}\n${agradecimento}`
+    return msg_final
+  }
+  else {
+    const msg_final = `${title}\n${itens}${forma_de_pagamento}\n${endereco}\n${taxa}\n${preco_total}\n${aviso}\n${agradecimento}`
+    return msg_final
+  }
 }
 
 //retorna o SQL de inserir_pedido_no_db
@@ -512,7 +518,7 @@ async function inserir_pedido_no_db(pedido) {
     throw error;
   }
 }
-                        //'calabresa', 'Esfiha'
+//'calabresa', 'Esfiha'
 async function askOpenAI(nomeItem, categoriaItem) {
   try {
     const menu = (await getAllNames(categoriaItem)).join('\n');

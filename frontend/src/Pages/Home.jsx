@@ -12,7 +12,7 @@ const cards = [
   { icon: <img id="menu_img_entregadores" src={entregador} />, title: "Entregadores", external: true, to: "https://app.foodydelivery.com/u/0/couriers" },
   { icon: <img id="menu_img" src={statistics} />, title: "Faturamento", to: "/relatorios" },
   { icon: <img id="menu_img" src={menu} />, title: "Menu", to: "/cardapio" },
-  { icon: <img id="menu_img" src={bug_report} />, title: "Reportar bug", to: "https://wa.me/5548992254888" }
+  { icon: <img id="menu_img" src={bug_report} />, title: "Reportar bug", external: true, to:"https://wa.me/5548992254888" }
 ];
 
 export default function Home({ enviarListaDeNovosIDs }) {
