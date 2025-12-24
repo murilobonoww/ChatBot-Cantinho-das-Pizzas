@@ -269,7 +269,7 @@ const calcularPreco = async (pedido) => {
     switch (item.produto) {
       case 'Pizza': {
         if (item.observacao.includes('25')) {
-          const sabor = await askOpenAI(item.sabor, 'Pizza')
+          const sabor = await askOpenAI(item.sabor, item.produto)
           const [rows] = await db.execute(
             `SELECT preco_25 FROM pizzas WHERE sabor = ?`,
             [sabor]
@@ -283,7 +283,7 @@ const calcularPreco = async (pedido) => {
           break;
         }
         else if (item.observacao.includes('35')) {
-          const sabor = await askOpenAI(item.sabor, 'Pizza')
+          const sabor = await askOpenAI(item.sabor, item.produto)
           const [rows] = await db.execute(
             `SELECT preco_35 FROM pizzas WHERE sabor = ?`,
             [sabor]
@@ -303,7 +303,7 @@ const calcularPreco = async (pedido) => {
       }
 
       case 'Esfiha': {
-        const sabor = await askOpenAI(item.sabor, 'Pizza')
+        const sabor = await askOpenAI(item.sabor, item.produto)
         const [rows] = await db.execute(
           'SELECT preco FROM esfihas WHERE sabor = ?',
           [sabor]
