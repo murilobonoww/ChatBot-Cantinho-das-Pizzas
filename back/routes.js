@@ -416,13 +416,13 @@ function gerar_msg_final(id_pedido, pedido) {
 
   for (const item of pedido.itens) {
     if (item.produto === 'Pizza') {
-      itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2)} (${item.observacao})`
+      itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2).replace(".", ",")} (${item.observacao})\n`
     }
     else if (item.produto === 'Esfiha') {
-      itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2)}`
+      itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2).replace(".", ",")}\n`
     }
     else {
-      itens += `${item.quantidade} x ${item.sabor} - R$${item.preco.toFixed(2)}`
+      itens += `${item.quantidade} x ${item.sabor} - R$${item.preco.toFixed(2).replace(".", ",")}\n`
     }
   }
 
@@ -438,7 +438,7 @@ function gerar_msg_final(id_pedido, pedido) {
 
   const agradecimento = "Obrigado pelo seu pedido! Em breve estaremos aí... 🍕🏍️"
 
-  const msg_final = `${title}\n${itens}\n${forma_de_pagamento}\n${endereco}\n${taxa}\n${preco_total}\n${aviso}\n${agradecimento}`
+  const msg_final = `${title}\n${itens}${forma_de_pagamento}\n${endereco}\n${taxa}\n${preco_total}\n${aviso}\n${agradecimento}`
   return msg_final
 }
 
