@@ -318,9 +318,10 @@ const calcularPreco = async (pedido) => {
       }
 
       case 'Bebida': {
+        const sabor = await askOpenAI(item.sabor, item.produto)
         const [rows] = await db.execute(
           'SELECT preco FROM bebidas WHERE nome = ?',
-          [item.nome]
+          [sabor]
         );
         if (!rows.length) {
           throw new Error(`${item.produto} não encontrado`);
@@ -332,9 +333,10 @@ const calcularPreco = async (pedido) => {
       }
 
       case 'Doce': {
+        const sabor = await askOpenAI(item.sabor, item.produto)
         const [rows] = await db.execute(
           'SELECT preco FROM doces WHERE nome = ?',
-          [item.nome]
+          [sabor]
         );
         if (!rows.length) {
           throw new Error(`${item.produto} não encontrado`);
@@ -346,9 +348,10 @@ const calcularPreco = async (pedido) => {
       }
 
       case 'Outros': {
+        const sabor = await askOpenAI(item.sabor, item.produto)
         const [rows] = await db.execute(
           'SELECT preco FROM outros WHERE nome = ?',
-          [item.nome]
+          [sabor]
         );
         if (!rows.length) {
           throw new Error(`${item.produto} não encontrado`);
