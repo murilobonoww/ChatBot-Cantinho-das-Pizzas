@@ -269,9 +269,10 @@ const calcularPreco = async (pedido) => {
     switch (item.produto) {
       case 'Pizza': {
         if (item.observacao.includes('25')) {
+          const sabor = await askOpenAI(item.sabor, 'Pizza')
           const [rows] = await db.execute(
             `SELECT preco_25 FROM pizzas WHERE sabor = ?`,
-            [item.sabor]
+            [sabor]
           );
           if (!rows.length) {
             throw new Error(`${item.produto} não encontrado`);
@@ -282,9 +283,10 @@ const calcularPreco = async (pedido) => {
           break;
         }
         else if (item.observacao.includes('35')) {
+          const sabor = await askOpenAI(item.sabor, 'Pizza')
           const [rows] = await db.execute(
             `SELECT preco_35 FROM pizzas WHERE sabor = ?`,
-            [item.sabor]
+            [sabor]
           );
           if (!rows.length) {
             throw new Error(`${item.produto} não encontrado`);
@@ -301,9 +303,10 @@ const calcularPreco = async (pedido) => {
       }
 
       case 'Esfiha': {
+        const sabor = await askOpenAI(item.sabor, 'Pizza')
         const [rows] = await db.execute(
           'SELECT preco FROM esfihas WHERE sabor = ?',
-          [item.sabor]
+          [sabor]
         );
         if (!rows.length) {
           throw new Error(`${item.produto} não encontrado`);
