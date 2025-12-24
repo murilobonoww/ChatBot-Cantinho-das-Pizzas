@@ -422,7 +422,7 @@ function gerar_msg_final(id_pedido, pedido) {
       itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2)}`
     }
     else {
-      itens += `${item.quantidade} x ${item.produto} - R$${item.preco.toFixed(2)}`
+      itens += `${item.quantidade} x ${item.sabor} - R$${item.preco.toFixed(2)}`
     }
   }
 
@@ -440,24 +440,6 @@ function gerar_msg_final(id_pedido, pedido) {
 
   const msg_final = `${title}\n${itens}\n${forma_de_pagamento}\n${endereco}\n${taxa}\n${preco_total}\n${aviso}\n${agradecimento}`
   return msg_final
-
-  // let produtos = ``
-
-  // for (const item of pedido.itens) {
-
-  //   if (item.produto === 'pizza' || item.produto === 'esfiha') {
-  //     let item = `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco} (${item.observacao}) \n`
-  //   }
-  //   else {
-  //     let item = `${item.quantidade} x ${item.produto} - R$${item.preco} \n`
-  //   }
-
-  //   produtos = produtos + item
-  // }
-
-  // const title = `🍕 Pedido ${id_pedido}`
-
-  // let msg = `${title}\n${produtos}\n${pedido.endereco}\n${pedido.taxa}`
 }
 
 //retorna o SQL de inserir_pedido_no_db
