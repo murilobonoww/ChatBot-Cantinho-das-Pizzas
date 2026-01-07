@@ -75,8 +75,6 @@ export default function Cardapio() {
 
   useEffect(() => {
 
-
-
     fetch("https://back-cantinho-das-pizzas.onrender.com/menu", { credentials: "include" })
       .then(res => {
         if (!res.ok) throw new Error("Erro ao carregar cardápio");

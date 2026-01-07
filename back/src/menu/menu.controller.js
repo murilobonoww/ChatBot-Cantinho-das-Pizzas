@@ -7,7 +7,8 @@ async function get(req, res) {
         return res.status(200).json(menu)
     }
     catch (error) {
-        return res.status(500).json({ erro: "Erro ao buscar cardápio: ", error })
+        console.error(error)
+        return res.status(500).json({ erro: "Erro ao buscar cardápio: ", message: error.message })
     }
 }
 
