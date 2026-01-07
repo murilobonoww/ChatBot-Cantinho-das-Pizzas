@@ -18,10 +18,8 @@ async function getAll(filters) {
   query = sortOrdersinSQL(query)
   console.log(query, params)
   const [rows] = await db.query(query, params);
-  console.log(rows)
 
   const orders = structureOrders(rows)
-  console.log(orders)
   return orders
 }
 
