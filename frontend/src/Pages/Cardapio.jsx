@@ -70,14 +70,17 @@ export default function Cardapio() {
 
     fetchPedidos()
     const interval = setInterval(fetchPedidos, 5000);
-    return () => clearInterval(interval);
+    return () => clearInterval(interval);""
   }, [])
 
   useEffect(() => {
+
+
+
     fetch("https://back-cantinho-das-pizzas.onrender.com/menu", { credentials: "include" })
       .then(res => {
         if (!res.ok) throw new Error("Erro ao carregar cardápio");
-        return res.json();
+        return res.json()
       })
       .then(data => {
         const sanitizedData = {

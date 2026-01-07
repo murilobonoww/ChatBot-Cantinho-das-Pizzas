@@ -4,7 +4,7 @@ const menuHelper = require("./menu.helper")
 async function get(req, res) {
     try {
         const menu = await menuHelper.getMenu()
-        return res.status(200).json({ menu })
+        return res.status(200).json(menu)
     }
     catch (error) {
         return res.status(500).json({ erro: "Erro ao buscar cardápio: ", error })
