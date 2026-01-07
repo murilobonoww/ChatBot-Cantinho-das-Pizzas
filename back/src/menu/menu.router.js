@@ -1,12 +1,7 @@
 //libs
 const express = require("express");
-const axios = require("axios");
 
-//config
-const { MAPS_API_KEY, CODE_HASH, JWT_SECRET_KEY } = process.env
-
-//internos
-const db = require("../db");
+//interns
 const router = express.Router();
 const menuController = require("./menu.controller");
 

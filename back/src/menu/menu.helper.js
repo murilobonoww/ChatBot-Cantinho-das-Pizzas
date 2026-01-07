@@ -3,17 +3,13 @@ const db = require("../db");
 const validSections = ["pizzas", "esfihas", "bebidas", "doces", "outros"];
 
 async function getMenu() {
-    try {
-        const [pizzas] = await db.query("SELECT * FROM pizzas")
-        const [esfihas] = await db.query("SELECT * FROM esfihas")
-        const [bebidas] = await db.query("SELECT * FROM bebidas")
-        const [doces] = await db.query("SELECT * FROM doces")
-        const [outros] = await db.query("SELECT * FROM outros")
+    const [pizzas] = await db.query("SELECT * FROM pizzas")
+    const [esfihas] = await db.query("SELECT * FROM esfihas")
+    const [bebidas] = await db.query("SELECT * FROM bebidas")
+    const [doces] = await db.query("SELECT * FROM doces")
+    const [outros] = await db.query("SELECT * FROM outros")
 
-        return ({ pizzas, esfihas, bebidas, doces, outros })
-    } catch (error) {
-        throw error
-    }
+    return ({ pizzas, esfihas, bebidas, doces, outros })
 }
 
 function validateMenuData(data) {
