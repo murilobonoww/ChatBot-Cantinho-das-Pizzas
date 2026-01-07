@@ -1,22 +1,45 @@
+//libs
+import axios from "axios";
+import Swal from "sweetalert2";
 import React, { useEffect, useState, useRef } from "react";
+import { toast } from "react-toastify";
+import { Link, useLocation } from "react-router-dom";
+import withReactContent from "sweetalert2-react-content";
+import 'react-toastify/dist/ReactToastify.css';
+
+
+//interns
 import "@/Style/Pedidos.css";
+import PedidoPrint from "@/Components/PedidoPrint";
+
+
+//assets
 import expandir_img from "/assets/folder.webp";
 import recolher_img from "/assets/open-folder.webp";
-import { toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css'; // Importe o CSS
 import none_result from "/assets/nenhum-resultado-encontrado.png";
-import { Link, useLocation } from "react-router-dom";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
-import { jsPDF } from "jspdf";
 import impressora_icon from "/assets/printer_.png"
 import warning_icon from "/assets/warning.webp"
 import bell_sound from "/assets/bell.mp3"
-import axios from "axios";
+
 
 const MySwal = withReactContent(Swal);
 
 const Pedidos = () => {
+
+  //add feature de impressão
+  const [pedidoParaImprimir, setPedidoParaImprimir] = useState(null);
+
+  function imprimir(pedido) {
+    setPedidoParaImprimir(pedido);
+
+    // pequeno delay para garantir renderização
+    setTimeout(() => {
+      if (window.api) {
+        window.api.print();
+      }
+    }, 100);
+  }
+
 
   const [id_filter, setIdFilter] = useState()
   const [pedidos, setPedidos] = useState([]);
@@ -63,7 +86,7 @@ const Pedidos = () => {
   }, [id_filter, dataInicio, dataFim, nomeCliente, secao_pedido_filtro]);
 
   useEffect(() => {
-    fetch("https://back-cantinho-das-pizzas.onrender.com/pedido/getAll", {
+    fetch("https://back-cantinho-das-pizzas.onrender.com/order/getAll", {
       credentials: "include"
     })
       .then(res => res.json())
@@ -128,7 +151,7 @@ const Pedidos = () => {
   }, [location.state]);
 
   const fetchPedidos = () => {
-    fetch(`https://back-cantinho-das-pizzas.onrender.com/pedido/getAll`, {
+    fetch(`https://back-cantinho-das-pizzas.onrender.com/order/getAll`, {
       credentials: "include"
     })
       .then(res => res.json())
@@ -175,7 +198,7 @@ const Pedidos = () => {
     if (nomeCliente) params.append("cliente", nomeCliente);
 
 
-    fetch(`https://back-cantinho-das-pizzas.onrender.com/pedido/getAll?${params.toString()}`, {
+    fetch(`https://back-cantinho-das-pizzas.onrender.com/order/getAll?${params.toString()}`, {
       credentials: "include"
     })
       .then((res) => res.json())
@@ -224,7 +247,7 @@ const Pedidos = () => {
       },
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`https://back-cantinho-das-pizzas.onrender.com/pedido/${id}`, {
+        fetch(`https://back-cantinho-das-pizzas.onrender.com/order/${id}`, {
           method: "DELETE",
           credentials: "include"
         })
@@ -289,41 +312,8 @@ const Pedidos = () => {
     setItensSelecionados((prev) => prev.filter((i) => i !== item));
   };
 
-  const gerarPDF = (orderID) => {
-    const order = pedidos.find(o => o.id_pedido === orderID)
-    const doc = new jsPDF()
-    const itens_arr = order.itens
-    let y = 50
-
-    itens_arr.map(i => {
-
-      if (i.produto === "pizza" || i.produto === "esfiha") {
-        doc.text(`${i.quantidade} x ${i.produto} de ${i.sabor} - ${i.observacao} (R$${i.preco})`, 10, y)
-        y += 10
-      }
-      else if (i.produto === "bebida") {
-        doc.text(`${i.quantidade} x ${i.sabor} - ${i.observacao} (R$${i.preco})`, 10, y)
-        y += 10
-      }
-      else {
-        doc.text(`\nProduto:${i.produto}\nSabor:${i.sabor}\nQuantidade:${i.quantidade}\nObs.:${i.observacao}`, 10, y)
-        y += 10
-      }
-
-    })
-
-    if (pedido.alteracao !== 0) {
-      doc.text(`Alteração de pedido: ${order.alteracao}\nCliente: ${order.nome_cliente}\nEndereço de entrega: ${order.endereco_entrega}\nForma de pagamento: ${order.forma_pagamento}\nTaxa de entrega: R$${(order.taxa_entrega).replace(".", ",")}\nTotal: R$${(order.preco_total).replace(".", ",")}`, 10, 10)
-    }
-    else {
-      doc.text(`Pedido: ${orderID}\nCliente: ${order.nome_cliente}\nEndereço de entrega: ${order.endereco_entrega}\nForma de pagamento: ${order.forma_pagamento}\nTaxa de entrega: R$${(order.taxa_entrega).replace(".", ",")}\nTotal: R$${(order.preco_total).replace(".", ",")}`, 10, 10)
-    }
-
-    doc.save(`Pedido_${orderID}.pdf`)
-  }
-
   const setAsPrinted = (id) => {
-    fetch(`https://back-cantinho-das-pizzas.onrender.com/pedido/setPrinted/${id}`, {
+    fetch(`https://back-cantinho-das-pizzas.onrender.com/order/setPrinted/${id}`, {
       method: "PUT",
       credentials: "include"
     })
@@ -348,7 +338,7 @@ const Pedidos = () => {
 
       async function changeItem() {
         try {
-          const res = await fetch(`https://back-cantinho-das-pizzas.onrender.com/item-pedido/${item.id}`, {
+          const res = await fetch(`https://back-cantinho-das-pizzas.onrender.com/order/item/${item.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(i),
@@ -381,7 +371,7 @@ const Pedidos = () => {
 
   async function confirmAuthPass(pass, method) {
     try {
-      const res = await axios.post(`https://back-cantinho-das-pizzas.onrender.com/confirmAuthPass/${pass}`, { withCredentials: true })
+      const res = await axios.post(`https://back-cantinho-das-pizzas.onrender.com/auth/confirmPass/${pass}`, { withCredentials: true })
       if (res.status === 200 && method === "change") {
         setChangeOpened(true)
         setAuthOpened(false)
@@ -735,11 +725,16 @@ const Pedidos = () => {
                       <button className="printer_btn" onClick={(e) => {
                         e.stopPropagation()
                         setNovosIDs(prev => prev.filter(item => item !== pedido.id_pedido))
-                        gerarPDF(pedido.id_pedido)
+                        imprimir(pedido)
                         setAsPrinted(pedido.id_pedido)
                       }
                       }>Imprimir
                       </button>
+
+                      {/* componente de impressão */}
+                      {pedidoParaImprimir && (
+                        <PedidoPrint pedido={pedidoParaImprimir} />
+                      )}
 
                       <button className="editBtn_h" onClick={(e) => {
                         e.stopPropagation()

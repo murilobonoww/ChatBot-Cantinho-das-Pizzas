@@ -28,7 +28,7 @@ export default function Relatorios() {
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/pedido/getAll', { withCredentials: true })
+        const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/order/getAll', { withCredentials: true })
         const data = res.data
         if (carregamentoInicial.current === true) {
           console.log("carregamento inicial")
@@ -77,7 +77,7 @@ export default function Relatorios() {
     params.append("inicio", start);
     params.append("fim", end);
 
-    fetch(`https://back-cantinho-das-pizzas.onrender.com/relatorios/financeiro?${params.toString()}`, {
+    fetch(`https://back-cantinho-das-pizzas.onrender.com/order/generate-relatorio?${params.toString()}`, {
       headers: {
         Authorization: `Bearer ${senha}`
       },

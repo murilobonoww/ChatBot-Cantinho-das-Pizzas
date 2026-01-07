@@ -10,14 +10,14 @@ const cookieParser = require("cookie-parser");
 const fs = require("fs");
 
 //internos
-const db = require("./src/db");
+const db = require("./db");
 
 //routes
-const routes = require('./src/routes/routes');
-const notificationRoutes = require('./src/routes/notificationRoutes');
-const orderRoutes = require('./src/routes/AuthRoutes')
-const menuRoutes = require('./src/routes/MenuRoutes')
-const authRoutes = require('./src/routes/AuthRoutes')
+const routes = require('./routes/routes')
+const notificationRoutes = require('./routes/notificationRoutes')
+const orderRoutes = require('./order/order.router')
+const menuRoutes = require('./menu/menu.router')
+const authRoutes = require('./routes/AuthRoutes')
 
 const app = express();
 
@@ -45,7 +45,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(routes);
 app.use('/notification', notificationRoutes)
-app.use('/pedidos', orderRoutes)
+app.use('/order', orderRoutes)
 app.use('/menu', menuRoutes)
 app.use('/auth', authRoutes)
 

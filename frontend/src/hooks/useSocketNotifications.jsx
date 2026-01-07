@@ -9,7 +9,7 @@ export function useSocketNotifications() {
 
     async function cancelarPedido(id) {
         try {
-            const res = await axios.delete(`https://back-cantinho-das-pizzas.onrender.com/pedido/${id}`)
+            const res = await axios.delete(`https://back-cantinho-das-pizzas.onrender.com/order/${id}`)
             toast.success('Pedido cancelado com sucesso!')
         } catch (error) {
             console.log('Erro ao cancelar pedido: ', error)

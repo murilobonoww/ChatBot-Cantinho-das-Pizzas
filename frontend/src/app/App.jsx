@@ -57,7 +57,7 @@ function AppContent() {
   }, [navigate]);
 
   const fetchPedidos = () => {
-    fetch("https://back-cantinho-das-pizzas.onrender.com/pedido/getAll", { credentials: "include" })
+    fetch("https://back-cantinho-das-pizzas.onrender.com/order/getAll", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
@@ -95,6 +95,7 @@ function AppContent() {
 }
 
 function App() {
+
   return (
     <Router>
       <ToastContainer position="top-right" autoClose={6000} newestOnTop closeOnClick pauseOnHover />

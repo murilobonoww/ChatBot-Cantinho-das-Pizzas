@@ -1,10 +1,16 @@
-const express = require("express");
-const router = express.Router();
-const db = require("./db");
-const dotenv = require("dotenv");
+//config
 dotenv.config();
+
+//libs
+const express = require("express");
+const dotenv = require("dotenv");
 const axios = require("axios");
 const { randomUUID } = require("crypto");
+
+//internos
+const db = require("./db");
+const router = express.Router();
+
 
 function emitirNotificacao(id, numero, mensagem, tipo, status_default, id_pedido) {
     try {

@@ -44,7 +44,7 @@ export default function Cardapio() {
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/pedido/getAll', { withCredentials: true })
+        const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/order/getAll', { withCredentials: true })
         const data = res.data
         if (carregamentoInicial.current === true) {
           console.log("carregamento inicial")
@@ -74,7 +74,7 @@ export default function Cardapio() {
   }, [])
 
   useEffect(() => {
-    fetch("https://back-cantinho-das-pizzas.onrender.com/cardapio", { credentials: "include" })
+    fetch("https://back-cantinho-das-pizzas.onrender.com/menu", { credentials: "include" })
       .then(res => {
         if (!res.ok) throw new Error("Erro ao carregar cardápio");
         return res.json();
@@ -196,7 +196,7 @@ export default function Cardapio() {
 
   const reloadCardapio = async () => {
     try {
-      const res = await fetch("https://back-cantinho-das-pizzas.onrender.com/cardapio", { credentials: "include" });
+      const res = await fetch("https://back-cantinho-das-pizzas.onrender.com/menu", { credentials: "include" });
       if (!res.ok) throw new Error("Erro ao carregar cardápio");
       const data = await res.json();
       const sanitizedData = {
@@ -228,7 +228,7 @@ export default function Cardapio() {
     try {
       let response;
       if (isEditing) {
-        response = await fetch(`https://back-cantinho-das-pizzas.onrender.com/cardapio/${editItemId}`, {
+        response = await fetch(`https://back-cantinho-das-pizzas.onrender.com/menu/${editItemId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -237,7 +237,7 @@ export default function Cardapio() {
           credentials: "include"
         });
       } else {
-        response = await fetch("https://back-cantinho-das-pizzas.onrender.com/cardapio", {
+        response = await fetch("https://back-cantinho-das-pizzas.onrender.com/menu", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -296,7 +296,7 @@ export default function Cardapio() {
     console.log("Enviando DELETE com IDs:", sanitizedIds, "Seção:", selectedItems.section);
 
     try {
-      const response = await fetch("https://back-cantinho-das-pizzas.onrender.com/cardapio", {
+      const response = await fetch("https://back-cantinho-das-pizzas.onrender.com/menu", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
