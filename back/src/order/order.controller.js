@@ -11,7 +11,7 @@ async function finalize(req, res) {
 
 async function getAll(req, res) {
     try {
-        const pedidos = await service.getAll(req.body)
+        const pedidos = await service.getAll(req.query)
         return res.status(200).send(pedidos)
     } catch (error) {
         return res.status(500).json({ erro: 'Erro ao pegar pedidos: ', error })

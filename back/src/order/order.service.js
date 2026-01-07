@@ -9,8 +9,7 @@ async function submitOrder(order) {
   return generate_final_message(orderID, order)
 }
 
-async function getAll(req, res) {
-  const filters = req.body
+async function getAll(filters) {
   let { sql, params } = applyFilters(filters, sql.GET_ALL)
 
   sortOrdersinSQL(sql)
@@ -72,7 +71,7 @@ async function getOrderFromFoody(uid) {
 }
 
 function authorize(pass, MANAGEMENT_PASS) {
-  if (pass !== MANAGEMENT_PASS) throw new Error ('Senha incorreta')
+  if (pass !== MANAGEMENT_PASS) throw new Error('Senha incorreta')
 }
 
 async function generateRelatorio(pass, MANAGEMENT_PASS, start, end) {
@@ -89,48 +88,48 @@ async function generateRelatorio(pass, MANAGEMENT_PASS, start, end) {
 
   sql += ` ORDER BY p.data_pedido DESC LIMIT 100`;
 
-    const [resultados] = await db.query(sql, valores);
+  const [resultados] = await db.query(sql, valores);
 
-    let total_vendas = 0;
-    let total_pedidos = resultados.length;
-    let pagamentos = { pix: 0, débito: 0, crédito: 0 };
+  let total_vendas = 0;
+  let total_pedidos = resultados.length;
+  let pagamentos = { pix: 0, débito: 0, crédito: 0 };
 
-    const pedidosFormatados = resultados.map((r) => {
-      total_vendas += parseFloat(r.preco_total);
+  const pedidosFormatados = resultados.map((r) => {
+    total_vendas += parseFloat(r.preco_total);
 
-      const pg = r.forma_pagamento.toLowerCase();
+    const pg = r.forma_pagamento.toLowerCase();
 
-      if (pg.includes("pix")) pagamentos.pix += parseFloat(r.preco_total);
-      else if (pg.includes("débito"))
-        pagamentos.débito += parseFloat(r.preco_total);
-      else pagamentos.crédito += parseFloat(r.preco_total);
+    if (pg.includes("pix")) pagamentos.pix += parseFloat(r.preco_total);
+    else if (pg.includes("débito"))
+      pagamentos.débito += parseFloat(r.preco_total);
+    else pagamentos.crédito += parseFloat(r.preco_total);
 
-      return {
-        data: new Date(r.data_pedido).toLocaleDateString("pt-BR"),
-        cliente: r.nome_cliente,
-        valor: parseFloat(r.preco_total),
-        pagamento: r.forma_pagamento,
-      };
-    });
+    return {
+      data: new Date(r.data_pedido).toLocaleDateString("pt-BR"),
+      cliente: r.nome_cliente,
+      valor: parseFloat(r.preco_total),
+      pagamento: r.forma_pagamento,
+    };
+  });
 
-    const ticket_medio = total_pedidos > 0 ? total_vendas / total_pedidos : 0;
-    let most_selled_product_query = `SELECT produto FROM item_pedido GROUP BY produto ORDER BY COUNT(produto) DESC LIMIT 1;`;
-    const [resultProduct] = await db.query(most_selled_product_query);
+  const ticket_medio = total_pedidos > 0 ? total_vendas / total_pedidos : 0;
+  let most_selled_product_query = `SELECT produto FROM item_pedido GROUP BY produto ORDER BY COUNT(produto) DESC LIMIT 1;`;
+  const [resultProduct] = await db.query(most_selled_product_query);
 
-    let mais_vendido = resultProduct.length > 0 ? resultProduct[0].produto : null;
-    let most_selled_flavor_query = `SELECT sabor FROM item_pedido WHERE produto = ? GROUP BY sabor ORDER BY SUM(quantidade) DESC LIMIT 1;`;
+  let mais_vendido = resultProduct.length > 0 ? resultProduct[0].produto : null;
+  let most_selled_flavor_query = `SELECT sabor FROM item_pedido WHERE produto = ? GROUP BY sabor ORDER BY SUM(quantidade) DESC LIMIT 1;`;
 
-    const [resultFlavor] = await db.query(most_selled_flavor_query, [mais_vendido]);
+  const [resultFlavor] = await db.query(most_selled_flavor_query, [mais_vendido]);
 
-    let sabor_mais_vendido = resultFlavor.length > 0 ? resultFlavor[0].sabor : null;
+  let sabor_mais_vendido = resultFlavor.length > 0 ? resultFlavor[0].sabor : null;
 
-    mais_vendido = String(mais_vendido + " de " + sabor_mais_vendido);
+  mais_vendido = String(mais_vendido + " de " + sabor_mais_vendido);
 
-    if (mais_vendido === null || sabor_mais_vendido === null) {
-      mais_vendido = "Não há dados suficientes"
-    }
+  if (mais_vendido === null || sabor_mais_vendido === null) {
+    mais_vendido = "Não há dados suficientes"
+  }
 
-    return { total_vendas, total_pedidos, ticket_medio, mais_vendido, sabor_mais_vendido, pagamentos, pedidos: pedidosFormatados }
+  return { total_vendas, total_pedidos, ticket_medio, mais_vendido, sabor_mais_vendido, pagamentos, pedidos: pedidosFormatados }
 }
 
 module.exports = { submitOrder, getAll, update, deleteOrder, getOrderStatus, updateStatus, setPrinted, updateOrder, updateOrderItem, getOrdersWithOpenedStatus, getOrderFromFoody, generateRelatorio }
