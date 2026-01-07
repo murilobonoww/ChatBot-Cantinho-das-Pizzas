@@ -1,6 +1,3 @@
-//config
-require("dotenv").config();
-
 //libs
 const express = require("express");
 const cors = require("cors");
@@ -8,9 +5,13 @@ const axios = require("axios");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const fs = require("fs");
+const dotenv = require("dotenv");
 
 //internos
 const db = require("./db");
+
+//config
+require("dotenv").config();
 
 //routes
 const routes = require('./routes/routes')
