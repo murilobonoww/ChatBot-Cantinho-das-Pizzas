@@ -12,10 +12,8 @@ async function submitOrder(order) {
 async function getAll(filters) {
   console.log("Filters received in service:", filters);
 
-
-
-
   let { sql, params } = applyFilters(filters, sql.GET_ALL)
+  console.log("SQL after applying filters:", sql);
 
   sql = sortOrdersinSQL(sql)
   console.log(sql, params)
