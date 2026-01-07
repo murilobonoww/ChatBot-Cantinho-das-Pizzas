@@ -11,9 +11,10 @@ async function finalize(req, res) {
 
 async function getAll(req, res) {
     try {
-        console.log('Chegou na controller getAll com filtros:', req.query);
+        const filters = { ...req.query }
+        console.log('Chegou na controller getAll com filtros:', filters);
         
-        const pedidos = await service.getAll(req.query)
+        const pedidos = await service.getAll(filters)
         return res.status(200).send(pedidos)
     } catch (error) {
         return res.status(500).json({ erro: 'Erro ao pegar pedidos: ', error })
