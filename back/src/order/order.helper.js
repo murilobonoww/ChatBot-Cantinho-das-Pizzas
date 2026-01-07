@@ -1,7 +1,6 @@
 //libs
-import axios from "axios";
+const axios = require("axios");
 const OpenAI = require("openai");
-const express = require("express");
 
 //internos
 const db = require("../db");
