@@ -1,11 +1,11 @@
-//config
-dotenv.config();
-const { MAPS_API_KEY, CODE_HASH, JWT_SECRET_KEY } = process.env
-
 //libs
 const express = require("express");
 const dotenv = require("dotenv");
 const axios = require("axios");
+
+//config
+dotenv.config();
+const { MAPS_API_KEY, CODE_HASH, JWT_SECRET_KEY } = process.env
 
 //internos
 const db = require("../db");

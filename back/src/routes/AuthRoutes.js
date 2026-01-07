@@ -1,12 +1,12 @@
-//config
-dotenv.config();
-const { CODE_HASH, JWT_SECRET_KEY } = process.env
-
 //libs
 const express = require("express");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+
+//config
+dotenv.config();
+const { CODE_HASH, JWT_SECRET_KEY } = process.env
 
 //internos
 const limiter = require('../middlewares/rateLimiter')
