@@ -3,9 +3,6 @@ const express = require("express");
 const axios = require("axios");
 const { randomUUID } = require("crypto");
 
-//config
-dotenv.config();
-
 //internos
 const db = require("../db");
 const router = express.Router();
