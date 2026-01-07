@@ -8,7 +8,7 @@ const { randomUUID } = require("crypto");
 dotenv.config();
 
 //internos
-const db = require("./db");
+const db = require("../db");
 const router = express.Router();
 
 
