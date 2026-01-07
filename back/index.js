@@ -8,17 +8,17 @@ const fs = require("fs");
 const dotenv = require("dotenv");
 
 //internos
-const db = require("./db");
+const db = require("./src/db");
 
 //config
 require("dotenv").config();
 
 //routes
-const routes = require('./routes/routes')
-const notificationRoutes = require('./routes/notificationRoutes')
-const orderRoutes = require('./order/order.router')
-const menuRoutes = require('./menu/menu.router')
-const authRoutes = require('./routes/AuthRoutes')
+const routes = require('./src/routes/routes')
+const notificationRoutes = require('./src/routes/notificationRoutes')
+const orderRoutes = require('./src/order/order.router')
+const menuRoutes = require('./src/menu/menu.router')
+const authRoutes = require('./src/routes/AuthRoutes')
 
 const app = express();
 
