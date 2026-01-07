@@ -463,23 +463,25 @@ async function processOrder(pedido) {
 }
 
 function applyFilters(filters, sql) {
-    const { id, inicio, fim, cliente } = filters
+
+    const { id_filter, dataInicio, dataFim, nomeCliente } = filters;
+
     let conditions = []
     let params = []
 
-    if (id) {
+    if (id_filter) {
         conditions.push(`p.id_pedido = ?`)
         params.push(id)
     }
 
-    if (inicio && fim) {
+    if (dataInicio && dataFim) {
         conditions.push(`p.data_pedido BETWEEN ? AND ?`)
-        params.push(`${inicio} 00:00:00`, `${fim} 23:59:59`)
+        params.push(`${dataInicio} 00:00:00`, `${dataFim} 23:59:59`)
     }
 
-    if (cliente) {
+    if (nomeCliente) {
         conditions.push(`p.nome_cliente LIKE ?`);
-        params.push(`%${cliente}%`);
+        params.push(`%${nomeCliente}%`);
     }
 
     if (conditions.length) {
