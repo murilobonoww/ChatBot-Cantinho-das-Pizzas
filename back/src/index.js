@@ -43,11 +43,12 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
-app.use(routes);
+
 app.use('/notification', notificationRoutes)
 app.use('/order', orderRoutes)
 app.use('/menu', menuRoutes)
 app.use('/auth', authRoutes)
+app.use(routes);
 
 const PORT = process.env.PORT || 10000;
 
