@@ -462,7 +462,7 @@ async function processOrder(pedido) {
     }
 }
 
-function applyFilters(filters, sql) {
+function applyFilters(filters, query) {
 
     const { id, dataInicio, dataFim, nomeCliente } = filters;
 
@@ -485,7 +485,7 @@ function applyFilters(filters, sql) {
     }
 
     if (conditions.length > 0) {
-        sql += ` WHERE ` + conditions.join(" AND ");
+        query += ` WHERE ` + conditions.join(" AND ");
     }
 
     return { query, params }
