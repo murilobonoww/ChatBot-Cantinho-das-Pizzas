@@ -1,6 +1,5 @@
 //libs
 const express = require("express");
-const dotenv = require("dotenv");
 const axios = require("axios");
 const { randomUUID } = require("crypto");
 

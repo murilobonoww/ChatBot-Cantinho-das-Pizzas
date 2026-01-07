@@ -1,6 +1,5 @@
 //libs
 import axios from "axios";
-const dotenv = require("dotenv");
 const OpenAI = require("openai");
 const express = require("express");
 
@@ -8,7 +7,6 @@ const express = require("express");
 const db = require("../db");
 
 //ENV vars
-dotenv.config();
 const { MAPS_API_KEY } = process.env
 
 const openai = new OpenAI({
