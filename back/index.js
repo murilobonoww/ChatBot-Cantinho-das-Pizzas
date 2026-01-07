@@ -1,6 +1,3 @@
-//config
-require("dotenv").config();
-
 //libs
 const express = require("express");
 const cors = require("cors");
@@ -8,6 +5,10 @@ const axios = require("axios");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const fs = require("fs");
+const dotenv = require("dotenv");
+
+//config
+require("dotenv").config();
 
 //internos
 const db = require("./src/db");
@@ -15,8 +16,8 @@ const db = require("./src/db");
 //routes
 const routes = require('./src/routes/routes');
 const notificationRoutes = require('./src/routes/notificationRoutes');
-const orderRoutes = require('./src/routes/AuthRoutes')
-const menuRoutes = require('./src/routes/MenuRoutes')
+const orderRoutes = require('./src/order/order.router')
+const menuRoutes = require('./src/menu/menu.router')
 const authRoutes = require('./src/routes/AuthRoutes')
 
 const app = express();
@@ -43,11 +44,12 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
-app.use(routes);
+
 app.use('/notification', notificationRoutes)
 app.use('/pedidos', orderRoutes)
 app.use('/menu', menuRoutes)
 app.use('/auth', authRoutes)
+app.use(routes);
 
 const PORT = process.env.PORT || 10000;
 
