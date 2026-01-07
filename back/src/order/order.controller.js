@@ -11,6 +11,8 @@ async function finalize(req, res) {
 
 async function getAll(req, res) {
     try {
+        console.log('Chegou na controller getAll com filtros:', req.query);
+        
         const pedidos = await service.getAll(req.query)
         return res.status(200).send(pedidos)
     } catch (error) {

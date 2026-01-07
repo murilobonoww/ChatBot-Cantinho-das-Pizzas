@@ -81,7 +81,6 @@ function mapearStatusFoody(status) {
 async function buscarPedidosAbertos() {
   const sql = "SELECT id_pedido, uid_foody, status_pedido FROM pedido WHERE status_pedido IN ('Despachado', 'Aceito', 'Dispatched', 'aberto', 'Andamento') AND uid_foody IS NOT NULL"
   const [rows] = await db.query(sql);
-  console.log(`Pedidos encontrados: ${rows.length}`);
   return rows;
 }
 
@@ -130,11 +129,9 @@ async function sincronizarStatusPedidos() {
   pollingEmExecucao = true;
 
   try {
-    console.log("Iniciando sincronização de status dos pedidos...");
     const pedidos = await buscarPedidosAbertos();
 
     if (pedidos.length === 0) {
-      console.log("ℹ️ Nenhum pedido aberto para sincronizar.");
       return;
     }
 
