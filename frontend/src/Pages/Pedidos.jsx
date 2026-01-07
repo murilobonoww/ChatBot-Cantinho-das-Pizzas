@@ -203,6 +203,7 @@ const Pedidos = () => {
     })
       .then((res) => res.json())
       .then((data) => {
+        console.log('DATA RECEBIDA: ', Array.isArray(data), data)
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
         let pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados
 

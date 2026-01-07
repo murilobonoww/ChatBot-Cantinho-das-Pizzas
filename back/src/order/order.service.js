@@ -12,10 +12,13 @@ async function submitOrder(order) {
 async function getAll(filters) {
   let { sql, params } = applyFilters(filters, sql.GET_ALL)
 
-  sortOrdersinSQL(sql)
+  sql = sortOrdersinSQL(sql)
+  console.log(sql, params)
   const [rows] = await db.query(sql, params);
+  console.log(rows)
 
   const orders = structureOrders(rows)
+  console.log(orders)
   return orders
 }
 
