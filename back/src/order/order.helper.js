@@ -488,7 +488,7 @@ function applyFilters(filters, sql) {
         sql += ` WHERE ` + conditions.join(" AND ");
     }
 
-    return { sql, params }
+    return { query, params }
 }
 
 function criarPedido(row) {
