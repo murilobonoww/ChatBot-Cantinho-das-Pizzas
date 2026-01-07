@@ -464,7 +464,7 @@ async function processOrder(pedido) {
 
 function applyFilters(filters, query) {
 
-    const { id, dataInicio, dataFim, nomeCliente } = filters;
+    const { id, inicio, fim, cliente } = filters;
 
     let conditions = []
     let params = []
@@ -474,14 +474,14 @@ function applyFilters(filters, query) {
         params.push(id)
     }
 
-    if (dataInicio != null && dataFim != null) {
+    if (inicio != null && fim != null) {
         conditions.push(`p.data_pedido BETWEEN ? AND ?`)
-        params.push(`${dataInicio} 00:00:00`, `${dataFim} 23:59:59`)
+        params.push(`${inicio} 00:00:00`, `${fim} 23:59:59`)
     }
 
-    if (nomeCliente != null) {
+    if (cliente != null) {
         conditions.push(`p.nome_cliente LIKE ?`);
-        params.push(`%${nomeCliente}%`);
+        params.push(`%${cliente}%`);
     }
 
     if (conditions.length > 0) {
