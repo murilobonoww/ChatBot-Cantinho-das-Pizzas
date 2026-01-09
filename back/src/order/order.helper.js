@@ -157,44 +157,44 @@ function valores_pedido(p) {
     ];
 }
 async function inserir_pedido_no_db(pedido) {
-        const [resultadoPedido] = await db.execute(sql.insertPedido(), valores_pedido(pedido));
-        const pedido_id = resultadoPedido.insertId;
+    const [resultadoPedido] = await db.execute(sql.insertPedido(), valores_pedido(pedido));
+    const pedido_id = resultadoPedido.insertId;
 
-        const itensResolvidos = [];
+    const itensResolvidos = [];
 
-        for (const item of pedido.itens) {
-            const saborItem = await askOpenAI(item.sabor, item.produto);
-            item.sabor = saborItem;
-            console.log('🔍 RESOLUÇÃO DE ITEM');
-            console.log('Produto:', item.produto);
-            console.log('Nome enviado:', item.sabor);
-            console.log('Nome resolvido:', saborItem);
-            console.log('---------------------');
-            itensResolvidos.push({ ...item, saborItem });
+    for (const item of pedido.itens) {
+        const saborItem = await askOpenAI(item.sabor, item.produto);
+        item.sabor = saborItem;
+        console.log('🔍 RESOLUÇÃO DE ITEM');
+        console.log('Produto:', item.produto);
+        console.log('Nome enviado:', item.sabor);
+        console.log('Nome resolvido:', saborItem);
+        console.log('---------------------');
+        itensResolvidos.push({ ...item, saborItem });
 
-            if (saborItem === 'NAO_ENCONTRADO') {
-                throw new Error(`sabor não encontrado no cardápio: ${item.sabor}`);
-            }
+        if (saborItem === 'NAO_ENCONTRADO') {
+            throw new Error(`sabor não encontrado no cardápio: ${item.sabor}`);
         }
+    }
 
-        for (const item of itensResolvidos) {
-            await db.execute(sql.insertItemPedido(), [
-                pedido_id,
-                item.produto,
-                item.saborItem,
-                item.quantidade,
-                item.observacao,
-                item.preco
-            ]);
-        }
+    for (const item of itensResolvidos) {
+        await db.execute(sql.insertItemPedido(), [
+            pedido_id,
+            item.produto,
+            item.saborItem,
+            item.quantidade,
+            item.observacao,
+            item.preco
+        ]);
+    }
 
-        console.log(
-            `📦 Pedido #${pedido_id} registrado com sucesso. (ainda não enviado pra foody)`
-        );
-        const { latitude, longitude } = pedido;
+    console.log(
+        `📦 Pedido #${pedido_id} registrado com sucesso. (ainda não enviado pra foody)`
+    );
+    const { latitude, longitude } = pedido;
 
-        enviarParaFoody(pedido, pedido_id, latitude, longitude); // ← envia para a Foody de forma assíncrona
-        return pedido_id
+    enviarParaFoody(pedido, pedido_id, latitude, longitude); // ← envia para a Foody de forma assíncrona
+    return pedido_id
 }
 
 async function askOpenAI(nomeItem, categoriaItem) {
@@ -305,15 +305,23 @@ async function validar_distancia(endereco) {
     return distanciaKM
 }
 
-function calcularTaxaEntrega(pedido, distancia) {
-    if (distancia === null) return null;
+function multiplicador(distancia) {
+    return distancia < 3 ? 3 : 2
+}
 
-    if (distancia < 1) return 4.00;
-    if (distancia < 3) return parseFloat((distancia * 3).toFixed(2));
+function format_tax_to_2_decimals(tax) {
+    const formattedTax = parseFloat(tax.toFixed(2))
+    return formattedTax
+}
 
-    pedido.taxa_entrega = taxa
+function calcularTaxaEntrega(distancia) {
+    const TAXA_MINIMA = 4.00
+    if (distancia === null) return null
+    if (distancia < 1) return TAXA_MINIMA
 
-    return parseFloat((distancia * 2).toFixed(2));
+    let taxa = distancia * multiplicador(distancia)
+    taxa = format_tax_to_2_decimals(taxa)
+    return taxa
 }
 
 const calcularPreco = async (pedido) => {
@@ -435,6 +443,7 @@ async function processOrder(pedido) {
     const distancia = await validar_distancia(endereco)
     console.log('Distância validada:', distancia, 'km')
     const taxa = calcularTaxaEntrega(pedido, distancia)
+    pedido.taxa_entrega = taxa
     console.log('Taxa de entrega calculada:', taxa)
 
     const preco_total = await calcularPreco(pedido)
