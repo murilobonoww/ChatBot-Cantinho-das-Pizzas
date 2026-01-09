@@ -303,9 +303,9 @@ function generate_final_message(id_pedido, pedido) {
 }
 
 async function validar_distancia(endereco) {
-    const distancia = await calcularDistanciaKm(endereco)
+    const distanciaKM = await calcularDistanciaKm(endereco)
 
-    if (distancia > 15) {
+    if (distanciaKM > 15) {
         throw new Error('Fora do raio de atendimento.')
     }
 }

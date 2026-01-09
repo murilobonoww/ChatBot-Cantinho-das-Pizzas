@@ -6,6 +6,7 @@ const { processOrder, generate_final_message, applyFilters, sortOrdersinSQL, sql
 
 async function submitOrder(order) {
   const orderID = await processOrder(order)
+  console.log("Order ID after processing:", orderID);
   return generate_final_message(orderID, order)
 }
 
