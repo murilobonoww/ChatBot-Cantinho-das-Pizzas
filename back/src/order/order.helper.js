@@ -158,6 +158,7 @@ function valores_pedido(p) {
 }
 async function inserir_pedido_no_db(pedido) {
     console.log('Iniciando inserção do pedido no banco de dados...')
+    console.log('Valores do pedido: ', valores_pedido(pedido))
     const [resultadoPedido] = await db.execute(sql.insertPedido(), valores_pedido(pedido));
     console.log('Pedido inserido no banco de dados com ID:', resultadoPedido.insertId)
     const pedido_id = resultadoPedido.insertId;
