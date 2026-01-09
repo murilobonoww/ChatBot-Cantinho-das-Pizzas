@@ -11,13 +11,8 @@ async function submitOrder(order) {
 }
 
 async function getAll(filters) {
-  console.log("Filters received in service:", filters);
-
   let { query, params } = applyFilters(filters, sql.GET_ALL)
-  console.log("SQL after applying filters:", query);
-
   query = sortOrdersinSQL(query)
-  console.log(query, params)
   const [rows] = await db.query(query, params);
 
   const orders = structureOrders(rows)
