@@ -157,7 +157,9 @@ function valores_pedido(p) {
     ];
 }
 async function inserir_pedido_no_db(pedido) {
+    console.log('Iniciando inserção do pedido no banco de dados...')
     const [resultadoPedido] = await db.execute(sql.insertPedido(), valores_pedido(pedido));
+    console.log('Pedido inserido no banco de dados com ID:', resultadoPedido.insertId)
     const pedido_id = resultadoPedido.insertId;
 
     const itensResolvidos = [];
@@ -193,7 +195,7 @@ async function inserir_pedido_no_db(pedido) {
     );
     const { latitude, longitude } = pedido;
 
-    enviarParaFoody(pedido, pedido_id, latitude, longitude); // ← envia para a Foody de forma assíncrona
+    // enviarParaFoody(pedido, pedido_id, latitude, longitude); // ← envia para a Foody de forma assíncrona
     return pedido_id
 }
 
