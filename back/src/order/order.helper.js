@@ -302,6 +302,7 @@ async function validar_distancia(endereco) {
     if (distanciaKM > 15) {
         throw new Error('Fora do raio de atendimento.')
     }
+    return distanciaKM
 }
 
 function calcularTaxaEntrega(pedido, distancia) {
