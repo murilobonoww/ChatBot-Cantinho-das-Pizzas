@@ -452,6 +452,7 @@ async function processOrder(pedido) {
     console.log('Inserção do preço total no JSON realizada')
 
     const pedido_id = await inserir_pedido_no_db(pedido)
+    console.log('Pedido inserido no banco de dados com ID:', pedido_id)
     return pedido_id
 }
 
