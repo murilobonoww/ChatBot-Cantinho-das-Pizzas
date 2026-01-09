@@ -442,7 +442,7 @@ async function processOrder(pedido) {
     console.log('Validando distância para o endereço:', endereco)
     const distancia = await validar_distancia(endereco)
     console.log('Distância validada:', distancia, 'km')
-    const taxa = calcularTaxaEntrega(pedido, distancia)
+    const taxa = calcularTaxaEntrega(distancia)
     pedido.taxa_entrega = taxa
     console.log('Taxa de entrega calculada:', taxa)
 
