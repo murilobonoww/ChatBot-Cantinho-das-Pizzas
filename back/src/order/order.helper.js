@@ -159,7 +159,7 @@ function valores_pedido(p) {
 async function inserir_pedido_no_db(pedido) {
     console.log('Iniciando inserção do pedido no banco de dados...')
     console.log('Valores do pedido: ', valores_pedido(pedido))
-    const [resultadoPedido] = await db.execute(sql.insertPedido(), valores_pedido(pedido));
+    const [resultadoPedido] = await db.execute(sql.insertPedido, valores_pedido(pedido));
     console.log('Pedido inserido no banco de dados com ID:', resultadoPedido.insertId)
     const pedido_id = resultadoPedido.insertId;
 
@@ -181,7 +181,7 @@ async function inserir_pedido_no_db(pedido) {
     }
 
     for (const item of itensResolvidos) {
-        await db.execute(sql.insertItemPedido(), [
+        await db.execute(sql.insertItemPedido, [
             pedido_id,
             item.produto,
             item.saborItem,
