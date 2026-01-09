@@ -163,8 +163,6 @@ function valores_pedido(p) {
     ];
 }
 async function inserir_pedido_no_db(pedido) {
-
-    try {
         const [resultadoPedido] = await db.execute(sql.insertPedido(), valores_pedido(pedido));
         const pedido_id = resultadoPedido.insertId;
 
@@ -203,10 +201,6 @@ async function inserir_pedido_no_db(pedido) {
 
         enviarParaFoody(pedido, pedido_id, latitude, longitude); // ← envia para a Foody de forma assíncrona
         return pedido_id
-
-    } catch (error) {
-        throw error;
-    }
 }
 
 async function askOpenAI(nomeItem, categoriaItem) {
@@ -244,33 +238,29 @@ Retorne apenas o resultado.
 }
 
 async function getAllNames(categoria) {
-    try {
-        if (categoria === 'Pizza') {
-            const [rows] = await db.query(`SELECT sabor FROM pizzas`)
-            return rows.map(row => row.sabor)
-        }
+    if (categoria === 'Pizza') {
+        const [rows] = await db.query(`SELECT sabor FROM pizzas`)
+        return rows.map(row => row.sabor)
+    }
 
-        else if (categoria === 'Esfiha') {
-            const [rows] = await db.query(`SELECT sabor FROM esfihas`)
-            return rows.map(row => row.sabor)
-        }
+    else if (categoria === 'Esfiha') {
+        const [rows] = await db.query(`SELECT sabor FROM esfihas`)
+        return rows.map(row => row.sabor)
+    }
 
-        else if (categoria === 'Bebida') {
-            const [rows] = await db.query(`SELECT nome FROM bebidas`)
-            return rows.map(row => row.nome)
-        }
+    else if (categoria === 'Bebida') {
+        const [rows] = await db.query(`SELECT nome FROM bebidas`)
+        return rows.map(row => row.nome)
+    }
 
-        else if (categoria === 'Doce') {
-            const [rows] = await db.query(`SELECT nome FROM doces`)
-            return rows.map(row => row.nome)
-        }
+    else if (categoria === 'Doce') {
+        const [rows] = await db.query(`SELECT nome FROM doces`)
+        return rows.map(row => row.nome)
+    }
 
-        else if (categoria === 'Outros') {
-            const [rows] = await db.query(`SELECT nome FROM outros`)
-            return rows.map(row => row.nome)
-        }
-    } catch (error) {
-        throw error
+    else if (categoria === 'Outros') {
+        const [rows] = await db.query(`SELECT nome FROM outros`)
+        return rows.map(row => row.nome)
     }
 }
 
@@ -444,22 +434,17 @@ const calcularPreco = async (pedido) => {
 };
 
 async function processOrder(pedido) {
-    try {
-        const endereco = pedido.endereco_entrega
-        const distancia = await validar_distancia(endereco)
-        const taxa = calcularTaxaEntrega(pedido, distancia)
+    const endereco = pedido.endereco_entrega
+    const distancia = await validar_distancia(endereco)
+    const taxa = calcularTaxaEntrega(pedido, distancia)
 
-        const preco_total = await calcularPreco(pedido);
-        pedido.preco_total = Number((preco_total + taxa).toFixed(2));
+    const preco_total = await calcularPreco(pedido);
+    pedido.preco_total = Number((preco_total + taxa).toFixed(2));
 
-        pedido.data_pedido = formataDataPedido()
+    pedido.data_pedido = formataDataPedido()
 
-        const pedido_id = await inserir_pedido_no_db(pedido)
-        return pedido_id
-
-    } catch (error) {
-        throw new Error('Erro ao processar pedido: ', error)
-    }
+    const pedido_id = await inserir_pedido_no_db(pedido)
+    return pedido_id
 }
 
 function applyFilters(filters, query) {
@@ -522,7 +507,7 @@ function sortOrdersinSQL(sql) {
     return sql + ` ORDER BY p.id_pedido DESC`
 }
 
-function structureOrders (results) {
+function structureOrders(results) {
     const OrdersMap = {};
 
     results.forEach((row) => {
@@ -540,13 +525,13 @@ function structureOrders (results) {
     return orders
 }
 
-function ensureResultExists (results) {
+function ensureResultExists(results) {
     if (!results.length) {
         throw new Error('Objeto não encontrado.')
     }
 }
 
-function buildOrderFromRow (rows) {
+function buildOrderFromRow(rows) {
 
     if (!rows.length) return null
 
@@ -574,12 +559,11 @@ function buildOrderFromRow (rows) {
     }
 }
 
-function checkIfNotFound (results) {
+function checkIfNotFound(results) {
     if (results.affectedRows === 0) throw new Error('Order not found or already deleted.')
 }
 
-async function getFoodyOrder (uid) {
-
+async function getFoodyOrder(uid) {
     const response = await axios.get(
         `https://app.foodydelivery.com/rest/1.2/orders/${uid}`,
         {
@@ -592,64 +576,64 @@ async function getFoodyOrder (uid) {
     return response
 }
 
-async function structureResponse (response) {
+async function structureResponse(response) {
     const order = response.data
 
     const structuredOrder = {
-      uid: order.uid,
-      id: order.id,
-      status: order.status,
-      deliveryFee: order.deliveryFee,
-      paymentMethod: order.paymentMethod,
-      notes: order.notes,
-      courierFee: order.courierFee,
-      orderTotal: order.orderTotal,
-      orderDetails: order.orderDetails,
-      orderTrackerUrl: order.orderTrackerUrl,
-      despatchMode: order.despatchMode,
-      deliveryPoint: {
-        address: order.deliveryPoint?.address,
-        street: order.deliveryPoint?.street,
-        houseNumber: order.deliveryPoint?.houseNumber,
-        postalCode: order.deliveryPoint?.postalCode,
-        coordinates: {
-          lat: order.deliveryPoint?.coordinates?.lat,
-          lng: order.deliveryPoint?.coordinates?.lng,
+        uid: order.uid,
+        id: order.id,
+        status: order.status,
+        deliveryFee: order.deliveryFee,
+        paymentMethod: order.paymentMethod,
+        notes: order.notes,
+        courierFee: order.courierFee,
+        orderTotal: order.orderTotal,
+        orderDetails: order.orderDetails,
+        orderTrackerUrl: order.orderTrackerUrl,
+        despatchMode: order.despatchMode,
+        deliveryPoint: {
+            address: order.deliveryPoint?.address,
+            street: order.deliveryPoint?.street,
+            houseNumber: order.deliveryPoint?.houseNumber,
+            postalCode: order.deliveryPoint?.postalCode,
+            coordinates: {
+                lat: order.deliveryPoint?.coordinates?.lat,
+                lng: order.deliveryPoint?.coordinates?.lng,
+            },
+            city: order.deliveryPoint?.city,
+            region: order.deliveryPoint?.region,
+            country: order.deliveryPoint?.country,
+            complement: order.deliveryPoint?.complement,
         },
-        city: order.deliveryPoint?.city,
-        region: order.deliveryPoint?.region,
-        country: order.deliveryPoint?.country,
-        complement: order.deliveryPoint?.complement,
-      },
-      collectionPoint: {
-        name: order.collectionPoint?.name,
-        address: order.collectionPoint?.address,
-        postalCode: order.collectionPoint?.postalCode,
-        coordinates: {
-          lat: order.collectionPoint?.coordinates?.lat,
-          lng: order.collectionPoint?.coordinates?.lng,
+        collectionPoint: {
+            name: order.collectionPoint?.name,
+            address: order.collectionPoint?.address,
+            postalCode: order.collectionPoint?.postalCode,
+            coordinates: {
+                lat: order.collectionPoint?.coordinates?.lat,
+                lng: order.collectionPoint?.coordinates?.lng,
+            },
+            city: order.collectionPoint?.city,
+            region: order.collectionPoint?.region,
+            country: order.collectionPoint?.country,
         },
-        city: order.collectionPoint?.city,
-        region: order.collectionPoint?.region,
-        country: order.collectionPoint?.country,
-      },
-      customer: {
-        customerPhone: order.customer?.customerPhone,
-        customerName: order.customer?.customerName,
-        customerEmail: order.customer?.customerEmail,
-      },
-      courier: {
-        courierPhone: order.courier?.courierPhone,
-        courierName: order.courier?.courierName,
-        courierType: order.courier?.courierType,
-      },
-      date: order.date,
-      readyDate: order.readyDate,
-      despatchDate: order.despatchDate,
-      collectedDate: order.collectedDate,
-      deliveryDate: order.deliveryDate,
-      creationDate: order.creationDate,
-      updateDate: order.updateDate,
+        customer: {
+            customerPhone: order.customer?.customerPhone,
+            customerName: order.customer?.customerName,
+            customerEmail: order.customer?.customerEmail,
+        },
+        courier: {
+            courierPhone: order.courier?.courierPhone,
+            courierName: order.courier?.courierName,
+            courierType: order.courier?.courierType,
+        },
+        date: order.date,
+        readyDate: order.readyDate,
+        despatchDate: order.despatchDate,
+        collectedDate: order.collectedDate,
+        deliveryDate: order.deliveryDate,
+        creationDate: order.creationDate,
+        updateDate: order.updateDate,
     }
 
     return structuredOrder
