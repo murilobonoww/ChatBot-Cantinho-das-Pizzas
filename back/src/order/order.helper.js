@@ -13,7 +13,7 @@ const openai = new OpenAI({
 });
 
 const sql = {
-    insertPedido: "INSERT INTO pedido (nome_cliente, endereco_entrega, taxa_entrega, preco_total, forma_pagamento, status_pedido, data_pedido, alteracao) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    insertPedido: "INSERT INTO pedido (nome_cliente, endereco_entrega, taxa_entrega, preco_total, forma_pagamento, status_pedido, alteracao) VALUES (?, ?, ?, ?, ?, ?, ?)",
     insertItemPedido: "INSERT INTO item_pedido (pedido_id_fk, produto, sabor, quantidade, observacao, preco) VALUES (?, ?, ?, ?, ?, ?)",
     GET_ALL: "SELECT p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido, p.printed, p.alteracao, i.id AS id_item, i.produto, i.sabor, i.quantidade, i.observacao, i.preco FROM pedido p LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk",
     GET_ORDER: `SELECT p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega,  p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido, p.alteracao, i.id, i.produto, i.sabor, i.quantidade, i.observacao FROM pedido p LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk WHERE p.id_pedido = ? `,
@@ -144,11 +144,6 @@ async function calcularDistanciaKm(enderecoDestino) {
     }
 }
 
-function formataDataPedido() {
-    const agora = new Date();
-    return agora.toISOString().slice(0, 19).replace('T', ' ');
-}
-
 //retorna valores do SQL de inserir_pedido_no_db
 function valores_pedido(p) {
     return [
@@ -158,7 +153,6 @@ function valores_pedido(p) {
         p.preco_total,
         p.forma_pagamento,
         p.status_pedido || "aberto",
-        p.data_pedido,
         p.alteracao
     ];
 }
@@ -434,14 +428,18 @@ const calcularPreco = async (pedido) => {
 };
 
 async function processOrder(pedido) {
+    console.log('Iniciando processamento do pedido...')
     const endereco = pedido.endereco_entrega
+    console.log('Validando distância para o endereço:', endereco)
     const distancia = await validar_distancia(endereco)
+    console.log('Distância validada:', distancia, 'km')
     const taxa = calcularTaxaEntrega(pedido, distancia)
+    console.log('Taxa de entrega calculada:', taxa)
 
-    const preco_total = await calcularPreco(pedido);
-    pedido.preco_total = Number((preco_total + taxa).toFixed(2));
-
-    pedido.data_pedido = formataDataPedido()
+    const preco_total = await calcularPreco(pedido)
+    console.log('Preço total calculado: ', preco_total)
+    pedido.preco_total = Number((preco_total + taxa).toFixed(2))
+    console.log('Inserção do preço total no JSON realizada')
 
     const pedido_id = await inserir_pedido_no_db(pedido)
     return pedido_id
