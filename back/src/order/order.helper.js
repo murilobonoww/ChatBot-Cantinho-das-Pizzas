@@ -157,6 +157,7 @@ function valores_pedido(p) {
         p.delivery || 1
     ];
 }
+
 async function inserir_pedido_no_db(pedido) {
     console.log('Iniciando inserção do pedido no banco de dados...')
     console.log('Valores do pedido: ', valores_pedido(pedido))
@@ -263,41 +264,38 @@ async function getAllNames(categoria) {
 }
 
 function generate_final_message(id_pedido, pedido) {
+    const isEntrega = pedido.endereco_entrega !== null
+    const isAlteracao = pedido.alteracao === 1
     const title = `🍕 Pedido *${id_pedido}*`
     let itens = ''
 
     for (const item of pedido.itens) {
-        if (item.produto === 'Pizza') {
-            itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2).replace(".", ",")} (${item.observacao})\n`
-        }
-        else if (item.produto === 'Esfiha') {
-            itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2).replace(".", ",")}\n`
-        }
-        else {
-            itens += `${item.quantidade} x ${item.sabor} - R$${item.preco.toFixed(2).replace(".", ",")}\n`
+        switch (item.produto) {
+            case 'Pizza':
+                itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2).replace(".", ",")} (${item.observacao})\n`
+            case 'Esfiha':
+                itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco.toFixed(2).replace(".", ",")}\n`
+            default:
+                itens += `${item.quantidade} x ${item.sabor} - R$${item.preco.toFixed(2).replace(".", ",")}\n`
         }
     }
 
-    const forma_de_pagamento = `• 💳 Forma de pagamento: ${pedido.forma_pagamento}`
-
+    const forma_pagamento = `• 💳 Forma de pagamento: ${pedido.forma_pagamento}`
     const endereco = `• 📍 Endereço: ${pedido.endereco_entrega}`
-
     const taxa = `• 🚚 Taxa de entrega: R$${pedido.taxa_entrega.toFixed(2).replace('.', ',')}`
-
     const preco_total = `• Total: R$${pedido.preco_total.toFixed(2).replace('.', ',')}`
-
     const aviso = "*O pagamento será feito na entrega.*"
-
     const agradecimento = "Obrigado pelo seu pedido! Em breve estaremos aí... 🍕🏍️"
 
-    if (pedido.alteracao === 1) {
-        const msg_final = `*(Alteração de pedido)*\n${title}\n${itens}${forma_de_pagamento}\n${endereco}\n${taxa}\n${preco_total}\n${aviso}\n${agradecimento}`
-        return msg_final
-    }
-    else {
-        const msg_final = `${title}\n${itens}${forma_de_pagamento}\n${endereco}\n${taxa}\n${preco_total}\n${aviso}\n${agradecimento}`
-        return msg_final
-    }
+    return `
+        ${isAlteracao && '(*Alteração de pedido*)\n'}
+        ${title}\n
+        ${itens}\n
+        ${forma_pagamento}\n
+        ${isEntrega && `${endereco}\n${taxa}\n`}
+        ${preco_total}\n
+        ${aviso}\n
+        ${agradecimento}`
 }
 
 async function validar_distancia(endereco) {
@@ -443,10 +441,18 @@ const calcularPreco = async (pedido) => {
 async function processOrder(pedido) {
     console.log('Iniciando processamento do pedido...')
     const endereco = pedido.endereco_entrega
+    const isEntrega = endereco !== null
+
     console.log('Validando distância para o endereço:', endereco)
     const distancia = await validar_distancia(endereco)
     console.log('Distância validada:', distancia, 'km')
-    const taxa = calcularTaxaEntrega(distancia)
+
+    let taxa = 0
+
+    if (isEntrega) {
+        taxa = calcularTaxaEntrega(distancia)
+    }
+
     pedido.taxa_entrega = taxa
     console.log('Taxa de entrega calculada:', taxa)
 
