@@ -10,7 +10,6 @@ const limiter = require('../middlewares/rateLimiter')
 const autenticar = require('../middlewares/autenticarUser')
 const router = express.Router();
 
-
 router.post("/check-auth", autenticar, (req, res) => {
   return res.status(200).json({ logged: true })
 })
@@ -37,11 +36,8 @@ router.post("/login", limiter, async (req, res) => {
 
   const isCodeValid = await bcrypt.compare(code, CODE_HASH)
   if (!isCodeValid) return res.status(401).json({ error: 'Código incorreto' })
-
   const token = jwt.sign({ acesso: "allowed" }, JWT_SECRET_KEY, { expiresIn: "10h" });
-
   res.cookie("token", token, { httpOnly: true, secure: true, sameSite: "none", maxAge: 10 * 60 * 60 * 1000, path: "/", });
-
   return res.status(200).json({ ok: true });
 });
 

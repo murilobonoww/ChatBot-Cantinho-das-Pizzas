@@ -4,10 +4,11 @@ const express = require("express");
 //internos
 const router = express.Router();
 const orderController = require("./order.controller")
+const autenticar = require('../middlewares/autenticarUser')
 
 //importante: NAO ESQUECER DO MIDDLEWARE AUTENTICAR
 
-router.get('/getAll', orderController.getAll)
+router.get('/getAll', autenticar, orderController.getAll)
 router.get('/:id/status', orderController.getOrderStatus)
 router.get('/new', orderController.getOrdersWithOpenedStatus)
 router.get('/foody/:id', orderController.getFoodyOrder)
