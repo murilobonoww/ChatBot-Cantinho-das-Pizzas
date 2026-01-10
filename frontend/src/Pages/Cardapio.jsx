@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import "@/Style/Cardapio.css";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -9,6 +9,7 @@ import bell_sound from "/assets/bell.mp3"
 import pizza_img from "/assets/pizza.png"
 
 export default function Cardapio() {
+  const navigate = useNavigate();
   const [cardapio, setCardapio] = useState({ pizzas: [], esfihas: [], bebidas: [], doces: [], outros: [] });
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
@@ -45,6 +46,7 @@ export default function Cardapio() {
     const fetchPedidos = async () => {
       try {
         const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/order/getAll', { withCredentials: true })
+        if (res.status === 401) navigate('/login')
         const data = res.data
         if (carregamentoInicial.current === true) {
           console.log("carregamento inicial")
@@ -355,7 +357,7 @@ export default function Cardapio() {
     <div className="cardapio-container">
       <div className="topo-fixo" ref={topoFixoRef}>
         <div className="topo-fixo-container">
-          <h1>Cardápio</h1>
+          <h1>Cardápiooo</h1>
           <input
             type="text"
             placeholder="Buscar item..."

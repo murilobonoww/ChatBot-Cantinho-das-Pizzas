@@ -12,10 +12,11 @@ const cards = [
   { icon: <img id="menu_img_entregadores" src={entregador} />, title: "Entregadores", external: true, to: "https://app.foodydelivery.com/u/0/couriers" },
   { icon: <img id="menu_img" src={statistics} />, title: "Faturamento", to: "/relatorios" },
   { icon: <img id="menu_img" src={menu} />, title: "Menu", to: "/cardapio" },
-  { icon: <img id="menu_img" src={bug_report} />, title: "Reportar bug", external: true, to:"https://wa.me/5548992254888" }
+  { icon: <img id="menu_img" src={bug_report} />, title: "Reportar bug", external: true, to: "https://wa.me/5548992254888" }
 ];
 
 export default function Home({ enviarListaDeNovosIDs }) {
+  const navigate = useNavigate()
   const [temPedidoNovo, setTemPedidoNovo] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [notificacoes, setNotificacoes] = useState([]);
@@ -39,7 +40,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
       try {
         const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/order/getAll', { withCredentials: true })
         const pedidos_atualizados = res.data
-
+        if (res.status === 401) navigate('/login')
         if (carregamentoInicial.current === true) {
           carregamentoInicial.current = false
         }
@@ -53,15 +54,12 @@ export default function Home({ enviarListaDeNovosIDs }) {
             setToggle_badge(true)
           }
         }
-
         pedidosAnteriores.current = pedidos_atualizados
-
       } catch (error) {
         console.log(error)
       }
     }
     fetchPedidos()
-
     const intervalFetch = setInterval(fetchPedidos, 5000)
     return () => clearInterval(intervalFetch)
   }, [])
@@ -101,18 +99,14 @@ export default function Home({ enviarListaDeNovosIDs }) {
 
   const limparNot = async (id_not) => {
     try {
-      const body = { id: id_not, status: 'atendida'}
+      const body = { id: id_not, status: 'atendida' }
       const res = await axios.put('https://back-cantinho-das-pizzas.onrender.com/notification/atualizar', body)
-      toast.success('Notificação apagada com sucesso!', {autoClose: 1500, closeOnClick: true})
+      toast.success('Notificação apagada com sucesso!', { autoClose: 1500, closeOnClick: true })
     } catch (error) {
       console.log(error)
       throw error;
     }
   }
-
-
-
-
 
   // WebSocket setup
   useEffect(() => {
@@ -303,7 +297,6 @@ export default function Home({ enviarListaDeNovosIDs }) {
     }
   }
 
-  const navigate = useNavigate()
 
   const checkAuth = async () => {
     try {

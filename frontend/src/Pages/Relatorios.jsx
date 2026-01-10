@@ -30,6 +30,7 @@ export default function Relatorios() {
       try {
         const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/order/getAll', { withCredentials: true })
         const data = res.data
+        if (res.status === 401) navigate('/login')
         if (carregamentoInicial.current === true) {
           console.log("carregamento inicial")
           carregamentoInicial.current = false

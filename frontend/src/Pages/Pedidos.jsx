@@ -3,15 +3,13 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import withReactContent from "sweetalert2-react-content";
 import 'react-toastify/dist/ReactToastify.css';
-
 
 //interns
 import "@/Style/Pedidos.css";
 import PedidoPrint from "@/Components/PedidoPrint";
-
 
 //assets
 import expandir_img from "/assets/folder.webp";
@@ -21,25 +19,37 @@ import impressora_icon from "/assets/printer_.png"
 import warning_icon from "/assets/warning.webp"
 import bell_sound from "/assets/bell.mp3"
 
-
 const MySwal = withReactContent(Swal);
 
 const Pedidos = () => {
-
+  const navigate = useNavigate()
   //add feature de impressão
   const [pedidoParaImprimir, setPedidoParaImprimir] = useState(null);
 
   function imprimir(pedido) {
     setPedidoParaImprimir(pedido);
 
-    // pequeno delay para garantir renderização
     setTimeout(() => {
+      const printContent = document.getElementById("print").innerHTML;
+
       if (window.api) {
-        window.api.print();
+        console.log("Print chamado!")
+        window.api.printHTML(`
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              hr { margin: 10px 0; }
+            </style>
+          </head>
+          <body>
+            ${printContent}
+          </body>
+        </html>
+      `);
       }
     }, 100);
   }
-
 
   const [id_filter, setIdFilter] = useState()
   const [pedidos, setPedidos] = useState([]);
@@ -68,7 +78,6 @@ const Pedidos = () => {
   const [changeOpened, setChangeOpened] = useState(false)
   const [itemsToEdit, setItemsToEdit] = useState([])
 
-
   //auth panel to change/delete order
   const [authOpened, setAuthOpened] = useState(false)
   const [authPass, setAuthPass] = useState("")
@@ -89,7 +98,10 @@ const Pedidos = () => {
     fetch("https://back-cantinho-das-pizzas.onrender.com/order/getAll", {
       credentials: "include"
     })
-      .then(res => res.json())
+      .then(res => {
+        res.json()
+        if (res.status === 401) navigate('/login')
+      })
       .then(data => {
         console.log(data)
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
@@ -154,7 +166,10 @@ const Pedidos = () => {
     fetch(`https://back-cantinho-das-pizzas.onrender.com/order/getAll`, {
       credentials: "include"
     })
-      .then(res => res.json())
+      .then(res => {
+        res.json()
+        if (res.status === 401) navigate('/login')
+      })
       .then(data => {
         let pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
 
@@ -197,11 +212,13 @@ const Pedidos = () => {
     if (dataFim) params.append("fim", dataFim);
     if (nomeCliente) params.append("cliente", nomeCliente);
 
-
     fetch(`https://back-cantinho-das-pizzas.onrender.com/order/getAll?${params.toString()}`, {
       credentials: "include"
     })
-      .then((res) => res.json())
+      .then((res) => {
+        res.json()
+        if (res.status === 401) navigate('/login')
+      })
       .then((data) => {
         console.log('DATA RECEBIDA: ', Array.isArray(data), data)
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
@@ -220,8 +237,9 @@ const Pedidos = () => {
         setContagem_pedidos_secao(pedidosOrdenadosFiltradosPorSecao.length)
       })
       .catch((err) => {
-        console.error("Erro ao buscar pedidos:", err);
-        toast.error("Erro ao buscar pedidos.", { autoClose: 4000 });
+        console.error("Erro ao buscar pedidos:", err)
+        toast.error("Erro ao buscar pedidos.", { autoClose: 4000 })
+        navigate('/login')
       });
   };
 
@@ -732,11 +750,6 @@ const Pedidos = () => {
                       }>Imprimir
                       </button>
 
-                      {/* componente de impressão */}
-                      {pedidoParaImprimir && (
-                        <PedidoPrint pedido={pedidoParaImprimir} />
-                      )}
-
                       <button className="editBtn_h" onClick={(e) => {
                         e.stopPropagation()
                         setAuthOpened(prev => !prev)
@@ -812,10 +825,11 @@ const Pedidos = () => {
 
                     </div>
 
-
-
                     {abertos[pedido.id_pedido] && (
                       <div className="pedido-detalhes">
+                        <p>
+                          <strong style={{textDecoration: "underline"}}>{pedido.delivery === 1 ? 'Entrega' : 'Retirada'}</strong>
+                        </p>
                         <p>
                           <strong>Cliente:</strong> {pedido.nome_cliente}
                         </p>
@@ -871,6 +885,10 @@ const Pedidos = () => {
           <div className="filtros_div_"></div>
         </div>
       </div>
+      {/* componente de impressão */}
+      {pedidoParaImprimir && (
+        <PedidoPrint pedido={pedidoParaImprimir} />
+      )}
     </div>
   );
 };

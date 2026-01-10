@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, RouterProvider } from "react-router-dom";
+import { HashRouter as Router, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "@/Style/App.css"
@@ -58,7 +58,10 @@ function AppContent() {
 
   const fetchPedidos = () => {
     fetch("https://back-cantinho-das-pizzas.onrender.com/order/getAll", { credentials: "include" })
-      .then((res) => res.json())
+      .then((res) => {
+        res.json()
+        if (res.status === 401) navigate('/login')
+      })
       .then((data) => {
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
         const anteriores = [...pedidosAnteriores.current];
@@ -84,7 +87,9 @@ function AppContent() {
         pedidosAnteriores.current = pedidosOrdenados.map((p) => ({ ...p }));
         setPedidos(pedidosOrdenados);
       })
-      .catch((err) => console.error("Erro ao buscar pedidos:", err));
+      .catch((err) => {
+        console.error("Erro ao buscar pedidos:", err)
+      });
   };
 
   return (
@@ -95,7 +100,6 @@ function AppContent() {
 }
 
 function App() {
-
   return (
     <Router>
       <ToastContainer position="top-right" autoClose={6000} newestOnTop closeOnClick pauseOnHover />

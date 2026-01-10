@@ -6,16 +6,10 @@ import path from "path";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: './',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, "src")
     }
-  },
-  server: {
-    https: {
-      key: fs.readFileSync("./localhost+2-key.pem"),
-      cert: fs.readFileSync("./localhost+2.pem"),
-    },
-    port: 5173,
   },
 });
