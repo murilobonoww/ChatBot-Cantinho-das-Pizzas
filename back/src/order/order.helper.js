@@ -13,7 +13,7 @@ const openai = new OpenAI({
 });
 
 const sql = {
-    insertPedido: "INSERT INTO pedido (nome_cliente, endereco_entrega, taxa_entrega, preco_total, forma_pagamento, status_pedido, alteracao) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    insertPedido: "INSERT INTO pedido (nome_cliente, endereco_entrega, taxa_entrega, preco_total, forma_pagamento, status_pedido, alteracao, delivery) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     insertItemPedido: "INSERT INTO item_pedido (pedido_id_fk, produto, sabor, quantidade, observacao, preco) VALUES (?, ?, ?, ?, ?, ?)",
     GET_ALL: "SELECT p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido, p.printed, p.alteracao, i.id AS id_item, i.produto, i.sabor, i.quantidade, i.observacao, i.preco FROM pedido p LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk",
     GET_ORDER: `SELECT p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega,  p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido, p.alteracao, i.id, i.produto, i.sabor, i.quantidade, i.observacao FROM pedido p LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk WHERE p.id_pedido = ? `,
@@ -153,7 +153,8 @@ function valores_pedido(p) {
         p.preco_total,
         p.forma_pagamento,
         p.status_pedido || "aberto",
-        p.alteracao
+        p.alteracao,
+        p.delivery || 1
     ];
 }
 async function inserir_pedido_no_db(pedido) {

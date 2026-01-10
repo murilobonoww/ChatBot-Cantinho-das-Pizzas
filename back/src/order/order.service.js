@@ -1,20 +1,19 @@
 //interns
-const db = require("../db");
+const db = require("../db")
 
 //helper functions
 const { processOrder, generate_final_message, applyFilters, sortOrdersinSQL, sql, structureOrders, ensureResultExists, buildOrderFromRow, checkIfNotFound, getFoodyOrder, structureResponse } = require("./order.helper");
 
 async function submitOrder(order) {
   const orderID = await processOrder(order)
-  console.log("Order ID after processing:", orderID);
+  console.log("Order ID after processing:", orderID)
   return generate_final_message(orderID, order)
 }
 
 async function getAll(filters) {
   let { query, params } = applyFilters(filters, sql.GET_ALL)
   query = sortOrdersinSQL(query)
-  const [rows] = await db.query(query, params);
-
+  const [rows] = await db.query(query, params)
   const orders = structureOrders(rows)
   return orders
 }

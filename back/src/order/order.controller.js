@@ -107,7 +107,7 @@ async function getOrdersWithOpenedStatus(req, res) {
     }
 }
 
-async function getFoodyOrder (req, res) {
+async function getFoodyOrder(req, res) {
     try {
         const uid = req.params.uid
         const order = await service.getOrderFromFoody(uid)
@@ -118,7 +118,7 @@ async function getFoodyOrder (req, res) {
     }
 }
 
-async function generateRelatorio (req, res) {
+async function generateRelatorio(req, res) {
     try {
         const pass = req.headers["authorization"];
         const MANAGEMENT_PASS = process.env.SENHA_GERENCIA;
