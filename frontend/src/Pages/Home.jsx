@@ -297,20 +297,19 @@ export default function Home({ enviarListaDeNovosIDs }) {
     }
   }
 
+  // const checkAuth = async () => {
+  //   try {
+  //     const res = await axios.post('https://back-cantinho-das-pizzas.onrender.com/auth/check-auth', {}, { withCredentials: true })
+  //   } catch (error) {
+  //     navigate("/login")
+  //   }
+  // }
 
-  const checkAuth = async () => {
-    try {
-      const res = await axios.post('https://back-cantinho-das-pizzas.onrender.com/auth/check-auth', {}, { withCredentials: true })
-    } catch (error) {
-      navigate("/login")
-    }
-  }
+  // useEffect(() => {
+  //   const interval_check = setInterval(checkAuth, 5000)
 
-  useEffect(() => {
-    const interval_check = setInterval(checkAuth, 5000)
-
-    return () => clearInterval(interval_check)
-  }, [])
+  //   return () => clearInterval(interval_check)
+  // }, [])
 
   return (
     <div className="dashboard-container">
