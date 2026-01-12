@@ -13,7 +13,7 @@ const openai = new OpenAI({
 });
 
 const sql = {
-    insertPedido: "INSERT INTO pedido (nome_cliente, endereco_entrega, taxa_entrega, preco_total, forma_pagamento, status_pedido, alteracao, delivery) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    insertPedido: "INSERT INTO pedido (nome_cliente, endereco_entrega, taxa_entrega, preco_total, forma_pagamento, status_pedido, alteracao, delivery, telefone_cliente) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
     insertItemPedido: "INSERT INTO item_pedido (pedido_id_fk, produto, sabor, quantidade, observacao, preco) VALUES (?, ?, ?, ?, ?, ?)",
     GET_ALL: "SELECT p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega, p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido, p.printed, p.alteracao, p.delivery, i.id AS id_item, i.produto, i.sabor, i.quantidade, i.observacao, i.preco FROM pedido p LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk",
     GET_ORDER: `SELECT p.id_pedido, p.nome_cliente, p.endereco_entrega, p.taxa_entrega,  p.preco_total, p.forma_pagamento, p.status_pedido, p.data_pedido, p.alteracao, i.id, i.produto, i.sabor, i.quantidade, i.observacao FROM pedido p LEFT JOIN item_pedido i ON p.id_pedido = i.pedido_id_fk WHERE p.id_pedido = ? `,
@@ -154,7 +154,8 @@ function valores_pedido(p) {
         p.forma_pagamento,
         p.status_pedido || "aberto",
         p.alteracao,
-        p.delivery || 1
+        p.delivery || 1,
+        p.telefone_cliente
     ];
 }
 
@@ -427,14 +428,11 @@ const calcularPreco = async (pedido) => {
                 item.preco = Number(rows[0].preco);
                 break;
             }
-
             default:
                 throw new Error(`Produto inválido: ${item.produto}`);
         }
-
         preco_total += price * item.quantidade;
     }
-
     return Number(preco_total.toFixed(2));
 };
 
@@ -443,12 +441,11 @@ async function processOrder(pedido) {
     const endereco = pedido.endereco_entrega
     const isEntrega = endereco !== null
 
-    console.log('Validando distância para o endereço:', endereco)
+    console.log(`Validando distância para o endereço: ${endereco}...`)
     const distancia = await validar_distancia(endereco)
     console.log('Distância validada:', distancia, 'km')
 
     let taxa = 0
-
     if (isEntrega) {
         taxa = calcularTaxaEntrega(distancia)
     }
@@ -457,9 +454,9 @@ async function processOrder(pedido) {
     console.log('Taxa de entrega calculada:', taxa)
 
     const preco_total = await calcularPreco(pedido)
-    console.log('Preço total calculado: ', preco_total)
+    console.log('Subtotal calculado: ', preco_total)
     pedido.preco_total = Number((preco_total + taxa).toFixed(2))
-    console.log('Inserção do preço total no JSON realizada')
+    console.log(`Inserção do preço total no JSON realizada: ${pedido.preco_total}`)
 
     const pedido_id = await inserir_pedido_no_db(pedido)
     console.log('Pedido inserido no banco de dados com ID:', pedido_id)
@@ -509,6 +506,7 @@ function criarPedido(row) {
         itens: [],
         alteracao: row.alteracao,
         delivery: row.delivery,
+        telefone_cliente: row.telefone_cliente
     }
 }
 
