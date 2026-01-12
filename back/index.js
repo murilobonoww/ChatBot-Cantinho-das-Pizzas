@@ -21,6 +21,7 @@ const menuRoutes = require('./src/menu/menu.router')
 const authRoutes = require('./src/routes/AuthRoutes')
 
 const app = express();
+app.set('trust proxt', 1)
 
 let pollingEmExecucao = false;
 
@@ -61,7 +62,6 @@ const PORT = process.env.PORT || 10000;
     console.error("❌ Erro no pool MySQL:", error.message);
   }
 })();
-
 
 function mapearStatusFoody(status) {
   const mapeamento = {
