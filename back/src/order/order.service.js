@@ -25,8 +25,8 @@ async function update(orderID) {
 }
 
 async function deleteOrder(orderID) {
-  const [rows_order] = await db.query(sql.DELETE_ORDER, orderID)
   const [rows_itens] = await db.query(sql.DELETE_ITENS_OF_ORDER, orderID)
+  const [rows_order] = await db.query(sql.DELETE_ORDER, orderID)
 }
 
 async function getOrderStatus(orderID) {
