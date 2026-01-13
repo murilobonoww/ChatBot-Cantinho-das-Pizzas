@@ -32,8 +32,8 @@ async function update(req, res) {
 }
 
 async function deleteOrder(req, res) {
+    const orderID = req.params.id
     try {
-        const orderID = req.params.id
         await service.deleteOrder(orderID)
         return res.sendStatus(200)
     } catch (error) {
