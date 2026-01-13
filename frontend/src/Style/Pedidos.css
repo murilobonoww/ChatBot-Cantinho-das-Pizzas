@@ -518,7 +518,7 @@
   box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1);
 }
 
-#input_auth_tela_pedidos{
+.input_auth_tela_pedidos{
   width: 200px;
   text-align: center; 
   margin: 15px 0 15px 0;
