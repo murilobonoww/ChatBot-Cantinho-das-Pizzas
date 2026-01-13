@@ -97,9 +97,9 @@ async function updateOrderItem(req, res) {
 }
 
 async function getOrdersWithOpenedStatus(req, res) {
+    const orderID = req.params.id
     try {
-        const orderID = req.params.id
-        await service.getOrdersWithOpenStatus()
+        await service.getOrdersWithOpenedStatus(orderID)
         return res.sendStatus(200)
     }
     catch (error) {
