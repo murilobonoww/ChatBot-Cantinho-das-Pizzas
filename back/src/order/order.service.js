@@ -60,7 +60,7 @@ async function updateOrderItem(orderID, new_order) {
 async function getOrdersWithOpenedStatus() {
   const [rows] = await db.query(sql.GET_ORDERS_WITH_OPENED_STATUS)
   const temNovos = rows[0].total > 0;
-  return res.json({ novos: temNovos });
+  return temNovos
 }
 
 async function getOrderFromFoody(uid) {

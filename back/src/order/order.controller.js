@@ -97,10 +97,9 @@ async function updateOrderItem(req, res) {
 }
 
 async function getOrdersWithOpenedStatus(req, res) {
-    const orderID = req.params.id
     try {
-        await service.getOrdersWithOpenedStatus(orderID)
-        return res.sendStatus(200)
+        const temNovos = await service.getOrdersWithOpenedStatus()
+        return res.status(200).json({ novos: temNovos })
     }
     catch (error) {
         return res.status(500).json({ erro: `Error getting orders with 'open' status: `, error })
