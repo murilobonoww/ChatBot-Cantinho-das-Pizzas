@@ -1,0 +1,4 @@
+/release/
+/dist/
+*.exe
+node_modules/
