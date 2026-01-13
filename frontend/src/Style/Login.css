@@ -21,26 +21,41 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin-top: -50px;
+  background-color: #fdf5e8;
 }
 
 #login_page_title {
   margin-bottom: 30px;
-  font-size: clamp(10px, 7vw, 36px);
+  font-size: clamp(10px, 7vw, 62px);
 }
 
-.login_page_btn_submit{
-    border: none;
-    margin-left: 20px;
-    color: white;
-    background-color: #ff7043;
-    padding: 15px 45px;
-    transition: all 0.3s ease-in-out;
+.login_content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -50px;
 }
 
-.login_page_btn_submit:hover{
-    transform: scale(1.03);
-    filter: brightness(1.1);
+#logo_login_page {
+  width: 180px;
+  height: 180px;
+  margin-bottom: 10px;
+}
+
+.login_page_btn_submit {
+  border: none;
+  color: white;
+  padding: 19px 249px;
+  transition: all 0.3s ease-in-out;
+  border-radius: 10px;
+  font-size: 20px;
+  background: #FEB34E;
+  background: linear-gradient(90deg, rgba(254, 179, 78, 1) 20%, rgba(253, 73, 72, 1) 100%);
+}
+
+.login_page_btn_submit:hover {
+  transform: scale(1.03);
+  filter: brightness(1.1);
 }
 
 #info_btn_login_page {
@@ -55,7 +70,7 @@ body {
   transition: all 0.3s ease-in-out;
 }
 
-#info_btn_login_page:hover{
+#info_btn_login_page:hover {
   transform: scale(1.1);
   color: black;
 }
@@ -64,18 +79,18 @@ body {
   fill: #ff7043;
 }
 
-.custom-info-progress{
+.custom-info-progress {
   background: #ff7043;
 }
 
-#img_btn_toggle_show_pass_login_page{
+#img_btn_toggle_show_pass_login_page {
   width: 30px;
   height: 30px;
-  background-color: transparent;
+  background-color: white;
 }
 
-#btn_toggle_show_pass_login_page{
-  background-color: transparent;
+#btn_toggle_show_pass_login_page {
+  background-color: white;
   width: 25px;
   height: 25px;
   display: flex;
@@ -84,17 +99,19 @@ body {
   margin-left: 10px;
 }
 
-.login_form{
+.login_form {
   display: flex;
+  justify-content: center;
   align-items: center;
   flex-direction: column;
 }
 
-.row_1_login_form{
+.row_1_login_form {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
   border: 3px solid #afafaf;
   border-bottom: 10px solid #afafaf;
   border-radius: 8px;
+  background-color: white;
 }

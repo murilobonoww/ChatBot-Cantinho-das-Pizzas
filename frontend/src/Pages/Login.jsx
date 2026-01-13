@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  
+
   const [code, setCode] = useState("");
   const navigate = useNavigate();
   const [show, setShow] = useState(false);
@@ -30,21 +30,25 @@ const Login = () => {
           className: "custom-info-toast",
           progressClassName: "custom-info-progress"
         }, { autoClose: 5000 })}>?</button>
-        <h1 id='login_page_title'>Insira o código de login</h1>
 
-        <form className='login_form' onSubmit={handleSubmit}>
+        <div className='login_content'>
+          <img id='logo_login_page' src="/favicon.png" />
+          <h1 id='login_page_title'>Entrar no sistema</h1>
 
-          <div className='row_1_login_form'>
-            <input id='login_input' type={show ? 'text' : 'password'} autoComplete="new-password" autoFocus placeholder='Digite e pressione enter' onChange={(e) => setCode(e.target.value)} />
-            <button type='button' id='btn_toggle_show_pass_login_page' onClick={() => setShow(prev => !prev)}>
-              <img id='img_btn_toggle_show_pass_login_page' src={show ? hide_pass : show_pass} />
-            </button>
+          <form className='login_form' onSubmit={handleSubmit}>
+
+            <div className='row_1_login_form'>
+              <input id='login_input' type={show ? 'text' : 'password'} autoComplete="new-password" autoFocus placeholder='Insira o código de login' onChange={(e) => setCode(e.target.value)} />
+              <button type='button' id='btn_toggle_show_pass_login_page' onClick={() => setShow(prev => !prev)}>
+                <img id='img_btn_toggle_show_pass_login_page' src={show ? hide_pass : show_pass} />
+              </button>
             </div>
 
 
-          <button className='login_page_btn_submit' type='submit'>Entrar</button>
+            <button className='login_page_btn_submit' type='submit'>Entrar</button>
+          </form>
+        </div>
 
-        </form>
       </div>
     </div>
   )

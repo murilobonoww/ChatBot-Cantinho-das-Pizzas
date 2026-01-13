@@ -39,8 +39,12 @@ export default function Home({ enviarListaDeNovosIDs }) {
     const fetchPedidos = async () => {
       try {
         const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/order/getAll', { withCredentials: true })
-        const pedidos_atualizados = res.data
-        if (res.status === 401) navigate('/login')
+        const pedidos_atualizados = Array.isArray(res.data) ? res.data : pedidosAnteriores.current
+        
+        if (res.status === 401) {
+          navigate('/login')
+          return
+        }
         if (carregamentoInicial.current === true) {
           carregamentoInicial.current = false
         }

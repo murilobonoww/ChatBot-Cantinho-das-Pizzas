@@ -99,10 +99,14 @@ const Pedidos = () => {
       credentials: "include"
     })
       .then(res => {
-        res.json()
-        if (res.status === 401) navigate('/login')
+        if (res.status === 401) {
+          navigate('/login')
+          return
+        }
+        return res.json();
       })
       .then(data => {
+        if (!Array.isArray(data)) return
         console.log(data)
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
         setPedidos(pedidosOrdenados);
@@ -167,8 +171,11 @@ const Pedidos = () => {
       credentials: "include"
     })
       .then(res => {
-        res.json()
-        if (res.status === 401) navigate('/login')
+        if (res.status === 401){
+          navigate('/login')
+          return
+        }
+        return res.json()
       })
       .then(data => {
         let pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
@@ -216,10 +223,17 @@ const Pedidos = () => {
       credentials: "include"
     })
       .then((res) => {
-        res.json()
-        if (res.status === 401) navigate('/login')
+        if (res.status === 401){
+          navigate('/login')
+          return
+        }
+        if (res.status === 304){
+          return []
+        }
+        return res.json()
       })
       .then((data) => {
+        if (!data || !Array.isArray(data)) return
         console.log('DATA RECEBIDA: ', Array.isArray(data), data)
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
         let pedidosOrdenadosFiltradosPorSecao = pedidosOrdenados
@@ -746,6 +760,7 @@ const Pedidos = () => {
                         setNovosIDs(prev => prev.filter(item => item !== pedido.id_pedido))
                         imprimir(pedido)
                         setAsPrinted(pedido.id_pedido)
+                        toast.success(`Pedido ${pedido.id_pedido} enviado para impressão.`, { autoClose: 4000 })
                       }
                       }>Imprimir
                       </button>

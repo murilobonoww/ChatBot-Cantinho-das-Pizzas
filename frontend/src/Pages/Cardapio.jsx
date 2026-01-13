@@ -46,8 +46,11 @@ export default function Cardapio() {
     const fetchPedidos = async () => {
       try {
         const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/order/getAll', { withCredentials: true })
-        if (res.status === 401) navigate('/login')
-        const data = res.data
+        if (res.status === 401) {
+          navigate('/login')
+          return
+        }
+        const data = Array.isArray(res.data) ? res.data : last_time_data.current
         if (carregamentoInicial.current === true) {
           console.log("carregamento inicial")
           carregamentoInicial.current = false

@@ -59,8 +59,14 @@ function AppContent() {
   const fetchPedidos = () => {
     fetch("https://back-cantinho-das-pizzas.onrender.com/order/getAll", { credentials: "include" })
       .then((res) => {
-        res.json()
-        if (res.status === 401) navigate('/login')
+        if (res.status === 401) {
+          navigate('/login')
+          return []
+        }
+        if (res.status === 304) {
+          return pedidosAnteriores.current
+        }
+        return res.json()
       })
       .then((data) => {
         const pedidosOrdenados = data.sort((a, b) => b.id_pedido - a.id_pedido);
