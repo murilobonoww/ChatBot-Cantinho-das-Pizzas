@@ -1,14 +1,17 @@
 body {
-  font-family: "MinhaFonte2", sans-serif;
+  font-family: 'MinhaFonte2', sans-serif;
   user-select: none;
 }
 
 #login_input {
-  font-family: "MinhaFonte2", sans-serif;
-  padding: 10px;
+  padding: 13px 18px;
   font-size: clamp(10px, 5vw, 18px);
   width: clamp(200px, 50vw, 500px);
   border: none;
+  height: 40px;
+  border-radius: 11px;
+  font-family: 'Regular';
+  color: rgb(39, 39, 39);
 }
 
 #login_input:focus {
@@ -21,35 +24,34 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #fdf5e8;
+  background: linear-gradient(0deg,rgba(254, 250, 239, 1) 30%, rgba(246, 227, 198, 1) 100%);
 }
 
 #login_page_title {
-  margin-bottom: 30px;
   font-size: clamp(10px, 7vw, 62px);
+  color: #1d1d33;
 }
 
 .login_content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: -50px;
+  margin-top: -90px;
+  gap: 30px;
 }
 
 #logo_login_page {
   width: 180px;
   height: 180px;
-  margin-bottom: 10px;
 }
 
 .login_page_btn_submit {
   border: none;
   color: white;
-  padding: 19px 249px;
+  padding: 17px 60px;
   transition: all 0.3s ease-in-out;
-  border-radius: 10px;
+  border-radius: 16px;
   font-size: 20px;
-  background: #FEB34E;
   background: linear-gradient(90deg, rgba(254, 179, 78, 1) 20%, rgba(253, 73, 72, 1) 100%);
 }
 
@@ -104,14 +106,14 @@ body {
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  gap: 30px;
 }
 
 .row_1_login_form {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
-  border: 3px solid #afafaf;
-  border-bottom: 10px solid #afafaf;
-  border-radius: 8px;
+  border: 1px solid #dfdfdf;
+  border-radius: 11px;
   background-color: white;
+  padding-right: 15px;
 }

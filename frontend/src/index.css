@@ -39,6 +39,13 @@ a:hover {
   font-style: normal;
 }
 
+@font-face {
+  font-family: "Regular";
+  src: url("/assets/Lexend-Regular.ttf") format("truetype");
+  font-weight: bold;
+  font-style: normal;
+}
+
 
 
 h1 {
