@@ -122,6 +122,7 @@ async function generateRelatorio(req, res) {
         const pass = req.headers["authorization"];
         const MANAGEMENT_PASS = process.env.SENHA_GERENCIA;
         const { inicio, fim } = req.query
+        console.log(`Senha digitada: ${pass}, Senha correta: ${MANAGEMENT_PASS}`);
 
         const relatorio = await service.generateRelatorio(pass, MANAGEMENT_PASS, inicio, fim)
         return res.status(200).json(relatorio)
