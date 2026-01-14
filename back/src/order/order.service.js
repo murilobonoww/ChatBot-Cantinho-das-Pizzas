@@ -70,7 +70,7 @@ async function getOrderFromFoody(uid) {
 }
 
 function authorize(pass, MANAGEMENT_PASS) {
-  if (pass !== MANAGEMENT_PASS) throw new Error('Senha incorreta')
+  if (pass !== `Bearer ${MANAGEMENT_PASS}`) throw new Error('Senha incorreta')
 }
 
 async function generateRelatorio(pass, MANAGEMENT_PASS, start, end) {
