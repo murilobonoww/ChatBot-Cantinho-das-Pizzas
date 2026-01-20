@@ -7,6 +7,8 @@ import axios from "axios";
 import { useSocketNotifications } from "@/hooks/useSocketNotifications";
 import AppRoutes from "@/app/AppRoutes";
 
+import Layout from "../Components/Layout";
+
 function AppContent() {
   const [pedidos, setPedidos] = useState([]);
   const [abertos, setAbertos] = useState({});

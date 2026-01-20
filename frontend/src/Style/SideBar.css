@@ -1,0 +1,74 @@
+#sidebar_aside nav ul {
+    list-style: none;
+    padding-left: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+#sidebar_aside a {
+    color: #565053;
+    /* color: #49475e; */
+    border-radius: 10px;
+    padding: 15px 35px 15px 20px;
+    width: 150px;
+    display: flex;
+}
+
+#sidebar_aside a.active {
+    color: white;
+    /* background-color: #ff6900; */
+    background: linear-gradient(90deg, rgba(254, 179, 78, 1) 20%, rgba(253, 73, 72, 1) 100%);
+}
+
+#sidebar_aside a.active:hover {
+    /* background-color: #ff6900; */
+    background: linear-gradient(90deg, rgba(254, 179, 78, 1) 20%, rgba(253, 73, 72, 1) 100%);
+}
+
+#sidebar_aside nav ul a:hover {
+    background-color: #f3f4f6;
+}
+
+#sidebar_aside {
+    width: 250px;
+    height: 100vh;
+    background-color: white;
+    position: fixed;
+    border-right: 1px solid #ebebeb;
+    z-index: 10000;
+}
+
+.sidebar_title {
+    padding-left: 30px;
+    padding-bottom: 30px;
+    padding-top: 30px;
+    display: flex;
+    border-bottom: 1px solid #ebebeb;
+}
+
+#sidebarTitle {
+    display: inline-block;
+    text-align: left;
+    font-size: 20px;
+}
+
+#pizza_sidebar_title {
+    font-size: 25px;
+    margin-right: 5px;
+}
+
+#notification_btn_sidebar {
+    cursor: pointer;
+    color: #565053;
+    padding-left: 30px;
+    padding: 15px 35px 15px 20px;
+    width: 150px;
+    display: flex;
+    border-radius: 10px;
+}
+
+#notification_btn_sidebar:hover {
+    background-color: #f3f4f6;
+}

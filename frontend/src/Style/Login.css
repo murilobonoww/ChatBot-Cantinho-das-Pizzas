@@ -11,7 +11,7 @@ body {
   height: 40px;
   border-radius: 11px;
   font-family: 'Regular';
-  color: rgb(39, 39, 39);
+  color: rgb(22, 22, 22);
 }
 
 #login_input:focus {

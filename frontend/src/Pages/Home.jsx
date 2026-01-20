@@ -35,40 +35,6 @@ export default function Home({ enviarListaDeNovosIDs }) {
     audio.play();
   }
 
-  useEffect(() => {
-    const fetchPedidos = async () => {
-      try {
-        const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/order/getAll', { withCredentials: true })
-        const pedidos_atualizados = Array.isArray(res.data) ? res.data : pedidosAnteriores.current
-        
-        if (res.status === 401) {
-          navigate('/login')
-          return
-        }
-        if (carregamentoInicial.current === true) {
-          carregamentoInicial.current = false
-        }
-        else {
-          if (pedidos_atualizados.length > pedidosAnteriores.current.length) {
-            playSound()
-            toast.info("Novo pedido!", {
-              className: "custom-info-toast",
-              progressClassName: "custom-info-progress"
-            })
-            setToggle_badge(true)
-          }
-        }
-        pedidosAnteriores.current = pedidos_atualizados
-      } catch (error) {
-        console.log(error)
-      }
-    }
-    fetchPedidos()
-    const intervalFetch = setInterval(fetchPedidos, 5000)
-    return () => clearInterval(intervalFetch)
-  }, [])
-
-  // Function to format timestamp to HH:mm
   const formatarHora = (timestamp) => {
     try {
       const data = new Date(timestamp);
@@ -237,168 +203,138 @@ export default function Home({ enviarListaDeNovosIDs }) {
       }
       processedEventsRef.current.clear();
     };
-  }, []);
-
-  // Check for new orders
-  useEffect(() => {
-    async function verificarPedidosNovos() {
-      try {
-        const res = await axios.get("https://back-cantinho-das-pizzas.onrender.com/order/new", { withCredentials: true });
-        setTemPedidoNovo(res.data.novos);
-      } catch (error) {
-        console.error("Erro ao verificar pedidos novos:", error);
-      }
-    }
-
-    verificarPedidosNovos();
-    const intervalo = setInterval(verificarPedidosNovos, 4000);
-    return () => clearInterval(intervalo);
-  }, []);
+}, []);
 
   // Mark notification as attended
-  const atualizarStatusNotificacao = async (id_notificacao) => {
-    try {
-      const response = await axios.post(`https://chatbot-cantinho-das-pizzas-production.up.railway.app/notificacoes/atender/${id_notificacao}`);
-      console.log(`Notificação ${id_notificacao} marcada como atendida:`, response.data);
-    } catch (error) {
-      console.error(`Erro ao atualizar status da notificação ${id_notificacao}:`, error);
-      toast.error(`Erro ao marcar notificação ${id_notificacao.slice(0, 8)}... como atendida`, {
-        toastId: `atender-error-${id_notificacao}`,
-      });
-    }
-  };
-
-  // Clear all notifications
-  const limparNotificacoes = async () => {
-    try {
-      const response = await axios.post("https://chatbot-cantinho-das-pizzas-production.up.railway.app/notificacoes/limpar");
-      console.log("Notificações limpas:", response.data);
-      setNotificacoes((prev) => prev.map((n) => ({ ...n, status: "atendida" })));
-      setTemNotificacoesNaoLidas(false);
-      toast.success("Todas as notificações foram marcadas como atendidas", {
-        toastId: "limpar-notificacoes",
-      });
-    } catch (error) {
-      console.error("Erro ao limpar notificações:", error);
-      toast.error("Erro ao limpar notificações", { toastId: "limpar-error" });
-    }
-  };
-
-  // Toggle sidebar
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-    console.log("Sidebar toggled:", !isSidebarOpen ? "Abrindo" : "Fechando");
-    setTemNotificacoesNaoLidas(false);
-  };
-
-  const logOut = async () => {
-    try {
-      const res = await axios.post('https://back-cantinho-das-pizzas.onrender.com/auth/logout', {}, { withCredentials: true })
-      navigate("/login")
-    }
-    catch (error) {
-      console.log(error)
-    }
+const atualizarStatusNotificacao = async (id_notificacao) => {
+  try {
+    const response = await axios.post(`https://chatbot-cantinho-das-pizzas-production.up.railway.app/notificacoes/atender/${id_notificacao}`);
+    console.log(`Notificação ${id_notificacao} marcada como atendida:`, response.data);
+  } catch (error) {
+    console.error(`Erro ao atualizar status da notificação ${id_notificacao}:`, error);
+    toast.error(`Erro ao marcar notificação ${id_notificacao.slice(0, 8)}... como atendida`, {
+      toastId: `atender-error-${id_notificacao}`,
+    });
   }
+};
 
-  // const checkAuth = async () => {
-  //   try {
-  //     const res = await axios.post('https://back-cantinho-das-pizzas.onrender.com/auth/check-auth', {}, { withCredentials: true })
-  //   } catch (error) {
-  //     navigate("/login")
-  //   }
-  // }
+// Clear all notifications
+const limparNotificacoes = async () => {
+  try {
+    const response = await axios.post("https://chatbot-cantinho-das-pizzas-production.up.railway.app/notificacoes/limpar");
+    console.log("Notificações limpas:", response.data);
+    setNotificacoes((prev) => prev.map((n) => ({ ...n, status: "atendida" })));
+    setTemNotificacoesNaoLidas(false);
+    toast.success("Todas as notificações foram marcadas como atendidas", {
+      toastId: "limpar-notificacoes",
+    });
+  } catch (error) {
+    console.error("Erro ao limpar notificações:", error);
+    toast.error("Erro ao limpar notificações", { toastId: "limpar-error" });
+  }
+};
 
-  // useEffect(() => {
-  //   const interval_check = setInterval(checkAuth, 5000)
+const toggleSidebar = () => {
+  setIsSidebarOpen(!isSidebarOpen);
+  console.log("Sidebar toggled:", !isSidebarOpen ? "Abrindo" : "Fechando");
+  setTemNotificacoesNaoLidas(false);
+};
 
-  //   return () => clearInterval(interval_check)
-  // }, [])
+const logOut = async () => {
+  try {
+    const res = await axios.post('https://back-cantinho-das-pizzas.onrender.com/auth/logout', {}, { withCredentials: true })
+    navigate("/login")
+  }
+  catch (error) {
+    console.log(error)
+  }
+}
 
-  return (
-    <div className="dashboard-container">
-      <div className="logout"><button onClick={logOut} id="logout_btn">Sair</button></div>
-      <div className="notification-icon-container">
-        <img
-          src={notification_icon}
-          id="not_icon"
-          draggable="false"
-          alt="Ícone de Notificação"
-          onClick={toggleSidebar}
-          onKeyDown={(e) => e.key === "Enter" && toggleSidebar()}
-          className={`${isSidebarOpen ? "clicked" : ""} ${temNotificacoesNaoLidas ? "has-unread" : ""}`}
-          aria-label={isSidebarOpen ? "Fechar painel de notificações" : "Abrir painel de notificações"}
-          tabIndex={0}
-        />
-        {temNotificacoesNaoLidas && (
-          <span className="notification-badge">
-            {notificacoes.filter((n) => n.status === "pendente").length}
-          </span>
-        )}
-      </div>
-      <div className={`sidebar ${isSidebarOpen ? "open" : ""}`}>
-        <h2>Notificações</h2>
-        <button
-          onClick={limparNotificacoes}
-          className="limpar-button"
-          aria-label="Limpar todas as notificações"
-        >
-          Limpar Todas
-        </button>
-        {notificacoes.length === 0 ? (
-          <p>Nenhuma notificação</p>
-        ) : (
-          <ul className="notification-list" role="list">
-            {notificacoes.map((notificacao) => (
-              <li
-                key={notificacao.id_notificacao}
-                className={`notification-item ${notificacao.status}`}
-                role="listitem"
-              >
-                <span>
-                  {notificacao.mensagem}
-                  <div id="hour_notifications">-{formatarHora(notificacao.timestamp)}</div>
-                </span>
-                {notificacao.status === "pendente" && (
-                  <button
-                    onClick={() => limparNot(notificacao.id_notificacao)}
-                    className="atender-button"
-                    aria-label={`Marcar notificação ${notificacao.id_notificacao.slice(0, 8)} como atendida`}
-                  >
-                    Marcar como Atendida
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <h1>Cantinho das Pizzas e do Açaí</h1>
-      <div className="dashboard-grid">
-        {cards.map((card, index) => {
-          const badge = index === 0 && toggle_badge ? <span className="badge" /> : null;
+return (
+  <div className="dashboard-container">
+    <div className="logout"><button onClick={logOut} id="logout_btn">Sair</button></div>
+    <div className="notification-icon-container">
 
-          return card.external ? (
-            <a
-              href={card.to}
-              target="_blank"
-              rel="noopener noreferrer"
-              key={index}
-              className="dashboard-card"
-            >
-              {badge}
-              <div className="icon">{card.icon}</div>
-              <h2>{card.title}</h2>
-            </a>
-          ) : (
-            <Link to={card.to} key={index} className="dashboard-card">
-              {badge}
-              <div className="icon">{card.icon}</div>
-              <h2>{card.title}</h2>
-            </Link>
-          );
-        })}
-      </div>
+      <img
+        src={notification_icon}
+        id="not_icon"
+        draggable="false"
+        alt="Ícone de Notificação"
+        onClick={toggleSidebar}
+        onKeyDown={(e) => e.key === "Enter" && toggleSidebar()}
+        className={`${isSidebarOpen ? "clicked" : ""} ${temNotificacoesNaoLidas ? "has-unread" : ""}`}
+        aria-label={isSidebarOpen ? "Fechar painel de notificações" : "Abrir painel de notificações"}
+        tabIndex={0}
+      />
+      {temNotificacoesNaoLidas && (
+        <span className="notification-badge">
+          {notificacoes.filter((n) => n.status === "pendente").length}
+        </span>
+      )}
     </div>
-  );
+    <div className={`sidebar ${isSidebarOpen ? "open" : ""}`}>
+      <h2>Notificações</h2>
+      <button
+        onClick={limparNotificacoes}
+        className="limpar-button"
+        aria-label="Limpar todas as notificações"
+      >
+        Limpar Todas
+      </button>
+      {notificacoes.length === 0 ? (
+        <p>Nenhuma notificação</p>
+      ) : (
+        <ul className="notification-list" role="list">
+          {notificacoes.map((notificacao) => (
+            <li
+              key={notificacao.id_notificacao}
+              className={`notification-item ${notificacao.status}`}
+              role="listitem"
+            >
+              <span>
+                {notificacao.mensagem}
+                <div id="hour_notifications">-{formatarHora(notificacao.timestamp)}</div>
+              </span>
+              {notificacao.status === "pendente" && (
+                <button
+                  onClick={() => limparNot(notificacao.id_notificacao)}
+                  className="atender-button"
+                  aria-label={`Marcar notificação ${notificacao.id_notificacao.slice(0, 8)} como atendida`}
+                >
+                  Marcar como Atendida
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+    <h1>Cantinho das Pizzas e do Açaí</h1>
+    <div className="dashboard-grid">
+      {cards.map((card, index) => {
+        const badge = index === 0 && toggle_badge ? <span className="badge" /> : null;
+
+        return card.external ? (
+          <a
+            href={card.to}
+            target="_blank"
+            rel="noopener noreferrer"
+            key={index}
+            className="dashboard-card"
+          >
+            {badge}
+            <div className="icon">{card.icon}</div>
+            <h2>{card.title}</h2>
+          </a>
+        ) : (
+          <Link to={card.to} key={index} className="dashboard-card">
+            {badge}
+            <div className="icon">{card.icon}</div>
+            <h2>{card.title}</h2>
+          </Link>
+        );
+      })}
+    </div>
+  </div>
+);
 }

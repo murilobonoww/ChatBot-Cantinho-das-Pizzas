@@ -17,7 +17,6 @@ export function useSocketNotifications() {
         }
     }
 
-
     function toastCancelamento(numero, id_pedido) {
         toast(
             ({ closeToast }) => (

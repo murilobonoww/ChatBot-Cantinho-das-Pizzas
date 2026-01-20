@@ -12,6 +12,7 @@ html {
   border-radius: 10px;
   padding: 1.5rem;
   box-sizing: border-box;
+  margin-left: 100px;
 }
 
 .topo-fixo {
@@ -249,7 +250,7 @@ mark {
   font-size: 15px;
   font-family: "MinhaFonte2", sans-serif;
   color: #fff;
-  background-color: #ce7421;
+  background-color: #ff8a1c;
   border: none;
   border-radius: 8px;
   cursor: pointer;

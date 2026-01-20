@@ -22,16 +22,14 @@
 .topo-fixo-pedidos {
   font-family: MinhaFonte, sans-serif;
   position: fixed;
+  left: 250px;
   height: 100vh;
-  top: 0;
   z-index: 1000;
   padding: 20px 30px 15px 30px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid #dddddd19;
-  left: 0;
   display: flex;
   background-color: #f9f9f9;
-
 }
 
 .topo-fixo-pedidos h1 {
@@ -185,7 +183,7 @@
   overflow-y:visible;
   background-color: #ffffff;
   margin-top: 100px;
-  margin-left: 270px;
+  margin-left: 220px;
 }
 
 /* Cartão de pedido */
@@ -705,6 +703,7 @@ input[type="password"]{
   box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.1);
   position: fixed;
   top: 0;
+  left: 250px;
   z-index: 7001;
   padding-top: 20px;
   padding-left: 30px;

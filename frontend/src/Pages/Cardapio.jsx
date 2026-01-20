@@ -360,7 +360,7 @@ export default function Cardapio() {
     <div className="cardapio-container">
       <div className="topo-fixo" ref={topoFixoRef}>
         <div className="topo-fixo-container">
-          <h1>Cardápiooo</h1>
+          <h1>Cardápio</h1>
           <input
             type="text"
             placeholder="Buscar item..."

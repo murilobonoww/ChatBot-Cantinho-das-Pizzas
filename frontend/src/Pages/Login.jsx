@@ -17,7 +17,7 @@ const Login = () => {
     try {
       const res = await axios.post("https://back-cantinho-das-pizzas.onrender.com/auth/login", { code }, { withCredentials: true });
       localStorage.setItem("token", res.data.token);
-      navigate("/");
+      navigate("/pedidos");
     } catch (error) {
       toast.error("Código incorreto", { autoClose: 5000 })
     }
