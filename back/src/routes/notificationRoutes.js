@@ -72,4 +72,15 @@ router.put("/atualizar", async (req, res) => {
     }
 })
 
+router.delete("/limpar", async (req, res) => {
+    try {
+        const sql = 'DELETE FROM notificacoes';
+        await db.query(sql);
+        return res.status(200).json({ message: "Notificações limpas com sucesso" })
+    } catch (error) {
+        console.error("Erro ao limpar notificações:", error);
+        return res.status(200).json({ message: "Erro ao limpar notificações" }) //Retorna 200 para não interromper fluxo do N8N
+    }
+})
+
 module.exports = router;
