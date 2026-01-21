@@ -154,7 +154,7 @@
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
   transition: right 0.3s ease;
   padding: 20px;
-  z-index: 1000;
+  z-index: 8000;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -180,18 +180,19 @@
   background: #ff7043;
 }
 
-
-
-
 .limpar-button {
   margin-bottom: 15px;
-  padding: 8px 12px;
-  background-color: #d06f2c;
+  padding: 15px 12px;
+  background: linear-gradient(90deg, #feb34e 1%, #fd4948);
   color: white;
   border: none;
-  border-radius: 3px;
+  border-radius: 10px;
   cursor: pointer;
-  font-family: MinhaFonte3, sans-serif;
+  font-family: MinhaFonte2, sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: center;
 }
 
 .limpar-button:hover {

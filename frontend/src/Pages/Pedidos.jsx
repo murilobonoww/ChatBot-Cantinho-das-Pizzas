@@ -171,7 +171,7 @@ const Pedidos = () => {
       credentials: "include"
     })
       .then(res => {
-        if (res.status === 401){
+        if (res.status === 401) {
           navigate('/login')
           return
         }
@@ -198,14 +198,20 @@ const Pedidos = () => {
         localStorage.setItem("pedidos", JSON.stringify(pedidosOrdenados))
 
         if (carregamentoInicial.current) {
-          carregamentoInicial.current = false;
+          carregamentoInicial.current = false
         } else if (novosPedidos.length > 0) {
-          const idsNovos = novosPedidos.map(p => p.id_pedido);
-          setNovosIDs(idsNovos);
-          playSound();
+          const idsNovos = novosPedidos.map(p => p.id_pedido)
+          setNovosIDs(idsNovos)
+          toast.info("Novo pedido!",
+            {
+              className: "custom-info-toast",
+              progressClassName: "custom-info-progress"
+            }
+          )
+          playSound()
         }
 
-        pedidosAnteriores.current = pedidosOrdenados;
+        pedidosAnteriores.current = pedidosOrdenados
 
         setPedidos(pedidosOrdenados);
       })
@@ -223,11 +229,11 @@ const Pedidos = () => {
       credentials: "include"
     })
       .then((res) => {
-        if (res.status === 401){
+        if (res.status === 401) {
           navigate('/login')
           return
         }
-        if (res.status === 304){
+        if (res.status === 304) {
           return []
         }
         return res.json()
@@ -843,7 +849,7 @@ const Pedidos = () => {
                     {abertos[pedido.id_pedido] && (
                       <div className="pedido-detalhes">
                         <p>
-                          <strong style={{textDecoration: "underline"}}>{pedido.delivery === 1 ? 'Entrega' : 'Retirada'}</strong>
+                          <strong style={{ textDecoration: "underline" }}>{pedido.delivery === 1 ? 'Entrega' : 'Retirada'}</strong>
                         </p>
                         <p>
                           <strong>Cliente:</strong> {pedido.nome_cliente}

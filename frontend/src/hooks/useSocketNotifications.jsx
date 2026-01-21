@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import bell_sound from "/assets/bell.mp3"
 import axios from "axios";
 
-export function useSocketNotifications() {
+export function useSocketNotifications () {
     console.log("🚀 useSocketNotifications EXECUTADO");
 
     async function cancelarPedido(id) {
@@ -52,13 +52,13 @@ export function useSocketNotifications() {
 
         socket.on('notificacao', (dados) => {
             toast.warning(dados.mensagem, { autoClose: false })
-            playSound();
+            playSound()
         })
 
         socket.on('notificacao_cancelamento', (dados) => {
             console.log("pedido cancelado")
-            playSound();
-            toastCancelamento(dados.numero, dados.id_pedido);
+            playSound()
+            toastCancelamento(dados.numero, dados.id_pedido)
         })
 
         return () => {
