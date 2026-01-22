@@ -39,8 +39,7 @@ export default function SideBar() {
 
     useEffect(() => {
         function handleNovaNotificacao(dados) {
-            const notif = normalizarNotificacao(dados)
-            setNotificacoes(prev => [...prev, notif])
+            carregarNotificacoesIniciais()
         }
         socket.on('notificacao', handleNovaNotificacao)
         socket.on('notificacao_cancelamento', handleNovaNotificacao)
@@ -57,6 +56,7 @@ export default function SideBar() {
             status: 'pendente',
             timestamp: dados.timestamp
         };
+        console.log(dados.timestamp)
         return notificacaoNormalizada;
     }
 
@@ -125,37 +125,6 @@ export default function SideBar() {
                                 </span>
                                 {notificacao.status === "pendente" && (
                                     <CheckboxSplash onChange={() => limparNot(notificacao.id_notificacao)} />
-
-
-                                    // <button
-                                    //     onClick={() => limparNot(notificacao.id_notificacao)}
-                                    //     className="atender-button"
-                                    //     aria-label={`Marcar notificação ${notificacao.id_notificacao.slice(0, 8)} como atendida`}
-                                    // >
-                                    //     <Check size={18} />
-                                    // </button>
-
-
-                                // <div className="checkbox-wrapper-12">
-                                //     <div className="cbx">
-                                //         <input checked="" type="checkbox" id="cbx-12"/>
-                                //             <label htmlFor="cbx-12"></label>
-                                //             <svg fill="none" viewBox="0 0 15 14" height="14" width="15">
-                                //                 <path d="M2 8.36364L6.23077 12L13 2"></path>
-                                //             </svg>
-                                //     </div>
-
-                                //     <svg style={{ width: "0", height: "0" }} version="1.1" xmlns="http://www.w3.org/2000/svg">
-                                //         <defs>
-                                //             <filter id="goo-12">
-                                //                 <feGaussianBlur result="blur" stdDeviation="4" in="SourceGraphic"></feGaussianBlur>
-                                //                 <feColorMatrix result="goo-12" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -7" mode="matrix" in="blur"></feColorMatrix>
-                                //                 <feBlend in2="goo-12" in="SourceGraphic"></feBlend>
-                                //             </filter>
-                                //         </defs>
-                                //     </svg>
-                                // </div>
-
                                 )}
                             </li>
                         ))}
