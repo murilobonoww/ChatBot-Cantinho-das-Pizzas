@@ -183,7 +183,6 @@
   overflow-y:visible;
   background-color: #ffffff;
   margin-top: 100px;
-  margin-left: 220px;
 }
 
 /* Cartão de pedido */
@@ -196,7 +195,6 @@
   max-width: 650px;
   font-family: "MinhaFonte", sans-serif;
   transition: transform 0.3s ease;
-  margin-left: 110px;
   cursor: pointer;
 }
 
@@ -739,7 +737,6 @@ input[type="password"]{
 
 .container_pedidos_{
   display: flex;
-  width: 100vw;
 }
 
 .underline_divisoes_orders{

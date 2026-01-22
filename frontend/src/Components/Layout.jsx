@@ -6,7 +6,7 @@ export default function Layout() {
     return(
         <div className="layout">
             <SideBar />
-            <main style={{ flex: 1, marginLeft: 250, display: 'flex', justifyContent: 'center' }}>
+            <main style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
                 <Outlet />
             </main>
         </div>
