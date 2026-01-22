@@ -81,7 +81,7 @@ export default function SideBar() {
             const body = { id: id_not, status: 'atendida' }
             const res = await axios.put('https://back-cantinho-das-pizzas.onrender.com/notification/atualizar', body)
             setNotificacoes(prev => prev.filter(notif => notif.id_notificacao !== id_not))
-            toast.success('Notificação apagada com sucesso!', { autoClose: 1500, closeOnClick: true })
+            toast.success('Notificação limpa!', { autoClose: 1500, closeOnClick: true })
         } catch (error) {
             console.log(error)
             throw error;
