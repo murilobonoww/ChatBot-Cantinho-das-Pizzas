@@ -148,7 +148,7 @@
   position: fixed;
   top: 0;
   right: -360px;
-  width: 310px;
+  width: 320px;
   height: 100vh;
   background-color: #f8f8f8;
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
@@ -193,19 +193,21 @@
   align-items: center;
   gap: 5px;
   justify-content: center;
+  transition: 0.3s all ease-in-out;
 }
 
 .limpar-button:hover {
-  background-color: #b05e24;
+  filter: brightness(1.2);
 }
 
 .notification-list {
   list-style: none;
-  padding: 5px 0 0 0;
+  padding: 5px 30px 0 0;
   margin: 0;
   flex-grow: 1;
   max-height: calc(100vh - 150px);
   overflow-y: auto;
+  overflow-x: hidden;
   scroll-behavior: smooth;
 }
 
@@ -220,43 +222,55 @@
 }
 
 .notification-list::-webkit-scrollbar-thumb {
-  background: #d06f2c;
+  background: #fd8a4b;
   border-radius: 4px;
 }
 
 .notification-list::-webkit-scrollbar-thumb:hover {
-  background: #b05e24;
+  background: #ff9963;
 }
 
 /* Individual notification item */
-.notification-item {
-  padding: 10px;
-  margin-bottom: 10px;
+/* .notification-item {
+  /* padding: 10px;
+  margin-bottom: 17px;
   margin-left: 30px;
-  border-radius: 5px;
+  border-radius: 12px;
   background-color: #fff;
-  border: 1px solid #ddd;
+  border: 1px solid #dfdfdf;
   font-size: 14px;
   line-height: 1.5;
-  word-break: break-word;
-}
+  word-break: break-word; */
+/* } */
 
-.notification-item.pendente:hover{
-  transform: scale(1.01);
-}
-
-/* Pending notification */
+/* Pending notification
 .notification-item.pendente {
   margin-right: 40px;
-  border: 2px solid rgb(165, 165, 165);
-  border-bottom: 5px solid rgb(165, 165, 165);
+  border: 1px solid #dfdfdf;
   transition: all 0.2s ease-in-out;
   text-align: center;
+} */
+
+.notification-item.pendente {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 17px;
+  align-items: center;
 }
 
 .notification-item.pendente span{
   align-self: flex-start !important;
   user-select: none;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 1px 2px 0px rgba(0,0,0,0.1);
+  width: 260px;
+  max-width: 260px !important;
+  overflow-wrap: break-word;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* Attended notification */
@@ -264,22 +278,31 @@
   background-color: #e6ffe6;
 }
 
-.atender-button {
-  margin-top: 10px;
-  padding: 5px 10px;
-  background-color: #e65c5c;
-  color: white;
+/* .atender-button {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
   border: none;
-  border-radius: 3px;
+  background-color: rgb(126, 219, 126);
+  color: white;
   cursor: pointer;
-  font-family: MinhaFonte3, sans-serif;
-  transition: all 0.2s ease;
-  user-select: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease-in-out;
+  justify-self: flex-end;
 }
 
 .atender-button:hover {
-  background-color: #eb3535;
+  filter: brightness(1.15);
+  transform: scale(1.1);
 }
+
+.atender-button svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0 !important;
+} */
 
 /* Badge for new orders */
 .badge {

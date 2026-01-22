@@ -72,3 +72,7 @@
 #notification_btn_sidebar:hover {
     background-color: #f3f4f6;
 }
+
+#notification_msg{
+    width: 220px;
+}
