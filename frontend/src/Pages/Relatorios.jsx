@@ -19,7 +19,6 @@ export default function Relatorios() {
   const carregamentoInicial = useRef(true);
   const last_time_data = useRef([]);
   const [toggle_customized_period_window, setToggle_customized_period_window] = useState(false);
-
   const senhaInputRef = useRef(null);
 
   const playSound = () => {
@@ -64,6 +63,7 @@ export default function Relatorios() {
   useEffect(() => {
     if (autorizado && relatorio.total_vendas === undefined) {
       aplicarFiltroRapido(7);
+      console.log(filtroSelecionado)
     }
     senhaInputRef.current?.focus();
   }, [autorizado]);
@@ -192,7 +192,7 @@ export default function Relatorios() {
                       Até
                       <input type="date" max={new Date().toISOString().split("T")[0]} onChange={(e) => setFim(e.target.value)} class="inputs-relatorios" />
                     </label>
-                    <button id="buscar_btn" onClick={() => buscarRelatorio()}>Buscar</button>
+                    <button id="buscar_btn" onClick={() => buscarRelatorio(inicio, fim)}>Buscar</button>
                     </div>
                   </div>
 
