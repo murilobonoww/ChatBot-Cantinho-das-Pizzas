@@ -141,9 +141,9 @@ async function generateRelatorio(pass, MANAGEMENT_PASS, start, end) {
 
 async function getTop3Pizzas(start, end) {
   const sabores = {}
-  const query_getTop3 = 'SELECT sabor, SUM(quantidade) AS total_vendido FROM item_pedido WHERE produto = ? GROUP BY sabor ORDER BY total_vendido DESC LIMIT 3;'
+  const query_getTop3 = 'SELECT ip.sabor, SUM(ip.quantidade) AS total_vendido FROM item_pedido ip JOIN pedido p ON p.id_pedido = ip.pedido_id_fk WHERE ip.produto = ? AND p.data_pedido BETWEEN ? AND ? GROUP BY ip.sabor ORDER BY total_vendido DESC LIMIT 3;'
 
-    const [results] = await db.query(query_getTop3, ['pizza'])
+    const [results] = await db.query(query_getTop3, ['pizza', start + ' 00:00:00', end +' 23:59:59'])
     for (const row of results){
       sabores[row.sabor] = row.total_vendido
     }
@@ -152,9 +152,9 @@ async function getTop3Pizzas(start, end) {
 
 async function getTop3Esfihas(start, end) {
   const sabores = {}
-  const query_getTop3 = 'SELECT sabor, SUM(quantidade) AS total_vendido FROM item_pedido WHERE produto = ? GROUP BY sabor ORDER BY total_vendido DESC LIMIT 3;'
+  const query_getTop3 = 'SELECT ip.sabor, SUM(ip.quantidade) AS total_vendido FROM item_pedido ip JOIN pedido p ON p.id_pedido = ip.pedido_id_fk WHERE ip.produto = ? AND p.data_pedido BETWEEN ? AND ? GROUP BY ip.sabor ORDER BY total_vendido DESC LIMIT 3;'
 
-    const [results] = await db.query(query_getTop3, ['esfiha'])
+    const [results] = await db.query(query_getTop3, ['esfiha', start + ' 00:00:00', end +' 23:59:59'])
     for (const row of results){
       sabores[row.sabor] = row.total_vendido
     }
