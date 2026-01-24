@@ -7,7 +7,7 @@ import bell_sound from "/assets/bell.mp3"
 import { Toaster } from "react-hot-toast";
 import { toast } from "react-toastify";
 
-import { PiggyBank, ShoppingBasket, Lock, Award, CreditCard } from 'lucide-react';
+import { PiggyBank, ShoppingBasket, Lock, Award, CreditCard, DollarSign } from 'lucide-react';
 
 export default function Relatorios() {
   const [relatorio, setRelatorio] = useState({});
@@ -219,9 +219,16 @@ export default function Relatorios() {
                   </div>
 
                   <div className="card">
-                    <Award size={45} style={{ padding: "5", backgroundColor: "#ffaa7b", color: "white", borderRadius: "50%", transform: "scaleX(-1)", strokeWidth: "1", marginRight: "10" }} />
+                    <Award size={45} style={{ padding: "5", backgroundColor: "#ffaa7b", color: "white", borderRadius: "50%", strokeWidth: "1", marginRight: "10" }} />
                     <div style={{ display: "flex", flexDirection: "column", textAlign: "start" }}>
                       <span style={{ color: "gray" }}>Mais vendido:</span> <strong>   <span style={{ fontSize: "20px", color: "#525252" }} >{relatorio.mais_vendido || "-"}</span> </strong>
+                    </div>
+                  </div>
+
+                  <div className="card">
+                    <DollarSign size={45} style={{ padding: "5", backgroundColor: "#bbbbbb", color: "white", borderRadius: "50%", strokeWidth: "1", marginRight: "10" }} />
+                    <div style={{ display: "flex", flexDirection: "column", textAlign: "start" }}>
+                      <span style={{ color: "gray" }}>Faturamento médio diário:</span> <strong>   <span style={{ fontSize: "20px", color: "#525252" }} >R$ {relatorio.faturamento_medio?.toFixed(2).replace(".", ",") || "-"}</span> </strong>
                     </div>
                   </div>
                 </div>

@@ -79,11 +79,12 @@ async function generateRelatorio(pass, MANAGEMENT_PASS, start, end) {
   let sql = `SELECT p.data_pedido, p.nome_cliente, p.forma_pagamento, p.preco_total FROM pedido p`
 
   const valores = [];
+  let diasEmFiltro = 0
 
   if (start && end) {
-    console.log(start, end)
     sql += ` WHERE p.data_pedido BETWEEN ? AND ? `;
     valores.push(start + " 00:00:00", end + " 23:59:59");
+    diasEmFiltro = calcularDiasEntreInicioEFim(start, end)
   }
 
   sql += ` ORDER BY p.data_pedido DESC LIMIT 100`;
@@ -129,9 +130,17 @@ async function generateRelatorio(pass, MANAGEMENT_PASS, start, end) {
     mais_vendido = "Não há dados suficientes"
   }
 
-  const faturamento_medio = total_vendas / total_pedidos
+  const faturamento_medio = total_vendas / diasEmFiltro
 
-  return { total_vendas, total_pedidos, ticket_medio, mais_vendido, sabor_mais_vendido, pagamentos, pedidos: pedidosFormatados }
+  return { total_vendas, total_pedidos, ticket_medio, mais_vendido, sabor_mais_vendido, pagamentos, pedidos: pedidosFormatados, faturamento_medio }
+}
+
+function calcularDiasEntreInicioEFim (inicio, fim) {
+  inicio = new Date(inicio)
+  fim = new Date (fim)
+  const diferencaEmMS = fim - inicio
+  const diferencaEmDIAS = (diferencaEmMS / (1000 * 60 * 60 * 24))
+  return diferencaEmDIAS;
 }
 
 module.exports = { submitOrder, getAll, update, deleteOrder, getOrderStatus, updateStatus, setPrinted, updateOrder, updateOrderItem, getOrdersWithOpenedStatus, getOrderFromFoody, generateRelatorio }
