@@ -7,7 +7,7 @@ import bell_sound from "/assets/bell.mp3"
 import { Toaster } from "react-hot-toast";
 import { toast } from "react-toastify";
 
-import { PiggyBank, ShoppingBasket, Lock, Award, CreditCard, DollarSign } from 'lucide-react';
+import { PiggyBank, ShoppingBasket, Lock, Award, CreditCard, DollarSign, Trophy, Star } from 'lucide-react';
 
 export default function Relatorios() {
   const [relatorio, setRelatorio] = useState({});
@@ -179,10 +179,10 @@ export default function Relatorios() {
                   <button onClick={() => setToggle_customized_period_window(!toggle_customized_period_window)} style={{ background: "#ff7043", color: "white", padding: "10px" }}>Customizar período</button>
                 </div>
 
-{/* <div className="filter"></div> */}
-                  <div class="filtros-data" style={{ opacity: toggle_customized_period_window === true ? "100" : "0", pointerEvents: toggle_customized_period_window === true ? "auto" : "none", position: "fixed", zIndex: "3000", top: "50%", left: "50%", transform: "translate(-50%, -80%)", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <h1 style={{ marginBottom: "10px" }}>Customizar período</h1>
-                    <div style={{ display: "flex", gap: "20px", marginTop: "10px", alignItems: "center",  }}>
+                {/* <div className="filter"></div> */}
+                <div class="filtros-data" style={{ opacity: toggle_customized_period_window === true ? "100" : "0", pointerEvents: toggle_customized_period_window === true ? "auto" : "none", position: "fixed", zIndex: "3000", top: "50%", left: "50%", transform: "translate(-50%, -80%)", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  <h1 style={{ marginBottom: "10px" }}>Customizar período</h1>
+                  <div style={{ display: "flex", gap: "20px", marginTop: "10px", alignItems: "center", }}>
                     <label>
                       De
                       <input type="date" onChange={(e) => setInicio(e.target.value)} class="inputs-relatorios" />
@@ -193,8 +193,8 @@ export default function Relatorios() {
                       <input type="date" max={new Date().toISOString().split("T")[0]} onChange={(e) => setFim(e.target.value)} class="inputs-relatorios" />
                     </label>
                     <button id="buscar_btn" onClick={() => buscarRelatorio(inicio, fim)}>Buscar</button>
-                    </div>
                   </div>
+                </div>
 
                 <div className="resumos">
                   <div className="card">
@@ -231,6 +231,56 @@ export default function Relatorios() {
                       <span style={{ color: "gray" }}>Faturamento médio diário:</span> <strong>   <span style={{ fontSize: "20px", color: "#525252" }} >R$ {relatorio.faturamento_medio?.toFixed(2).replace(".", ",") || "-"}</span> </strong>
                     </div>
                   </div>
+                </div>
+
+                <h1 style={{ fontSize: "45px", color: "#424242", display: "flex", alignItems: "center" }}>
+                  <Trophy size={60} style={{ padding: "5", backgroundColor: "#ff8c4d", color: "white", borderRadius: "50%", strokeWidth: "1", marginRight: "10" }} />
+                  Mais vendidos
+                </h1>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "30px" }}>
+
+                  {Object.entries(relatorio.topPizzas ?? {}).length > 0 && (
+                    <div style={{ background: "white", boxShadow: "rgba(0, 0, 0, 0.1) 0px 2px 4px", padding: "10px 20px 20px 20px", borderRadius: "13px" }}>
+                      <Star size={45} style={{ padding: "5", backgroundColor: "#ffe56d", color: "white", borderRadius: "50%", transform: "scaleX(-1)", strokeWidth: "1", marginRight: "10" }} />
+                      <h1 style={{ fontSize: "40px", marginBottom: "20px", color: "#3e3e3e" }}>Top pizzas</h1>
+                      {Object.entries(relatorio.topPizzas).map(([sabor, qtd], index) => {
+                        return (
+                          <div key={sabor} style={{ textAlign: "start", color: "gray", whiteSpace: "nowrap" }}>
+                            #{index + 1} - {sabor} ({qtd})
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {Object.entries(relatorio.topEsfihas ?? {}).length > 0 && (
+                    <div style={{ background: "white", boxShadow: "rgba(0, 0, 0, 0.1) 0px 2px 4px", padding: "10px 20px 20px 20px", borderRadius: "13px" }}>
+                      <Star size={45} style={{ padding: "5", backgroundColor: "#ffe56d", color: "white", borderRadius: "50%", transform: "scaleX(-1)", strokeWidth: "1", marginRight: "10" }} />
+                      <h1 style={{ fontSize: "40px", marginBottom: "20px", color: "#3e3e3e" }}>Top esfihas</h1>
+                      {Object.entries(relatorio.topEsfihas).map(([sabor, qtd], index) => {
+                        return (
+                          <div key={sabor} style={{ textAlign: "start", color: "gray", whiteSpace: "nowrap" }}>
+                            #{index + 1} - {sabor} ({qtd})
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {Object.entries(relatorio.topBebidas ?? {}).length > 0 && (
+                    <div style={{ background: "white", boxShadow: "rgba(0, 0, 0, 0.1) 0px 2px 4px", padding: "10px 20px 20px 20px", borderRadius: "13px" }}>
+                      <Star size={45} style={{ padding: "5", backgroundColor: "#ffe56d", color: "white", borderRadius: "50%", transform: "scaleX(-1)", strokeWidth: "1", marginRight: "10" }} />
+                      <h1 style={{ fontSize: "40px", marginBottom: "20px", color: "#3e3e3e" }}>Top bebidas</h1>
+                      {Object.entries(relatorio.topBebidas).map(([sabor, qtd], index) => {
+                        return (
+                          <div key={sabor} style={{ textAlign: "start", color: "gray", whiteSpace: "nowrap" }}>
+                            #{index + 1} - {sabor} ({qtd})
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {relatorio.total_vendas > 0 ? (

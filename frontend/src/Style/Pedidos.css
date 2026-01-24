@@ -22,7 +22,7 @@
 .topo-fixo-pedidos {
   font-family: MinhaFonte, sans-serif;
   position: fixed;
-  left: 250px;
+  left: clamp(200px, 15vw, 250px);
   height: 100vh;
   z-index: 1000;
   padding: 20px 30px 15px 30px;
@@ -49,7 +49,9 @@
 }
 
 #span_nome_cliente_pedido_Card{
-  width: 150px !important;
+  width: 80px !important;
+  overflow: hidden;
+  margin-right: 20px;
 }
 
 .topo-fixo-pedidos h2 {
@@ -196,6 +198,7 @@
   font-family: "MinhaFonte", sans-serif;
   transition: transform 0.3s ease;
   cursor: pointer;
+  width: 590px;
 }
 
 .pedido-card:hover {
@@ -737,6 +740,7 @@ input[type="password"]{
 
 .container_pedidos_{
   display: flex;
+  margin-left: clamp(480px, 35vw, 570px)
 }
 
 .underline_divisoes_orders{
