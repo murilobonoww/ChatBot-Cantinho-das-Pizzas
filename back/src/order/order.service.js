@@ -82,13 +82,15 @@ async function generateRelatorio(pass, MANAGEMENT_PASS, start, end) {
   let diasEmFiltro = 0
   let topPizzas = {}
   let topEsfihas = {}
+  let topBebidas = {}
 
   if (start && end) {
     sql += ` WHERE p.data_pedido BETWEEN ? AND ? `;
     valores.push(start + " 00:00:00", end + " 23:59:59");
     diasEmFiltro = calcularDiasEntreInicioEFim(start, end)
-    topPizzas = await getTop3Pizzas(start, end)
-    topEsfihas = await getTop3Esfihas(start, end)
+    topPizzas = await getTop3(start, end, 'pizza')
+    topEsfihas = await getTop3(start, end, 'esfiha')
+    topBebidas = await getTop3(start, end, 'bebida')
   }
 
   sql += ` ORDER BY p.data_pedido DESC LIMIT 100`;
@@ -136,28 +138,17 @@ async function generateRelatorio(pass, MANAGEMENT_PASS, start, end) {
 
   const faturamento_medio = total_vendas / diasEmFiltro
 
-  return { total_vendas, total_pedidos, ticket_medio, mais_vendido, sabor_mais_vendido, pagamentos, pedidos: pedidosFormatados, faturamento_medio, topPizzas, topEsfihas }
+  return { total_vendas, total_pedidos, ticket_medio, mais_vendido, sabor_mais_vendido, pagamentos, pedidos: pedidosFormatados, faturamento_medio, topPizzas, topEsfihas, topBebidas }
 }
 
-async function getTop3Pizzas(start, end) {
+async function getTop3(start, end, product) {
   const sabores = {}
   const query_getTop3 = 'SELECT ip.sabor, SUM(ip.quantidade) AS total_vendido FROM item_pedido ip JOIN pedido p ON p.id_pedido = ip.pedido_id_fk WHERE ip.produto = ? AND p.data_pedido BETWEEN ? AND ? GROUP BY ip.sabor ORDER BY total_vendido DESC LIMIT 3;'
 
-    const [results] = await db.query(query_getTop3, ['pizza', start + ' 00:00:00', end +' 23:59:59'])
-    for (const row of results){
-      sabores[row.sabor] = row.total_vendido
-    }
-  return sabores
-}
-
-async function getTop3Esfihas(start, end) {
-  const sabores = {}
-  const query_getTop3 = 'SELECT ip.sabor, SUM(ip.quantidade) AS total_vendido FROM item_pedido ip JOIN pedido p ON p.id_pedido = ip.pedido_id_fk WHERE ip.produto = ? AND p.data_pedido BETWEEN ? AND ? GROUP BY ip.sabor ORDER BY total_vendido DESC LIMIT 3;'
-
-    const [results] = await db.query(query_getTop3, ['esfiha', start + ' 00:00:00', end +' 23:59:59'])
-    for (const row of results){
-      sabores[row.sabor] = row.total_vendido
-    }
+  const [results] = await db.query(query_getTop3, [product, start + ' 00:00:00', end + ' 23:59:59'])
+  for (const row of results) {
+    sabores[row.sabor] = row.total_vendido
+  }
   return sabores
 }
 
