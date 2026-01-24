@@ -256,6 +256,11 @@
   gap: 15px;
   margin-bottom: 17px;
   align-items: center;
+  transition: all 0.3s ease-in-out;
+}
+
+.notification-item.pendente:hover {
+  transform: translateY(-3px);
 }
 
 .notification-item.pendente span{

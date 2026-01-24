@@ -41,11 +41,14 @@
 }
 
 .sidebar_title {
+    display: flex;
+    align-items: center;
+
     padding-left: 30px;
     padding-bottom: 30px;
     padding-top: 30px;
-    display: flex;
-    border-bottom: 1px solid #ebebeb;
+    border-bottom: 1px solid #dfdfdf;
+    color: #333;
 }
 
 #sidebarTitle {
@@ -57,6 +60,7 @@
 #pizza_sidebar_title {
     font-size: 25px;
     margin-right: 5px;
+    height: 30px;
 }
 
 #notification_btn_sidebar {
