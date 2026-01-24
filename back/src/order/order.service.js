@@ -81,6 +81,7 @@ async function generateRelatorio(pass, MANAGEMENT_PASS, start, end) {
   const valores = [];
 
   if (start && end) {
+    console.log(start, end)
     sql += ` WHERE p.data_pedido BETWEEN ? AND ? `;
     valores.push(start + " 00:00:00", end + " 23:59:59");
   }
@@ -127,6 +128,8 @@ async function generateRelatorio(pass, MANAGEMENT_PASS, start, end) {
   if (mais_vendido === null || sabor_mais_vendido === null) {
     mais_vendido = "Não há dados suficientes"
   }
+
+  const faturamento_medio = total_vendas / total_pedidos
 
   return { total_vendas, total_pedidos, ticket_medio, mais_vendido, sabor_mais_vendido, pagamentos, pedidos: pedidosFormatados }
 }
