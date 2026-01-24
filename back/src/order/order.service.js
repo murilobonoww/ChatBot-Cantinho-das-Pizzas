@@ -80,11 +80,14 @@ async function generateRelatorio(pass, MANAGEMENT_PASS, start, end) {
 
   const valores = [];
   let diasEmFiltro = 0
+  let topPizzas = ''
 
   if (start && end) {
     sql += ` WHERE p.data_pedido BETWEEN ? AND ? `;
     valores.push(start + " 00:00:00", end + " 23:59:59");
     diasEmFiltro = calcularDiasEntreInicioEFim(start, end)
+    topPizzas = getTop3Pizzas(start, end)
+    topEsfihas = getTop3Esfihas(start, end)
   }
 
   sql += ` ORDER BY p.data_pedido DESC LIMIT 100`;
@@ -132,12 +135,34 @@ async function generateRelatorio(pass, MANAGEMENT_PASS, start, end) {
 
   const faturamento_medio = total_vendas / diasEmFiltro
 
-  return { total_vendas, total_pedidos, ticket_medio, mais_vendido, sabor_mais_vendido, pagamentos, pedidos: pedidosFormatados, faturamento_medio }
+  return { total_vendas, total_pedidos, ticket_medio, mais_vendido, sabor_mais_vendido, pagamentos, pedidos: pedidosFormatados, faturamento_medio, topPizzas, topEsfihas }
 }
 
-function calcularDiasEntreInicioEFim (inicio, fim) {
+async function getTop3Pizzas(start, end) {
+  const sabores = {}
+  const query_getTop3 = 'SELECT sabor, SUM(quantidade) AS total_vendido FROM item_pedido WHERE produto = ? GROUP BY sabor ORDER BY total_vendido DESC LIMIT 3;'
+
+    const [results] = await db.query(query_getTop3, ['pizza'])
+    for (const row of results){
+      sabores[row.sabor] = row.total_vendido
+    }
+  return sabores
+}
+
+async function getTop3Esfihas(start, end) {
+  const sabores = {}
+  const query_getTop3 = 'SELECT sabor, SUM(quantidade) AS total_vendido FROM item_pedido WHERE produto = ? GROUP BY sabor ORDER BY total_vendido DESC LIMIT 3;'
+
+    const [results] = await db.query(query_getTop3, ['esfiha'])
+    for (const row of results){
+      sabores[row.sabor] = row.total_vendido
+    }
+  return sabores
+}
+
+function calcularDiasEntreInicioEFim(inicio, fim) {
   inicio = new Date(inicio)
-  fim = new Date (fim)
+  fim = new Date(fim)
   const diferencaEmMS = fim - inicio
   const diferencaEmDIAS = (diferencaEmMS / (1000 * 60 * 60 * 24))
   return diferencaEmDIAS;
