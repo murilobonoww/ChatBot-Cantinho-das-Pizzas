@@ -80,14 +80,15 @@ async function generateRelatorio(pass, MANAGEMENT_PASS, start, end) {
 
   const valores = [];
   let diasEmFiltro = 0
-  let topPizzas = ''
+  let topPizzas = {}
+  let topEsfihas = {}
 
   if (start && end) {
     sql += ` WHERE p.data_pedido BETWEEN ? AND ? `;
     valores.push(start + " 00:00:00", end + " 23:59:59");
     diasEmFiltro = calcularDiasEntreInicioEFim(start, end)
-    topPizzas = getTop3Pizzas(start, end)
-    topEsfihas = getTop3Esfihas(start, end)
+    topPizzas = await getTop3Pizzas(start, end)
+    topEsfihas = await getTop3Esfihas(start, end)
   }
 
   sql += ` ORDER BY p.data_pedido DESC LIMIT 100`;
