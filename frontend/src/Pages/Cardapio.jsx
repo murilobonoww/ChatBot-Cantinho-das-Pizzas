@@ -7,6 +7,7 @@ import axios from "axios";
 import 'react-toastify/dist/ReactToastify.css';
 import bell_sound from "/assets/bell.mp3"
 import pizza_img from "/assets/pizza.png"
+import { Pizza, Ellipsis, Candy, CupSoda, Triangle, BookPlus } from "lucide-react";
 
 export default function Cardapio() {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ export default function Cardapio() {
   const carregamentoInicial = useRef(true)
   const last_time_data = useRef([]);
   const collator = new Intl.Collator("pt-BR");
-  
+
   const [newItem, setNewItem] = useState({
     section: "pizzas",
     nome: "",
@@ -75,7 +76,7 @@ export default function Cardapio() {
 
     fetchPedidos()
     const interval = setInterval(fetchPedidos, 5000);
-    return () => clearInterval(interval);""
+    return () => clearInterval(interval); ""
   }, [])
 
   useEffect(() => {
@@ -360,7 +361,6 @@ export default function Cardapio() {
     <div className="cardapio-container">
       <div className="topo-fixo" ref={topoFixoRef}>
         <div className="topo-fixo-container">
-          <h1>Cardápio</h1>
           <input
             type="text"
             placeholder="Buscar item..."
@@ -376,58 +376,55 @@ export default function Cardapio() {
               onClick={() => scrollToSection("pizzas-section")}
               aria-label="Ir para seção de Pizzas"
             >
-              Pizzas
+              <Pizza size={35} strokeWidth={1} />
             </button>
             <button
               className="atalho-btn"
               onClick={() => scrollToSection("esfihas-section")}
               aria-label="Ir para seção de Esfihas"
             >
-              Esfihas
+              <Triangle size={35} strokeWidth={1} />
             </button>
             <button
               className="atalho-btn"
               onClick={() => scrollToSection("bebidas-section")}
               aria-label="Ir para seção de Bebidas"
             >
-              Bebidas
+              <CupSoda size={35} strokeWidth={1} />
             </button>
             <button
               className="atalho-btn"
               onClick={() => scrollToSection("doces-section")}
               aria-label="Ir para seção de Doces"
             >
-              Doces
+              <Candy size={35} strokeWidth={1} />
             </button>
             <button
               className="atalho-btn"
               onClick={() => scrollToSection("outros-section")}
-              aria-label="Ir para seção de Doces"
+              aria-label="Ir para seção de outros itens"
             >
-              Outros
+              <Ellipsis size={35} strokeWidth={1} />
             </button>
 
-            <button onClick={() => {
-              setIsEditing(false);
-              setEditItemId(null);
-              setNewItem({
-                section: "pizzas",
-                nome: "",
-                ingredientes: "",
-                preco: "",
-                preco_25: "",
-                preco_35: "",
-                tamanho: "",
-              });
-              setShowModal(true);
-            }} id="add_item_menu_btn"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" id="add_item_menu_svg_btn"><path
-              d="m15 0 v30 m0 0 m-15 -15 h30"
-              stroke-width="5"
-              stroke="gray"
-              stroke-linejoin="round"
-              stroke-linecap="round"
-
-            ></path></svg></button>
+            <button
+              className="atalho-btn"
+              onClick={() => {
+                setIsEditing(false);
+                setEditItemId(null);
+                setNewItem({
+                  section: "pizzas",
+                  nome: "",
+                  ingredientes: "",
+                  preco: "",
+                  preco_25: "",
+                  preco_35: "",
+                  tamanho: "",
+                });
+                setShowModal(true);
+              }}>
+              <BookPlus size={35} strokeWidth={1} />
+            </button>
 
             <button
               aria-label={isDeleting ? "Confirmar exclusão de itens" : "Entrar no modo de exclusão"}
@@ -447,7 +444,7 @@ export default function Cardapio() {
                     height="30"
                     rx="3"
                     ry="3"
-                    fill="#000000"
+                    fill="#fd8a4b"
                   ></rect>
                   <g style={{ transformOrigin: '12px 18px' }} id="lid-group">
                     <rect
@@ -457,7 +454,7 @@ export default function Cardapio() {
                       height="6"
                       rx="2"
                       ry="2"
-                      fill="#000000"
+                      fill="#fd8a4b"
                     ></rect>
                     <rect
                       x="26"
@@ -466,7 +463,7 @@ export default function Cardapio() {
                       height="4"
                       rx="2"
                       ry="2"
-                      fill="#000000"
+                      fill="#fd8a4b"
                     ></rect>
                   </g>
                 </g>
@@ -562,7 +559,7 @@ export default function Cardapio() {
                 />
               </>
             )}
-            <button className="atalho-btn" onClick={handleAddItem}>
+            <button className="add_or_edit_item_btn" onClick={handleAddItem}>
               {isEditing ? "Salvar Alterações" : "Adicionar"}
             </button>
           </div>
@@ -593,7 +590,7 @@ export default function Cardapio() {
                   dangerouslySetInnerHTML={{ __html: realceTexto(pizza.ingredientes || "") }}
                 />
                 <div className="precos">
-                  R$ {(Number(pizza.preco_25) || 0).toFixed(2)} | R$ {(Number(pizza.preco_35) || 0).toFixed(2)}
+                  {(Number(pizza.preco_25) || 0).toFixed(2).replace(".", ",")} | {(Number(pizza.preco_35) || 0).toFixed(2).replace(".", ",")}
                 </div>
                 <button className="editBtn" onClick={() => handleEditItem(pizza, "pizzas")}>
                   <svg width="1em" height="1em" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet">

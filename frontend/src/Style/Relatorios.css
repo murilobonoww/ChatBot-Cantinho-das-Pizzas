@@ -161,7 +161,7 @@
 .filtros-data button {
   padding: 8px 26px;
   font-size: 14px;
-  background: linear-gradient(90deg,#feb34e 1%,#fd4948);
+  background: linear-gradient(90deg, #feb34e 1%, #fd4948);
   color: #fff;
   border: none;
   cursor: pointer;
@@ -300,6 +300,79 @@ h2 {
 }
 
 #lock_icon_dashboard {
-  margin-top: 200px;
+  margin-top: 120px;
   color: #bcbcbc;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 1366px) {
+  .page-relatorios.locked {
+    margin-left: 350px;
+  }
+
+  .relatorios-container {
+    margin-left: 140px;
+  }
+
+  .header-relatorios {
+    margin-left: 140px;
+  }
+
+  .card {
+    width: 350px;
+    gap: 10px;
+  }
+
+  .card span {
+    font-size: 15px;
+  }
+
+  .card strong span {
+    font-size: 16px !important;
+  }
+
+  .resumos { 
+    width: 700px;
+    column-gap: 20px;
+
+  }
+
+  #most_selled_title_relatoriosPage {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .page-relatorios.locked {
+    margin-left: 310px;
+  }
+
+  .relatorios-container {
+    margin-left: 140px;
+  }
+
+  .header-relatorios {
+    margin-left: 140px;
+  }
+
+  .card {
+    width: 350px;
+    gap: 10px;
+  }
+
+  .card span {
+    font-size: 15px;
+  }
+
+  .card strong span {
+    font-size: 14px !important;
+  }
+
+  .resumos {
+    width: 700px;
+  }
+
+  #most_selled_title_relatoriosPage {
+    gap: 10px;
+  }
 }

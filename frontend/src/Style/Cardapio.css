@@ -7,7 +7,7 @@ html {
   max-width: 1200px;
   margin: 0 auto;
   font-family: "MinhaFonte2", sans-serif;
-  background: #fff;
+  background: #f9f9f9;
   color: #333;
   border-radius: 10px;
   padding: 1.5rem;
@@ -28,13 +28,12 @@ html {
 
 .topo-fixo-container {
   display: flex;
-  flex-direction: column;
-  align-items: stretch; /* Mantém o comportamento padrão */
-  justify-content: center; /* Centraliza verticalmente os elementos */
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   gap: 1rem;
-  padding: 1rem 1.5rem;
+  padding: 1rem 2rem;
   max-width: 1200px;
-  width: 95%;
   margin: 0 auto;
   box-sizing: border-box;
   user-select: none;
@@ -44,26 +43,27 @@ html {
   font-size: 1.75rem;
   color: #d84315;
   margin: 0;
-  text-align: center;
+  text-align: left;
+  flex: 0 0 auto;
 }
 
 .topo-fixo-container .input-busca {
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
+  margin: 0 1rem;
   font-family: "MinhaFonte2", sans-serif;
+  width: 190px !important;
 }
 
 .topo-fixo-container .atalhos-container {
   display: flex;
-  flex-wrap: wrap;
   gap: 0.5rem;
-  justify-content: center;
   align-items: center;
+  flex: 0 0 auto;
+  justify-content: flex-end;
 }
 
 .conteudo-rolavel {
-  padding-top: 145px; /* Valor inicial, será sobrescrito pelo JS */
+  padding-top: 145px;
+  /* Valor inicial, será sobrescrito pelo JS */
   box-sizing: border-box;
 }
 
@@ -96,10 +96,9 @@ html {
   display: flex;
   align-items: center;
   padding: 0.75rem;
-  /* border: 3px solid #afafaf;
-  border-bottom: 10px solid #afafaf; */
+  border: 1px solid #eee;
   border-radius: 12px;
-  background-color: #fafafa;
+  background: white;
   transition: all 0.3s ease;
   gap: 0.5rem;
   flex-wrap: wrap;
@@ -146,7 +145,7 @@ html {
   color: #6a8e62;
   flex: 1 1 120px;
   text-align: right;
-  font-size: 1rem;
+  font-size: 15px;
 }
 
 .editBtn {
@@ -185,7 +184,7 @@ html {
 .editBtn:hover {
   box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
   transform: scale(1.05);
-  background-color: #ce7421;
+  background-color: #fd8a4b;
 }
 
 .editBtn svg {
@@ -247,6 +246,17 @@ mark {
 
 .atalho-btn {
   padding: 0 10px;
+  color: #fff;
+  background-color: #fd8a4b;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  height: 45px;
+}
+
+.add_or_edit_item_btn {
+  padding: 0 10px;
   font-size: 15px;
   font-family: "MinhaFonte2", sans-serif;
   color: #fff;
@@ -256,6 +266,7 @@ mark {
   cursor: pointer;
   transition: all 0.3s ease-in-out;
   height: 45px;
+  min-width: 100px;
 }
 
 #add_item_menu_svg_btn {
@@ -295,6 +306,10 @@ mark {
 }
 
 .atalho-btn:hover {
+  filter: brightness(1.1);
+}
+
+.add_or_edit_item_btn:hover {
   transform: scale(1.01);
 }
 
@@ -326,7 +341,7 @@ mark {
   /* box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.1); */
 }
 
-#title_modal_content_menu{
+#title_modal_content_menu {
   margin-bottom: 20px;
   font-family: 'MinhaFonte';
   font-size: 25px;
@@ -432,91 +447,7 @@ mark {
   accent-color: #ff7043;
 }
 
-@media (min-width: 1247px) {
-  .topo-fixo-container {
-    flex-direction: row;
-    align-items: center;
-    padding: 1rem 2rem;
-    justify-content: space-between;
-  }
-
-  .topo-fixo-container h1 {
-    font-size: 1.75rem;
-    text-align: left;
-    flex: 0 0 auto;
-  }
-
-  .topo-fixo-container .input-busca {
-    flex: 1;
-    margin: 0 1rem;
-  }
-
-  .topo-fixo-container .atalhos-container {
-    flex: 0 0 auto;
-    justify-content: flex-end;
-  }
-
-  .atalho-btn {
-    min-width: 100px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .topo-fixo-container {
-    padding: 1.5rem 2.5rem;
-  }
-
-  .topo-fixo-container h1 {
-    font-size: 2rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .secao-cardapio h2 {
-    font-size: 1.25rem;
-  }
-
-  .card-item {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0.5rem;
-  }
-
-  .card-item .sabor,
-  .card-item .ingredientes,
-  .card-item .tamanho_bebidas,
-  .card-item .precos {
-    flex: 1 1 100%;
-    text-align: left;
-  }
-
-  .card-item .precos {
-    text-align: left;
-  }
-
-  .editBtn {
-    align-self: flex-end;
-    background-color: #ce7421;
-  }
-
-  .modal-content {
-    padding: 1rem;
-  }
-
-  .modal-body select,
-  .modal-body input {
-    font-size: 0.875rem;
-    padding: 0.5rem;
-  }
-
-  .modal-close {
-    width: 24px;
-    height: 24px;
-    font-size: 12px;
-  }
-}
-
-.loading_menu{
+.loading_menu {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -524,25 +455,58 @@ mark {
   height: 100vh;
 }
 
-#title_loading_menu{
+#title_loading_menu {
   width: 235.11px !important;
   margin-top: 10px;
   font-family: 'MinhaFonte';
   font-size: 20px;
 }
 
-#pizza_img_loading_menu{
+#pizza_img_loading_menu {
   width: 200px;
   height: 200px;
   animation: pizza_spin 1.5s infinite;
 }
 
 @keyframes pizza_spin {
-  0% {transform: rotate(0deg) scale(1);}
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
 
 
-  50% {transform: rotate(180deg) scale(1.05); }
-  
+  50% {
+    transform: rotate(180deg) scale(1.05);
+  }
 
-  100% {transform: rotate(360deg) scale(1);}
+
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 1024px) {
+  .cardapio-container {
+    padding-left: 130px;
+  }
+
+  .topo-fixo-container {
+    padding-left: 210px;
+  }
+
+  .conteudo-rolavel {
+    padding-top: 100px;
+  }
+
+  .atalho-btn {
+    width: 65px;
+  }
+
+  .delete-button {
+    padding-left: 0 !important;
+  }
+
+  .modal-content {
+    margin-left: 200px;
+  }
 }

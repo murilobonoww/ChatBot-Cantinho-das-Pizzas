@@ -132,7 +132,7 @@ export default function Relatorios() {
   };
 
   return (
-    <div className="page-relatorios">
+    <div className={`page-relatorios ${!autorizado ? "locked" : ""}`}>
       <Toaster />
 
       <div className="relatorios">
@@ -198,43 +198,43 @@ export default function Relatorios() {
 
                 <div className="resumos">
                   <div className="card">
-                    <PiggyBank size={45} style={{ padding: "5", backgroundColor: "#895ce1", color: "white", borderRadius: "50%", transform: "scaleX(-1)", strokeWidth: "1", marginRight: "10" }} />
+                    <PiggyBank size={40} style={{ padding: "5px", backgroundColor: "#895ce1", color: "white", borderRadius: "50%", transform: "scaleX(-1)", strokeWidth: "1", marginRight: "10" }} />
                     <div style={{ display: "flex", flexDirection: "column", textAlign: "start" }}>
                       <span style={{ color: "gray" }}>Faturamento:</span> <strong>   <span style={{ fontSize: "20px", color: "#525252" }} >R$ {relatorio.total_vendas?.toFixed(2).replace(".", ",") || "0,00"}</span> </strong>
                     </div>
                   </div>
 
                   <div className="card">
-                    <ShoppingBasket size={45} style={{ padding: "5", backgroundColor: "#2dd69c", color: "white", borderRadius: "50%", transform: "scaleX(-1)", strokeWidth: "1", marginRight: "10" }} />
+                    <ShoppingBasket size={40} style={{ padding: "5px", backgroundColor: "#2dd69c", color: "white", borderRadius: "50%", transform: "scaleX(-1)", strokeWidth: "1", marginRight: "10" }} />
                     <div style={{ display: "flex", flexDirection: "column", textAlign: "start" }}>
                       <span style={{ color: "gray" }}>Qtd pedidos:</span> <strong>   <span style={{ fontSize: "20px", color: "#525252" }} >{relatorio.total_pedidos || "0"}</span> </strong>
                     </div>
                   </div>
 
                   <div className="card">
-                    <CreditCard size={45} style={{ padding: "5", backgroundColor: "#34b2fe", color: "white", borderRadius: "50%", transform: "scaleX(-1)", strokeWidth: "1", marginRight: "10" }} />
+                    <CreditCard size={40} style={{ padding: "5px", backgroundColor: "#34b2fe", color: "white", borderRadius: "50%", transform: "scaleX(-1)", strokeWidth: "1", marginRight: "10" }} />
                     <div style={{ display: "flex", flexDirection: "column", textAlign: "start" }}>
                       <span style={{ color: "gray" }}>Ticket médio:</span> <strong>   <span style={{ fontSize: "20px", color: "#525252" }} >R$ {relatorio.ticket_medio?.toFixed(2).replace(".", ",") || "0,00"}</span> </strong>
                     </div>
                   </div>
 
                   <div className="card">
-                    <Award size={45} style={{ padding: "5", backgroundColor: "#ffaa7b", color: "white", borderRadius: "50%", strokeWidth: "1", marginRight: "10" }} />
+                    <Award size={40} style={{ padding: "5px", backgroundColor: "#ffaa7b", color: "white", borderRadius: "50%", strokeWidth: "1", marginRight: "10" }} />
                     <div style={{ display: "flex", flexDirection: "column", textAlign: "start" }}>
                       <span style={{ color: "gray" }}>Mais vendido:</span> <strong>   <span style={{ fontSize: "20px", color: "#525252" }} >{relatorio.mais_vendido || "-"}</span> </strong>
                     </div>
                   </div>
 
                   <div className="card">
-                    <DollarSign size={45} style={{ padding: "5", backgroundColor: "#bbbbbb", color: "white", borderRadius: "50%", strokeWidth: "1", marginRight: "10" }} />
+                    <DollarSign size={40} style={{ padding: "5px", backgroundColor: "#bbbbbb", color: "white", borderRadius: "50%", strokeWidth: "1", marginRight: "10" }} />
                     <div style={{ display: "flex", flexDirection: "column", textAlign: "start" }}>
                       <span style={{ color: "gray" }}>Faturamento médio diário:</span> <strong>   <span style={{ fontSize: "20px", color: "#525252" }} >R$ {relatorio.faturamento_medio?.toFixed(2).replace(".", ",") || "-"}</span> </strong>
                     </div>
                   </div>
                 </div>
 
-                <h1 style={{ fontSize: "45px", color: "#424242", display: "flex", alignItems: "center" }}>
-                  <Trophy size={60} style={{ padding: "5", backgroundColor: "#ff8c4d", color: "white", borderRadius: "50%", strokeWidth: "1", marginRight: "10" }} />
+                <h1 id='most_selled_title_relatoriosPage' style={{ fontSize: "45px", color: "#424242", display: "flex", alignItems: "center" }}>
+                  <Trophy size={55} style={{ padding: "5px", backgroundColor: "#ff8c4d", color: "white", borderRadius: "50%", strokeWidth: "1", marginRight: "10" }} />
                   Mais vendidos
                 </h1>
 

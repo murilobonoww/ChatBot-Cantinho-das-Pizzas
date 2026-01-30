@@ -3,7 +3,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import withReactContent from "sweetalert2-react-content";
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -23,8 +23,8 @@ const MySwal = withReactContent(Swal);
 
 const Pedidos = () => {
   const navigate = useNavigate()
-  //add feature de impressão
   const [pedidoParaImprimir, setPedidoParaImprimir] = useState(null);
+  const {isNotifBarOpened, setIsNotifBarOpened} = useOutletContext();
 
   function imprimir(pedido) {
     setPedidoParaImprimir(pedido);
@@ -488,8 +488,6 @@ const Pedidos = () => {
     }
   }
 
-
-
   return (
     <div className="page-pedidos">
       <div className="pedidos">
@@ -497,7 +495,7 @@ const Pedidos = () => {
         <div style={{ opacity: changeOpened || authOpened ? "100" : "0", pointerEvents: changeOpened || authOpened ? "auto" : "none" }} className="change_filter" onClick={() => changeOpened ? setChangeOpened(prev => !prev) : setAuthOpened(prev => !prev)} ></div>
         <div style={{ opacity: deleteOpened || authOpenedDelete ? "100" : "0", pointerEvents: deleteOpened || authOpenedDelete ? "auto" : "none" }} className="change_filter" onClick={() => deleteOpened ? setDeleteOpened(prev => !prev) : setAuthOpenedDelete(prev => !prev)} ></div>
 
-        <div className="auth_tela_pedidos" style={{ opacity: authOpened ? "100" : "0", pointerEvents: authOpened ? "auto" : "none" }}>
+        <div className={`auth_tela_pedidos ${isNotifBarOpened ? 'whenNotifBarOpened' : 'whenNotifBar_NOT_Opened'}`} style={{ opacity: authOpened ? "100" : "0", pointerEvents: authOpened ? "auto" : "none" }}>
           <img src={warning_icon} style={{ width: "50px" }} />
           <h1 id="title_auth_tela_pedidos">Ação restrita à gerência</h1>
           <input placeholder="Digite a senha" type="password" value={authPass} onChange={(e) => setAuthPass(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} autoFocus className="input_auth_tela_pedidos" />
@@ -594,7 +592,6 @@ const Pedidos = () => {
 
         <div className="topo-fixo-pedidos">
           <div className="topo-fixo-restante">
-            <h1>Pedidos</h1>
             <h2>Filtros</h2>
             <div className="filtro-datas">
               <label>
@@ -752,7 +749,7 @@ const Pedidos = () => {
 
                     <div className="pedido-header" key={pedido.id_pedido}>
                       <div className="pedido_info">
-                        <h2>
+                        <h2 id='pedido_id_header'>
                           #{pedido.id_pedido < 10 ? "0" + pedido.id_pedido : pedido.id_pedido}{" "}
                         </h2>
 

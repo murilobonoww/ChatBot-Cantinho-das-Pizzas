@@ -5,14 +5,12 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import socket from '@/services/socket';
-import { Check } from 'lucide-react';
 import CheckboxSplash from './CheckboxSplash';
 
 import { LayoutDashboard, ShoppingBag, Pizza, Truck, UserCheck, Bell, LogOut, Bug, Trash2 } from 'lucide-react';
 
-export default function SideBar() {
+export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
     const navigate = useNavigate()
-    const [isNotifBarOpened, setIsNotifBarOpened] = useState(true)
     const [notificacoes, setNotificacoes] = useState([]);
     const carregamentoInicial = useRef(true);
     const [checked, setChecked] = useState(false);
@@ -168,18 +166,18 @@ export default function SideBar() {
                         <li>
                             <Link to="/">
                                 <UserCheck size={20} style={{ marginRight: '10px' }} />
-                                <span>Entregadores</span>
+                                <span>Motoboys</span>
                             </Link>
                         </li>
                         <li>
                             <Link to="/">
                                 <Bug size={20} style={{ marginRight: '10px' }} />
-                                <span>Reportar bug</span>
+                                <span>Reportar</span>
                             </Link>
                         </li>
                         <li onClick={toggleNotificationBar} id='notification_btn_sidebar'>
                             <Bell size={20} style={{ marginRight: '10px' }} />
-                            <span>Notificações</span>
+                            <span>Alertas</span>
                         </li>
                         <li>
                             <Link to="/login">
