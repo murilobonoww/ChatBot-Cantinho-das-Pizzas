@@ -18,12 +18,11 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, "../dist/index.html"))
-  mainWindow.webContents.openDevTools()
 }
 
 ipcMain.handle("print", async () => {
   mainWindow.webContents.print({
-    silent: true,
+    //silent: true,
     printBackground: true
   })
 })
@@ -32,16 +31,31 @@ ipcMain.handle("print-html", async (event, payload) => {
   const { delivery, html } = payload
   const win = new BrowserWindow({ show: false })
   await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+  await new Promise(resolve => {
+    win.webContents.once('did-finish-load', resolve)
+  })
+
   const printers = await win.webContents.getPrintersAsync()
-  let printer
- 
-  if (delivery) {
-    printer = printers.find(p => p.name.includes("Delivery"))?.name
+  if(!printers.length){
+    console.error('Nenhuma impressora encontrada')
+    win.close()
+    return
   }
-  else {
-    printer = printers.find(p => p.name.includes("Balcão"))?.name
+
+  for (const printer of printers) {
+    await new Promise((resolve, reject) => {
+      win.webContents.print({ silent: true, printBackground: true, deviceName: printer.name },
+        (success, errorType) => {
+          if (!success) {
+            console.error(`Erro ao printar: `, errorType)
+            return reject(errorType)
+          }
+          resolve()
+        }
+      )
+    })
   }
-  win.webContents.print({ silent: true, printBackground: true, deviceName: printer })
+
   win.close()
 });
 
