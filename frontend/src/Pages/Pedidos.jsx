@@ -24,7 +24,7 @@ const MySwal = withReactContent(Swal);
 const Pedidos = () => {
   const navigate = useNavigate()
   const [pedidoParaImprimir, setPedidoParaImprimir] = useState(null);
-  const {isNotifBarOpened, setIsNotifBarOpened} = useOutletContext();
+  const { isNotifBarOpened, setIsNotifBarOpened } = useOutletContext();
 
   function imprimir(pedido) {
     setPedidoParaImprimir(pedido);
@@ -904,9 +904,11 @@ const Pedidos = () => {
         </div>
       </div>
       {/* componente de impressão */}
-      {pedidoParaImprimir && (
-        <PedidoPrint pedido={pedidoParaImprimir} />
-      )}
+      <div style={{ display: "none" }}>
+        {pedidoParaImprimir && (
+          <PedidoPrint pedido={pedidoParaImprimir} />
+        )}
+      </div>
     </div>
   );
 };
