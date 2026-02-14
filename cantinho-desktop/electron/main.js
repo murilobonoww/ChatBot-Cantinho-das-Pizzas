@@ -7,6 +7,7 @@ app.commandLine.appendSwitch("disable-setuid-sandbox");
 let mainWindow;
 
 function createWindow() {
+  console.log('criando janela...')
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -17,7 +18,9 @@ function createWindow() {
     }
   });
 
-  mainWindow.loadFile(path.join(__dirname, "../dist/index.html"))
+  mainWindow.loadFile(path.join(__dirname, "dist/index.html")).then(() => {
+    console.log('Janela carregada!')
+  }).catch((err) => console.error('Erro ao carregar janela: ', err))
 }
 
 ipcMain.handle("print", async () => {
