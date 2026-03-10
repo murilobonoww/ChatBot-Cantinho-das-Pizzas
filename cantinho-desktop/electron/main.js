@@ -18,7 +18,9 @@ function createWindow() {
     }
   });
 
-  mainWindow.loadFile(path.join(__dirname, "dist/index.html")).then(() => {
+  console.log("__dirname:", __dirname)
+
+  mainWindow.loadFile(path.join(__dirname, "../dist/index.html")).then(() => {
     console.log('Janela carregada!')
   }).catch((err) => console.error('Erro ao carregar janela: ', err))
 }
@@ -38,14 +40,18 @@ ipcMain.handle("print-html", async (event, payload) => {
     win.webContents.once('did-finish-load', resolve)
   })
 
-  const printers = await win.webContents.getPrintersAsync()
-  if(!printers.length){
+  let printers = await win.webContents.getPrintersAsync()
+  printers = printers.filter(p => p.name.includes('ELGIN'))
+  console.log('Impressoras encontradas: ', printers.map(p => p.name))
+
+  if (!printers.length) {
     console.error('Nenhuma impressora encontrada')
     win.close()
     return
   }
 
   for (const printer of printers) {
+    console.log(`Imprimindo na impressora ${printer.name}...`)
     await new Promise((resolve, reject) => {
       win.webContents.print({ silent: true, printBackground: true, deviceName: printer.name },
         (success, errorType) => {

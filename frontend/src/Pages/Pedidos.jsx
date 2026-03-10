@@ -34,8 +34,9 @@ const Pedidos = () => {
 
       if (window.api) {
         console.log("Print chamado!")
-        window.api.printHTML(`
-        <html>
+        window.api.printHTML({
+          delivery: pedido.delivery === 1 ? true : false,
+          html: `<html>
           <head>
             <style>
               body { font-family: Arial, sans-serif; padding: 20px; }
@@ -45,8 +46,8 @@ const Pedidos = () => {
           <body>
             ${printContent}
           </body>
-        </html>
-      `);
+        </html>`
+        })
       }
     }, 100);
   }
