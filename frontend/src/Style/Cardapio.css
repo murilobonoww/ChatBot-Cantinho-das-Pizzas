@@ -3,6 +3,7 @@ html {
 }
 
 main {
+  height: fit-content;
   background: #f9f9f9;
 }
 
@@ -17,6 +18,7 @@ main {
   padding: 1.5rem;
   box-sizing: border-box;
   margin-left: 200px;
+  transition: none !important;
 }
 
 .topo-fixo {
@@ -457,6 +459,7 @@ mark {
   align-items: center;
   justify-content: center;
   height: 100vh;
+  margin: 0 auto;
 }
 
 #title_loading_menu {
