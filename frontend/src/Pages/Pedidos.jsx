@@ -24,66 +24,6 @@ const Pedidos = () => {
   const navigate = useNavigate()
   const { isNotifBarOpened, setIsNotifBarOpened } = useOutletContext();
 
-  function buildReceiptHTML(pedido) {
-    const formatarPreco = (valor) =>
-      parseFloat(valor).toFixed(2).replace(".", ",");
-
-    const itens = pedido.itens.map((item) => `
-    <div class="item">
-      <p><strong>${item.quantidade}x ${item.produto}</strong> ${item.sabor ? `- ${item.sabor}` : ""}</p>
-      ${item.observacao ? `<p class="obs">Obs: ${item.observacao}</p>` : ""}
-      <p class="preco">R$ ${formatarPreco(item.preco)}</p>
-    </div>
-  `).join("");
-
-    return `<html>
-    <head>
-      <style>
-        @page { width: 80mm; margin: 0; }
-        body {
-          width: 280px;
-          font-family: Arial, sans-serif;
-          font-size: 12px;
-          padding: 10px;
-          margin: 0;
-        }
-        h2 { font-size: 15px; text-align: center; margin: 0 0 4px; }
-        .center { text-align: center; }
-        hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
-        .item { margin-bottom: 6px; }
-        .item p { margin: 1px 0; }
-        .obs { color: #555; font-style: italic; }
-        .preco { text-align: right; }
-        .total { font-size: 14px; font-weight: bold; text-align: right; }
-        .label { color: #555; }
-      </style>
-    </head>
-    <body>
-      <h2>Cantinho das Pizzas</h2>
-      <p class="center">${pedido.delivery === 1 ? "🛵 ENTREGA" : "🏠 RETIRADA"}</p>
-      <hr/>
-
-      <p><span class="label">Pedido:</span> #${pedido.id_pedido}</p>
-      <p><span class="label">Cliente:</span> ${pedido.nome_cliente}</p>
-      ${pedido.delivery === 1 ? `<p><span class="label">Endereço:</span> ${pedido.endereco_entrega}</p>` : ""}
-      <p><span class="label">Pagamento:</span> ${pedido.forma_pagamento}</p>
-      <hr/>
-
-      <strong>Itens:</strong>
-      ${itens}
-      <hr/>
-
-      ${pedido.delivery === 1 ? `<p class="total">Taxa de entrega: R$ ${formatarPreco(pedido.taxa_entrega)}</p>` : ""}
-      <p class="total">Total: R$ ${formatarPreco(pedido.preco_total)}</p>
-      <hr/>
-
-      <p class="center" style="font-size:10px; color:#777;">
-        ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-      </p>
-    </body>
-  </html>`;
-  }
-
   function imprimir(pedido) {
     const total = parseFloat(pedido.preco_total || 0)
     const taxa_entrega = parseFloat(pedido.taxa_entrega || 0)
