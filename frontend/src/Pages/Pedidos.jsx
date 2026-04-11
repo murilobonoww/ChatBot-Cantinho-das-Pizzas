@@ -84,28 +84,22 @@ const Pedidos = () => {
   </html>`;
   }
 
-
   function imprimir(pedido) {
-    window.api?.printHTML({
-      delivery: pedido.delivery === 1,
-      // MODELO::::::
-      // {
-      //   orderId: '123',
-      //   items: [
-      //     { quantity: 1, name: 'X-Burguer' },
-      //     { quantity: 2, name: 'Coca-Cola' }
-      //   ],
-      //   total: '45,00'
-      // }
-      html: {
+    let total = parseFloat(pedido.preco_total || 0)
+    // total = isNaN(total) ? '0,00' : total.toFixed(2).replace(".", ",")
+    try {
+      window.api?.printHTML({
+        delivery: pedido.delivery === 1,
         orderId: pedido.id_pedido,
         items: pedido.itens.map(item => ({
           quantity: item.quantidade,
           name: item.produto + (item.sabor ? ` - ${item.sabor}` : "")
         })),
-        total: pedido.preco_total.toFixed(2).replace(".", ",")
-      }
-    });
+        total: isNaN(total) ? 0 : total
+      });
+    } catch (err) {
+      console.error("Erro ao imprimir:", err);
+    }
   }
 
   const [id_filter, setIdFilter] = useState()
