@@ -167,6 +167,9 @@ function buildEscPos(payload) {
   text(center(`Pedido #${payload.orderId}`));
   cmd(ESC, 0x45, 0x00);
   text(center(`${dateStr}  ${timeStr}`));
+  text(center(`Cliente: ${payload.nome_cliente || "N/A"}`));
+  text(center(`Endereco:`));
+  text(center(`${payload.endereco_entrega?.toUpperCase() || "--"}`));
 
   // ── Itens ────────────────────────────────────────────────────────────
   text(separator());

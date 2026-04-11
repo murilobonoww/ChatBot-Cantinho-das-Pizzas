@@ -97,7 +97,9 @@ const Pedidos = () => {
           name: item.produto + (item.sabor ? ` - ${item.sabor}` : "")
         })),
         total: isNaN(total) ? 0 : total,
-        taxa_entrega: isNaN(taxa_entrega) ? 0 : taxa_entrega
+        taxa_entrega: isNaN(taxa_entrega) ? 0 : taxa_entrega,
+        cliente: pedido.nome_cliente,
+        endereco_entrega: pedido.endereco_entrega,
       });
     } catch (err) {
       console.error("Erro ao imprimir:", err);
