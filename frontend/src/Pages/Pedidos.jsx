@@ -85,8 +85,9 @@ const Pedidos = () => {
   }
 
   function imprimir(pedido) {
-    let total = parseFloat(pedido.preco_total || 0)
-    let taxa_entrega = parseFloat(pedido.taxa_entrega || 0)
+    const total = parseFloat(pedido.preco_total || 0)
+    const taxa_entrega = parseFloat(pedido.taxa_entrega || 0)
+    const subtotal = total - taxa_entrega
 
     try {
       window.api?.printHTML({
@@ -100,6 +101,7 @@ const Pedidos = () => {
         taxa_entrega: isNaN(taxa_entrega) ? 0 : taxa_entrega,
         cliente: pedido.nome_cliente,
         endereco_entrega: pedido.endereco_entrega,
+        subtotal: isNaN(subtotal) ? 0 : subtotal,
       });
     } catch (err) {
       console.error("Erro ao imprimir:", err);

@@ -170,6 +170,7 @@ function buildEscPos(payload) {
   text(center(`Cliente: ${payload.nome_cliente || "N/A"}`));
   text(center(`Endereco:`));
   text(center(`${payload.endereco_entrega?.toUpperCase() || "--"}`));
+  text(center(`Subtotal: R$ ${payload.subtotal?.toFixed(2).replace('.', ',') || "--"}`));
 
   // ── Itens ────────────────────────────────────────────────────────────
   text(separator());
