@@ -6,8 +6,9 @@ const net = require("net");
 // Porta 9100 é o padrão RAW para impressoras térmicas de rede (ESC/POS over TCP)
 const PRINTERS = 
 [
-  { ip: "192.168.0.210", port: 9100, name: "Delivery" },
-  { ip: "192.168.0.211", port: 9100, name: "Balcao" },
+  { ip: "192.168.0.210", port: 9100, name: "Delivery" }
+  // ! CLIENTE quer impressão apenas no delivery por enquanto
+  // { ip: "192.168.0.211", port: 9100, name: "Balcao" },
 ];
 
 const PRINTER_TIMEOUT_MS = 6000;
