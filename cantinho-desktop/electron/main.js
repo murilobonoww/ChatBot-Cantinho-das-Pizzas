@@ -186,9 +186,14 @@ function buildEscPos(payload) {
 
   // ── Totais ────────────────────────────────────────────────────────────
   cmd(ESC, 0x61, 0x01); // Centralizar
-  text(separator());
-  cmd(ESC, 0x45, 0x01);
 
+  text(separator());
+
+  const taxa_entrega = parseFloat(payload.taxa_entrega);
+  const taxa_entregaStr = isNaN(taxa_entrega) ? '--' : taxa_entrega.toFixed(2).replace('.', ',');
+  text(center(`Entrega: R$ ${taxa_entregaStr}`));
+
+  cmd(ESC, 0x45, 0x01);
   const total = parseFloat(payload.total ?? 0)
   const totalStr = isNaN(total) ? '--' : total.toFixed(2).replace('.', ',')
   text(center(`Total: R$ ${totalStr}`));
