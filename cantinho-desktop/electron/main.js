@@ -166,11 +166,14 @@ function buildEscPos(payload) {
   cmd(ESC, 0x45, 0x01);
   text(center(`Pedido #${payload.orderId}`));
   cmd(ESC, 0x45, 0x00);
-  text(center(`${dateStr}  ${timeStr}`));
-  text(center(`Cliente: ${payload.nome_cliente || "N/A"}`));
-  text(center(`Endereco:`));
-  text(center(`${payload.endereco_entrega?.toUpperCase() || "--"}`));
-  text(center(`Subtotal: R$ ${payload.subtotal?.toFixed(2).replace('.', ',') || "--"}`));
+  text(center(`Data Emissao: ${dateStr}  ${timeStr}`));
+  ////////////////////////////////////////////////////////
+  text(separator())
+  ////////////////////////////////////////////////////////
+  text(`Cliente: ${payload.nome_cliente || "N/A"}`);
+  text(`Endereco:`);
+  text(`${payload.endereco_entrega?.toUpperCase() || "--"}`);
+  text(`${payload.pagamento}`)
 
   // ── Itens ────────────────────────────────────────────────────────────
   text(separator());
@@ -193,6 +196,7 @@ function buildEscPos(payload) {
 
   text(separator());
 
+  text(center(`Subtotal: R$ ${payload.subtotal?.toFixed(2).replace('.', ',') || "--"}`));
   const taxa_entrega = parseFloat(payload.taxa_entrega);
   const taxa_entregaStr = isNaN(taxa_entrega) ? '--' : taxa_entrega.toFixed(2).replace('.', ',');
   text(center(`Entrega: R$ ${taxa_entregaStr}`));

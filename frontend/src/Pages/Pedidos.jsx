@@ -102,6 +102,7 @@ const Pedidos = () => {
         cliente: pedido.nome_cliente,
         endereco_entrega: pedido.endereco_entrega,
         subtotal: isNaN(subtotal) ? 0 : subtotal,
+        pagamento: pedido.forma_pagamento
       });
     } catch (err) {
       console.error("Erro ao imprimir:", err);
