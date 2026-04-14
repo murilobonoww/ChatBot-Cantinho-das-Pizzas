@@ -32,7 +32,7 @@ function initLogs(PRINTERS) {
 
 function loggingReceivedPayload(payload) {
 
-  if(!payload || !payload.orderId || !payload.items || !payload.total || !payload.paymentMethod || !payload.deliveryAddress) {
+  if(!payload || !payload.orderId || !payload.items || !payload.total || !payload.pagamento || !payload.endereco_entrega) {
     writeLog("❌ Payload ausente", "ERROR");
     return { success: false, error: "Payload ausente ou inválido" };
   }
@@ -41,8 +41,10 @@ function loggingReceivedPayload(payload) {
   writeLog(`  orderId       : ${payload.orderId ?? "(ausente)"}`);
   writeLog(`  itens         : ${Array.isArray(payload.items) ? payload.items.length : "(ausente)"}`);
   writeLog(`  total         : ${payload.total ?? "(ausente)"}`);
-  writeLog(`  pagamento     : ${payload.paymentMethod ?? "(não informado)"}`);
-  writeLog(`  endereço      : ${payload.deliveryAddress ?? "(não informado)"}`);
+  writeLog(`  pagamento     : ${payload.pagamento ?? "(não informado)"}`);
+  writeLog(`  endereço      : ${payload.endereco_entrega ?? "(não informado)"}`);
+
+  return { success: true }
 }
 
 /** Traduz erros de rede para português com dica de diagnóstico */
@@ -179,7 +181,7 @@ function buildEscPos(payload) {
   cmd(ESC, 0x45, 0x00);
   text(center(`Data Emissao: ${dateStr}  ${timeStr}`));
   text(separator());
-  text(`Cliente: ${payload.nome_cliente || "N/A"}`);
+  text(`Cliente: ${payload.cliente || "N/A"}`);
   text(`Endereco:`);
   text(`${payload.endereco_entrega?.toUpperCase() || "--"}`);
   text(`Pagamento: ${payload.pagamento ?? "--"}`);
@@ -214,15 +216,15 @@ function buildEscPos(payload) {
   text(center(`Total: R$ ${totalStr}`));
   cmd(ESC, 0x45, 0x00);
 
-  if (payload.paymentMethod) {
-    text(center(`Pagamento: ${payload.paymentMethod}`));
-  }
+  // if (payload.pagamento) {
+  //   text(center(`Pagamento: ${payload.pagamento}`));
+  // }
 
-  if (payload.deliveryAddress) {
-    cmd(ESC, 0x61, 0x00);
-    text(separator());
-    text(`Entrega: ${payload.deliveryAddress}`);
-  }
+  // if (payload.endereco_entrega) {
+  //   cmd(ESC, 0x61, 0x00);
+  //   text(separator());
+  //   text(`Endereco: ${payload.endereco_entrega}`);
+  // }
 
   cmd(ESC, 0x61, 0x01);
   text(separator());
