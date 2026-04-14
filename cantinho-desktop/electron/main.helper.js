@@ -7,11 +7,6 @@ const PRINTER_COLS = 48;
 const PRINTER_TIMEOUT_MS = 6000;
 
 // ─── Logs ────────────────────────────────────────────────────────────────────
-
-/**
- * @param {string} message
- * @param {string} [level="INFO"]
- */
 function writeLog(message, level = "INFO") {
   const timestamp = new Date().toISOString().replace("T", " ").slice(0, 23);
   console.log(`[${timestamp}] [${level.padEnd(5)}] ${message}`);
@@ -22,6 +17,32 @@ function logSection(title) {
   writeLog(bar);
   writeLog(`  ${title}`);
   writeLog(bar);
+}
+
+function initLogs(PRINTERS) {
+  logSection("CANTINHO DESKTOP — INICIANDO");
+  writeLog(`Versão Electron : ${process.versions.electron}`);
+  writeLog(`Node.js         : ${process.versions.node}`);
+  writeLog(`Plataforma      : ${process.platform} ${process.arch}`);
+  writeLog(`Impressoras configuradas:`);
+  for (const p of PRINTERS) {
+    writeLog(`  [${p.name}]  ${p.ip}:${p.port}  timeout=${PRINTER_TIMEOUT_MS}ms`);
+  }
+}
+
+function loggingReceivedPayload(payload) {
+
+  if(!payload || !payload.orderId || !payload.items || !payload.total || !payload.paymentMethod || !payload.deliveryAddress) {
+    writeLog("❌ Payload ausente", "ERROR");
+    return { success: false, error: "Payload ausente ou inválido" };
+  }
+
+  writeLog(`[STEP 1/4] Validando payload recebido...`);
+  writeLog(`  orderId       : ${payload.orderId ?? "(ausente)"}`);
+  writeLog(`  itens         : ${Array.isArray(payload.items) ? payload.items.length : "(ausente)"}`);
+  writeLog(`  total         : ${payload.total ?? "(ausente)"}`);
+  writeLog(`  pagamento     : ${payload.paymentMethod ?? "(não informado)"}`);
+  writeLog(`  endereço      : ${payload.deliveryAddress ?? "(não informado)"}`);
 }
 
 /** Traduz erros de rede para português com dica de diagnóstico */
@@ -41,6 +62,31 @@ function diagnoseNetError(err, ip, port) {
   };
   return map[code] || `${code || "ERRO"} — ${err.message}`;
 }
+
+function loggingResult(successCount, errors, PRINTERS) {
+  writeLog(`[STEP 4/4] Resultado final:`);
+  if (successCount > 0) {
+    writeLog(`  STATUS  : SUCESSO (${successCount}/${PRINTERS.length} impressoras)`);
+    if (errors.length > 0) {
+      writeLog(`  FALHAS  : ${errors.join(" | ")}`, "WARN");
+    }
+    return {
+      success: true,
+      message: `Impresso em ${successCount}/${PRINTERS.length} impressora(s)`,
+    };
+  }
+
+  writeLog(`  STATUS  : FALHA TOTAL`, "ERROR");
+  writeLog(`  FALHAS  : ${errors.join(" | ")}`, "ERROR");
+  writeLog(`  DICA    : Veja o diagnóstico acima.`, "ERROR");
+  return { success: false, error: errors.join(" | ") };
+}
+
+
+
+
+
+
 
 // ─── ESC/POS ─────────────────────────────────────────────────────────────────
 
@@ -136,7 +182,7 @@ function buildEscPos(payload) {
   text(`Cliente: ${payload.nome_cliente || "N/A"}`);
   text(`Endereco:`);
   text(`${payload.endereco_entrega?.toUpperCase() || "--"}`);
-  text(`${payload.pagamento}`);
+  text(`Pagamento: ${payload.pagamento ?? "--"}`);
 
   text(separator());
   cmd(ESC, 0x61, 0x00);
@@ -245,6 +291,42 @@ function sendRawTcp(ip, port, data, name, timeoutMs = PRINTER_TIMEOUT_MS) {
   });
 }
 
+function mountingEscPosBuffer(payload) {
+  writeLog(`[STEP 2/4] Montando buffer ESC/POS...`);
+  let receiptBuf;
+  try {
+    receiptBuf = buildEscPos(payload);
+    writeLog(`  Buffer montado: ${receiptBuf.length} bytes  (hex primeiros 16: ${receiptBuf.slice(0, 16).toString("hex")})`);
+  } catch (err) {
+    writeLog(`  ERRO ao montar buffer: ${err.message}`, "ERROR");
+    writeLog(err.stack, "ERROR");
+    return { success: false, error: `Erro ao montar cupom: ${err.message}` };
+  }
+  return receiptBuf;
+}
+
+async function sendingToPrinters(receiptBuf, PRINTERS) {
+writeLog(`[STEP 3/4] Enviando para ${PRINTERS.length} impressora(s)...`);
+  let successCount = 0;
+  const errors = [];
+
+  for (const printer of PRINTERS) {
+    writeLog(`--- ${printer.name} (${printer.ip}:${printer.port}) ---`);
+    try {
+      await sendRawTcp(printer.ip, printer.port, receiptBuf, printer.name);
+      writeLog(`  SUCESSO: ${printer.name} imprimiu o cupom`);
+      successCount++;
+    } catch (err) {
+      const diag = diagnoseNetError(err, printer.ip, printer.port);
+      writeLog(`  FALHA em ${printer.name}:`, "ERROR");
+      writeLog(`  ${diag}`, "ERROR");
+      errors.push(`${printer.name}: ${err.message}`);
+    }
+  }
+
+  return { successCount, errors };
+}
+
 module.exports = {
   PRINTER_COLS,
   PRINTER_TIMEOUT_MS,
@@ -253,4 +335,9 @@ module.exports = {
   diagnoseNetError,
   buildEscPos,
   sendRawTcp,
+  initLogs,
+  loggingReceivedPayload,
+  mountingEscPosBuffer,
+  sendingToPrinters,
+  loggingResult
 };

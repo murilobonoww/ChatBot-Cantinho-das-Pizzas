@@ -1,8 +1,5 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-/** @typedef {import("./print-payload").PrintOrderPayload} PrintOrderPayload */
-/** @typedef {import("./print-payload").PrintHtmlResult} PrintHtmlResult */
-
 console.log('Preload carregado!')
 
 contextBridge.exposeInMainWorld("api", {
