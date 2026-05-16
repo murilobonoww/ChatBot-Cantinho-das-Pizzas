@@ -123,41 +123,41 @@ async function atualizarStatusPedido(id_pedido, novoStatus) {
 }
 
 // Função de polling
-async function sincronizarStatusPedidos() {
-  if (pollingEmExecucao) return;
+// async function sincronizarStatusPedidos() {
+//   if (pollingEmExecucao) return;
 
-  pollingEmExecucao = true;
+//   pollingEmExecucao = true;
 
-  try {
-    const pedidos = await buscarPedidosAbertos();
+//   try {
+//     const pedidos = await buscarPedidosAbertos();
 
-    if (pedidos.length === 0) {
-      return;
-    }
+//     if (pedidos.length === 0) {
+//       return;
+//     }
 
-    for (const pedido of pedidos) {
-      const { id_pedido, uid_foody, status_pedido } = pedido;
+//     for (const pedido of pedidos) {
+//       const { id_pedido, uid_foody, status_pedido } = pedido;
 
-      const novoStatus = await consultarStatusFoody(uid_foody);
-      if (novoStatus && novoStatus !== status_pedido) {
-        await atualizarStatusPedido(id_pedido, novoStatus);
+//       const novoStatus = await consultarStatusFoody(uid_foody);
+//       if (novoStatus && novoStatus !== status_pedido) {
+//         await atualizarStatusPedido(id_pedido, novoStatus);
 
-        const [rows] = await db.query(
-          "SELECT * FROM pedido WHERE id_pedido = ?",
-          [id_pedido]
-        );
+//         const [rows] = await db.query(
+//           "SELECT * FROM pedido WHERE id_pedido = ?",
+//           [id_pedido]
+//         );
 
-        io.emit("pedidoAtualizado", rows[0]);
-      }
-    }
-  } catch (error) {
-    console.error("⚠️ Erro ao sincronizar status:", error.message);
-  } finally {
-    pollingEmExecucao = false;
-  }
-}
+//         io.emit("pedidoAtualizado", rows[0]);
+//       }
+//     }
+//   } catch (error) {
+//     console.error("⚠️ Erro ao sincronizar status:", error.message);
+//   } finally {
+//     pollingEmExecucao = false;
+//   }
+// }
 
-setInterval(sincronizarStatusPedidos, 5000);
+// setInterval(sincronizarStatusPedidos, 5000);
 
 // Monitorar conexões WebSocket
 io.on("connection", (socket) => {

@@ -127,7 +127,7 @@ async function calcularDistanciaKm(enderecoDestino) {
             body: JSON.stringify(body),
             signal: controller.signal
         });
-
+        console.log("response: ", response)
         const data = await response.json();
         console.log("🛰 API Google Maps:", response.status, JSON.stringify(data));
 

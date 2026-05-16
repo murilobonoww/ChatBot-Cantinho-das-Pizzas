@@ -310,9 +310,10 @@ const Pedidos = () => {
     const dia = String(data.getDate()).padStart(2, "0");
     const mes = String(data.getMonth() + 1).padStart(2, "0");
     const ano = data.getFullYear();
-    const hora = String(data.getHours()).padStart(2, "0");
+    const horaUTC = String(data.getHours()).padStart(2, "0");
+    const horaLocal = horaUTC -3;
     const minuto = String(data.getMinutes()).padStart(2, "0");
-    return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+    return `${dia}/${mes}/${ano} ${horaLocal}:${minuto}`;
   };
 
   const pedidoPassaNoFiltro = (pedido) => {
