@@ -154,7 +154,7 @@ function valores_pedido(p) {
         p.forma_pagamento,
         p.status_pedido || "aberto",
         p.alteracao,
-        p.delivery || 1,
+        p.delivery ?? 1,
         p.telefone_cliente
     ];
 }
