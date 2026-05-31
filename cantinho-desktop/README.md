@@ -12,3 +12,10 @@ modelo do payload:
     subtotal: float
     pagamento: str
 }
+
+1- rm -rf node_modules
+2- rm -rf dist
+3- buildar front dnv e pegar dist dele
+4- colar dist nesta raiz
+5- npm ci
+6- npm run build
