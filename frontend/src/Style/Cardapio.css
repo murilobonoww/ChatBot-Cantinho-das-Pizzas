@@ -2,11 +2,6 @@ html {
   scroll-behavior: smooth;
 }
 
-main {
-  height: fit-content;
-  background: #f9f9f9;
-}
-
 .cardapio-container {
   width: 100%;
   max-width: 1200px;

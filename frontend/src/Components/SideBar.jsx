@@ -7,13 +7,14 @@ import "react-toastify/dist/ReactToastify.css";
 import socket from '@/services/socket';
 import CheckboxSplash from './CheckboxSplash';
 
-import { LayoutDashboard, ShoppingBag, Pizza, Truck, UserCheck, Bell, LogOut, Bug, Trash2 } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Pizza, Truck, UserCheck, Bell, LogOut, Bug, Trash2, Bot } from 'lucide-react';
 
 export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
     const navigate = useNavigate()
     const [notificacoes, setNotificacoes] = useState([]);
     const carregamentoInicial = useRef(true);
     const [checked, setChecked] = useState(false);
+    const [chatbotON, setChatbotON] = useState(true);
 
     const toggleNotificationBar = () => {
         setIsNotifBarOpened(!isNotifBarOpened)
@@ -97,6 +98,18 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
         }
     }
 
+    function toggleChatbot(bool) {
+        console.log('entrou na funcao togglechatbot')
+    try {
+      window.api?.toggleChatbot({
+        turn: bool
+      })
+      console.log('enviou pro IPC')
+    } catch (e) {
+      console.error("Erro ao ligar/desligar chatbot: ", e)
+    }
+  }
+
     return (
         <div>
             <div className={`sidebar ${isNotifBarOpened ? "open" : ""}`}>
@@ -179,8 +192,12 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
                             <Bell size={20} style={{ marginRight: '10px' }} />
                             <span>Alertas</span>
                         </li>
+                        <li onClick={() => { setChatbotON(!chatbotON); console.log('chatbotON: ', chatbotON); toggleChatbot(chatbotON); }} id="bot_btn_sidebar">
+                            <Bot size={20} style={{ marginRight: '10px' }} />
+                            <span>Bot {chatbotON ? 'ON': 'OFF'}</span>
+                        </li>
                         <li>
-                            <Link to="/login">
+                            <Link to="/login" onClick={() => setChatbotON(false)}>
                                 <LogOut size={20} style={{ marginRight: '10px' }} />
                                 <span>Sair</span>
                             </Link>

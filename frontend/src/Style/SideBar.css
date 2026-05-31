@@ -78,3 +78,17 @@
 #notification_msg{
     width: 220px;
 }
+
+#bot_btn_sidebar {
+    cursor: pointer;
+    color: #565053;
+    padding-left: 30px;
+    padding: 15px 35px 15px 20px;
+    width: 120px;
+    display: flex;
+    border-radius: 10px;
+}
+
+#bot_btn_sidebar:hover {
+    background-color: #f3f4f6;
+}

@@ -19,7 +19,16 @@ const Login = () => {
       localStorage.setItem("token", res.data.token);
       navigate("/pedidos");
     } catch (error) {
-      toast.error("Código incorreto", { autoClose: 5000 })
+      const status = error.response?.status;
+      if (status === 400){
+        toast.error("Informe o código de login", { autoClose: 5000 });
+      }
+      else if (status === 401){
+        toast.error("Código incorreto", { autoClose: 5000 });
+      }
+      else {
+        toast.error("Erro ao tentar fazer login", { autoClose: 5000 });
+      }
     }
   }
 
