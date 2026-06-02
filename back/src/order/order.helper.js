@@ -438,8 +438,8 @@ const calcularPreco = async (pedido) => {
 
 async function processOrder(pedido) {
     console.log('Iniciando processamento do pedido...')
-    const endereco = pedido.endereco_entrega
-    const isEntrega = endereco !== null
+    const endereco = pedido.endereco_entrega;
+    const isEntrega = pedido.delivery === 1;
 
     console.log(`Validando distância para o endereço: ${endereco}...`)
     const distancia = await validar_distancia(endereco)
