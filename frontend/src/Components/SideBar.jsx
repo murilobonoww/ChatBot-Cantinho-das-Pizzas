@@ -22,7 +22,7 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
 
     async function carregarNotificacoesIniciais() {
         try {
-            const response = await axios.get("https://back-cantinho-das-pizzas.onrender.com/notification/pendentes");
+            const response = await axios.get("https://back-cantinho-das-pizzas.onrender.com/notification/pending");
             setNotificacoes(response.data);
         } catch (error) {
             console.error("Erro ao carregar notificações iniciais:", error);
@@ -78,7 +78,7 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
     const limparNot = async (id_not) => {
         try {
             const body = { id: id_not, status: 'atendida' }
-            const res = await axios.put('https://back-cantinho-das-pizzas.onrender.com/notification/atualizar', body)
+            const res = await axios.put('https://back-cantinho-das-pizzas.onrender.com/notification/', body)
             setNotificacoes(prev => prev.filter(notif => notif.id_notificacao !== id_not))
             toast.success('Notificação limpa!', { autoClose: 1500, closeOnClick: true })
         } catch (error) {
@@ -89,7 +89,7 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
 
     async function limparNotificacoes() {
         try {
-            const res = await axios.delete('https://back-cantinho-das-pizzas.onrender.com/notification/limpar')
+            const res = await axios.delete('https://back-cantinho-das-pizzas.onrender.com/notification/')
             setNotificacoes([])
             toast.success('Todas as notificações apagadas com sucesso!', { autoClose: 1500, closeOnClick: true })
         } catch (error) {

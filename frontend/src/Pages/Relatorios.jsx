@@ -30,7 +30,7 @@ export default function Relatorios() {
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/order/getAll', { withCredentials: true })
+        const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/order/', { withCredentials: true })
         const data = res.data
         if (res.status === 401) navigate('/login')
         if (carregamentoInicial.current === true) {

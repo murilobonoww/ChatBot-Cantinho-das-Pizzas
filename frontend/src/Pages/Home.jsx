@@ -54,7 +54,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
   useEffect(() => {
     async function carregarNotificacoesIniciais() {
       try {
-        const response = await axios.get("https://back-cantinho-das-pizzas.onrender.com/notification/pendentes");
+        const response = await axios.get("https://back-cantinho-das-pizzas.onrender.com/notification/pending");
         setNotificacoes(response.data);
         setTemNotificacoesNaoLidas(response.data.some((n) => n.status === "pendente"));
       } catch (error) {
@@ -70,7 +70,7 @@ export default function Home({ enviarListaDeNovosIDs }) {
   const limparNot = async (id_not) => {
     try {
       const body = { id: id_not, status: 'atendida' }
-      const res = await axios.put('https://back-cantinho-das-pizzas.onrender.com/notification/atualizar', body)
+      const res = await axios.put('https://back-cantinho-das-pizzas.onrender.com/notification/', body)
       toast.success('Notificação limpa!', { autoClose: 1500, closeOnClick: true })
     } catch (error) {
       console.log(error)

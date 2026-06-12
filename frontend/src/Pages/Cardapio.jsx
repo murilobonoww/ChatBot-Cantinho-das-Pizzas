@@ -46,7 +46,7 @@ export default function Cardapio() {
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/order/getAll', { withCredentials: true })
+        const res = await axios.get('https://back-cantinho-das-pizzas.onrender.com/order/', { withCredentials: true })
         if (res.status === 401) {
           navigate('/login')
           return

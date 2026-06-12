@@ -59,7 +59,7 @@ function AppContent() {
   }, [navigate]);
 
   const fetchPedidos = () => {
-    fetch("https://back-cantinho-das-pizzas.onrender.com/order/getAll", { credentials: "include" })
+    fetch("https://back-cantinho-das-pizzas.onrender.com/order/", { credentials: "include" })
       .then((res) => {
         if (res.status === 401) {
           navigate('/login')
