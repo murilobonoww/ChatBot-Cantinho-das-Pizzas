@@ -16,8 +16,8 @@ const pool = mysql.createPool({
   keepAliveInitialDelay: 0,
 });
 
-pool.on("error", (err) => {
-  console.error("🔥 Erro no pool MySQL:", err.message);
+pool.on("error", (err: any) => {
+  console.error("❌ Erro no pool MySQL:", err.message);
 });
 
-module.exports = pool;
+export default pool;

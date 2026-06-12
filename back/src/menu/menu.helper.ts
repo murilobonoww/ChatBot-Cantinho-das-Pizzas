@@ -1,56 +1,52 @@
-const db = require("../db");
+import db from "../db";
 
-const validSections = ["pizzas", "esfihas", "bebidas", "doces", "outros"];
+export async function getMenu() {
+    const [pizzas] = await db.query("SELECT * FROM pizzas");
+    const [esfihas] = await db.query("SELECT * FROM esfihas");
+    const [bebidas] = await db.query("SELECT * FROM bebidas");
+    const [doces] = await db.query("SELECT * FROM doces");
+    const [outros] = await db.query("SELECT * FROM outros");
 
-async function getMenu() {
-    const [pizzas] = await db.query("SELECT * FROM pizzas")
-    const [esfihas] = await db.query("SELECT * FROM esfihas")
-    const [bebidas] = await db.query("SELECT * FROM bebidas")
-    const [doces] = await db.query("SELECT * FROM doces")
-    const [outros] = await db.query("SELECT * FROM outros")
-
-    return ({ pizzas, esfihas, bebidas, doces, outros })
+    return { pizzas, esfihas, bebidas, doces, outros };
 }
 
-function validateMenuData(data) {
-    const { section, nome, ingredientes, preco, preco_25, preco_35, tamanho } = data
+const VALID_SECTIONS = ["pizzas", "esfihas", "bebidas", "doces", "outros"];
 
-    const missing_fieds_message = 'Todos os campos são obrigatórios.'
+export function validateMenuData(data: { section: string, nome: string, ingredientes: string, preco: number, preco_25: number, preco_35: number, tamanho: string }) {
+    const { section, nome, ingredientes, preco, preco_25, preco_35, tamanho } = data;
 
-    if (!validSections.includes(section)) {
-        throw new Error('Seção inválida.')
-    }
+    const missing_fieds_message = 'Todos os campos são obrigatórios.';
 
-    if (!nome) {
-        throw new Error(missing_fieds_message)
-    }
+    if (!VALID_SECTIONS.includes(section)) throw new Error('Seção inválida.');
+
+    if (!nome) throw new Error(missing_fieds_message);
 
     if (section === "pizzas" && (!ingredientes || !preco_25 || !preco_35)) {
-        throw new Error(missing_fieds_message)
+        throw new Error(missing_fieds_message);
     }
     if ((section === "esfihas" || section === "doces" || section === "outros") && !preco) {
-        throw new Error(missing_fieds_message)
+        throw new Error(missing_fieds_message);
     }
     if (section === "bebidas" && (!tamanho || !preco)) {
-        throw new Error(missing_fieds_message)
+        throw new Error(missing_fieds_message);
     }
 }
 
-function validate_section(section) {
-    if (!validSections.includes(section)) {
-        throw new Error('Seção inválida.')
+export function validateSection(section: string) {
+    if (!VALID_SECTIONS.includes(section)) {
+        throw new Error('Seção inválida.');
     }
 }
 
-function validateIDItens(ids) {
-    const sanitizedIds = ids.map((id) => parseInt(id)).filter((id) => !isNaN(id));
+export function validateIDItems(ids: number[]) {
+    const sanitizedIds = ids.filter((id) => !isNaN(id));
     if (sanitizedIds.length === 0) {
         throw new Error('Nenhum ID válido fornecido.')
     }
     return sanitizedIds
 }
 
-function chooseQueryForPost(data) {
+export function chooseQueryForPost(data: { section: string, nome: string, ingredientes: string, preco: number, preco_25: number, preco_35: number, tamanho: string }){
 
     const { section, nome, ingredientes, preco, preco_25, preco_35, tamanho } = data
 
@@ -87,7 +83,7 @@ function chooseQueryForPost(data) {
     }
 }
 
-function chooseQueryForPut(id, data) {
+export function chooseQueryForPut(id: number, data: { section: string, nome: string, ingredientes: string, preco: number, preco_25: number, preco_35: number, tamanho: string }) {
     const { section, nome, ingredientes, preco, preco_25, preco_35, tamanho } = data;
 
     try {
@@ -111,14 +107,9 @@ function chooseQueryForPut(id, data) {
                 }
 
             case "doces":
-                return {
-                    sql: `UPDATE doces SET nome = ?, preco = ? WHERE id = ?`,
-                    values: [nome, preco, id]
-                }
-
             case "outros":
                 return {
-                    sql: `UPDATE outros SET nome = ?, preco = ? WHERE id = ?`,
+                    sql: `UPDATE ${section} SET nome = ?, preco = ? WHERE id = ?`,
                     values: [nome, preco, id]
                 }
         }
@@ -127,6 +118,6 @@ function chooseQueryForPut(id, data) {
     }
 }
 
-module.exports = {
-    getMenu, validateMenuData, validate_section, validateIDItens, chooseQueryForPost, chooseQueryForPut
+export default {
+    getMenu, validateMenuData, validateSection, validateIDItems, chooseQueryForPost, chooseQueryForPut
 }
