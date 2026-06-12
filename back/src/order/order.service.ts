@@ -5,8 +5,8 @@ import { sql } from "./order.repository";
 import db from "../db";
 
 export async function processOrder(order: IOrder) {
-  const orderID = await helper.processOrder(order);
-  return orderID;
+  const { orderID, itemID } = await helper.processOrder(order);
+  return { orderID, itemID };
   // return helper.generateFinalMessage(orderID, order);
 }
 
@@ -26,7 +26,7 @@ export async function deleteOrder(orderID: number) {
 export async function getOrderStatus(orderID: number) {
   const [rows] = await db.query(sql.GET_ORDER_STATUS, orderID)
   helper.checkIfNotFound(rows)
-  return rows
+  return rows[0].status_pedido;
 }
 
 export async function setPrinted(orderID: number) {

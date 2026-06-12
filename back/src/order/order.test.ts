@@ -2,6 +2,7 @@ import request from 'supertest';
 import app from '../shared/app';
 
 let id: number;
+let itemID: number;
 
 test('POST /order', async () => {
     const res = await request(app).post('/order').send({
@@ -30,6 +31,7 @@ test('POST /order', async () => {
     expect(res.status).toBe(201);
     expect(res.body).toBeDefined();
     id = res.body.id;
+    itemID = res.body.itemId;
 });
 
 test('GET /order', async () => {
@@ -41,6 +43,7 @@ test('GET /order', async () => {
 test('GET /order/:id/status', async () => {
     const res = await request(app).get(`/order/${id}/status`);
     expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('status');
 });
 
 test('GET /order/new', async () => {
@@ -62,12 +65,12 @@ test('PUT /order/setPrinted/:id', async () => {
     expect(res.status).toBe(200);
 });
 
-test('PUT /order/item/:id', async () => {
-    const res = await request(app).put(`/order/item/${id}`).send({
-        "produto": "Pizza",
-        "sabor": "Calabresa",
-        "quantidade": 2,
-        "observacao": "35cm"
+test('PUT /order/item/:itemID', async () => {
+    const res = await request(app).put(`/order/item/${itemID}`).send({
+        "novoProdutoNome": "Pizza",
+        "novoSabor": "Calabresa",
+        "novaQuant": 2,
+        "novaOBS": "35cm"
     });
     expect(res.status).toBe(200);
 });

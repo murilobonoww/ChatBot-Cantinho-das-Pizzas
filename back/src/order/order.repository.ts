@@ -36,8 +36,9 @@ export async function insertOrder(order: IOrder) {
 }
 
 export async function insertItems(order_id: number, items: any[]){
+    const itemsID = [];
     for (const item of items) {
-        await db.execute(sql.insertItemPedido, [
+        const [result] =await db.execute(sql.insertItemPedido, [
             order_id,
             item.produto,
             item.saborItem,
@@ -45,7 +46,9 @@ export async function insertItems(order_id: number, items: any[]){
             item.observacao,
             item.preco
         ]);
+        itemsID.push(result.insertId);
     }
+    return itemsID;
 }
 
 export async function getProductNames(productConfig: {table:string, column: string, keyColumn: string}) {

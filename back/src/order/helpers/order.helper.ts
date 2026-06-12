@@ -9,7 +9,7 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
 
-export async function processOrder(order: IOrder): Promise<number> {
+export async function processOrder(order: IOrder): Promise<{ orderID: number, itemID: number }> {
     const address = order.endereco_entrega;
     const isDelivery = order.delivery == 1;
 
@@ -23,8 +23,7 @@ export async function processOrder(order: IOrder): Promise<number> {
     const preco_total = await getProductPrice(order);
     order.preco_total = Number((preco_total + tax).toFixed(2));
 
-    const pedido_id = await insertOrder(order);
-    return pedido_id;
+    return await insertOrder(order);
 }
 
 function calculateDeliveryFee(distance: number | null): number | null {
@@ -91,7 +90,7 @@ async function validateDistance(address: string | null): Promise<number | null> 
     return distanceKM;
 }
 
-async function insertOrder(order: IOrder): Promise<number> {
+async function insertOrder(order: IOrder): Promise<{ orderID: number, itemID: number }> {
     const order_id = await repository.insertOrder(order);
     const resolvedItems = [];
 
@@ -101,8 +100,8 @@ async function insertOrder(order: IOrder): Promise<number> {
         resolvedItems.push({ ...item, saborItem: flavor });
         if (flavor === 'NAO_ENCONTRADO') throw new Error(`sabor não encontrado no cardápio: ${item.sabor}`)
     }
-    await repository.insertItems(order_id, resolvedItems);
-    return order_id
+    const itemsID = await repository.insertItems(order_id, resolvedItems);
+    return { orderID: order_id, itemID: itemsID[0] };
     // const { latitude, longitude } = order;
     // sendToFoody(pedido, pedido_id, latitude, longitude); // ← envia para a Foody de forma assíncrona
 }

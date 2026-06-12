@@ -4,8 +4,8 @@ import * as service from './order.service';
 import { Request, Response } from 'express';
 
 export async function finalize(req: Request, res: Response) {
-    const orderID = await service.processOrder(req.body);
-    return res.status(201).json({ id: orderID });
+    const { orderID, itemID } = await service.processOrder(req.body);
+    return res.status(201).json({ id: orderID, itemId: itemID });
 }
 
 export async function getAll(req: Request, res: Response) {
@@ -32,8 +32,8 @@ export async function deleteOrder(req: Request, res: Response) {
 export async function getOrderStatus(req: Request, res: Response) {
     try {
         const orderID = req.params.id
-        await service.getOrderStatus(Number(orderID))
-        return res.sendStatus(200)
+        const status = await service.getOrderStatus(Number(orderID))
+        return res.status(200).json({ status: status })
     } catch (error) {
         return res.status(500).json({ erro: `Erro ao pegar status do pedido ${req.params.id}: `, error })
     }
@@ -63,9 +63,9 @@ export async function update(req: Request, res: Response) {
 
 export async function updateOrderItem(req: Request, res: Response) {
     try {
-        const orderID = req.params.id
-        await service.updateOrderItem(Number(orderID), req.body)
-        return res.sendStatus(200)
+        const orderItemID = req.params.id;
+        await service.updateOrderItem(Number(orderItemID), req.body);
+        return res.sendStatus(200);
     }
     catch (error) {
         return res.status(500).json({ erro: `Error updating item of order ${req.params.id}: `, error })
