@@ -365,9 +365,9 @@ const Pedidos = () => {
 
   const handleSubmitChange = (e, items) => {
     e.preventDefault()
-    console.log(items)
     items.map((item) => {
       const i = {
+        novoPreco: item.preco,
         novoProdutoNome: item.produto,
         novoSabor: item.sabor,
         novaQuant: item.quantidade,
@@ -532,6 +532,20 @@ const Pedidos = () => {
                             setItemsToEdit(prev => {
                               const copy = [...prev]
                               copy[index] = { ...copy[index], produto: e.target.value }
+                              return copy;
+                            })
+                          }}
+                        />
+
+                        <label>Preço</label>
+                        <input
+                          className="change_order_form_inputs"
+                          type="text"
+                          value={item.preco}
+                          onChange={(e) => {
+                            setItemsToEdit((prev) => {
+                              const copy = [...prev];
+                              copy[index] = { ...copy[index], preco: e.target.value };
                               return copy;
                             })
                           }}
