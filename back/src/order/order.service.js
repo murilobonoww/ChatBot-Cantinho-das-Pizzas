@@ -51,9 +51,9 @@ async function updateOrder(orderID, new_order) {
 }
 
 async function updateOrderItem(orderID, new_order) {
-  const { novoProdutoNome: produto, novoSabor: sabor, novaQuant: quantidade, novaOBS: obs, } = new_order
+  const { novoPreco: preco,novoProdutoNome: produto, novoSabor: sabor, novaQuant: quantidade, novaOBS: obs, } = new_order
 
-  const [rows] = await db.query(sql.UPDATE_ORDER_ITEM, [produto, sabor, quantidade, obs, orderID])
+  const [rows] = await db.query(sql.UPDATE_ORDER_ITEM, [preco, produto, sabor, quantidade, obs, orderID])
   checkIfNotFound(rows)
 }
 

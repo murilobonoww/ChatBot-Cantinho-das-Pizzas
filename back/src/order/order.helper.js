@@ -21,7 +21,7 @@ const sql = {
     GET_ORDERS_WITH_OPENED_STATUS: `SELECT COUNT(*) AS total FROM pedido WHERE status_pedido = 'aberto'`,
     SET_PRINTED: `UPDATE pedido SET printed = true WHERE id_pedido = ?`,
     UPDATE_ORDER: `UPDATE pedido SET nome_cliente = ?, endereco_entrega = ?, forma_pagamento = ?, status_pedido = ?, taxa_entrega = ?, preco_total = ? WHERE id_pedido = ?`,
-    UPDATE_ORDER_ITEM: `UPDATE item_pedido SET produto = ?, sabor = ?, quantidade = ?, observacao = ? WHERE id = ?`,
+    UPDATE_ORDER_ITEM: `UPDATE item_pedido SET preco = ?, produto = ?, sabor = ?, quantidade = ?, observacao = ? WHERE id = ?`,
     UPDATE_ORDER_STATUS: `UPDATE pedido SET status_pedido = ? WHERE id_pedido = ?`,
     DELETE_ITENS_OF_ORDER: `DELETE FROM item_pedido WHERE pedido_id_fk = ?`,
     DELETE_ORDER: `DELETE FROM pedido WHERE id_pedido = ?`,

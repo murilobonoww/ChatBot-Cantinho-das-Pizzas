@@ -501,10 +501,10 @@ const Pedidos = () => {
           <button id="btn_confirm_auth_pass" onClick={() => confirmAuthPass(authPass, "change")}>Entrar</button>
         </div>
 
-        <div className="auth_tela_pedidos" style={{ opacity: authOpenedDelete ? "100" : "0", pointerEvents: authOpenedDelete ? "auto" : "none" }}>
+        <div className={`auth_tela_pedidos ${isNotifBarOpened ? 'whenNotifBarOpened' : 'whenNotifBar_NOT_Opened'}`} style={{ opacity: authOpenedDelete ? "100" : "0", pointerEvents: authOpenedDelete ? "auto" : "none" }}>
           <img src={warning_icon} style={{ width: "50px" }} />
           <h1 id="title_auth_tela_pedidos">Ação restrita à gerência</h1>
-          <input placeholder="Digite a senha" type="password" value={authPass} onChange={(e) => setAuthPass(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} autoFocus className="input_auth_deletar_pedido" />
+          <input placeholder="Digite a senha" type="password" value={authPass} onChange={(e) => setAuthPass(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} autoFocus className="input_auth_tela_pedidos" />
           <button id="btn_confirm_auth_pass" onClick={() => confirmAuthPass(authPass, "delete")}>Entrar</button>
         </div>
 
