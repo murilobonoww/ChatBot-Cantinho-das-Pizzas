@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import socket from '@/services/socket';
 import CheckboxSplash from './CheckboxSplash';
+import ManagerAuth from '../shared/ManagerAuth';
 
 import { LayoutDashboard, ShoppingBag, Pizza, Truck, UserCheck, Bell, LogOut, Bug, Trash2, Bot } from 'lucide-react';
 
@@ -15,6 +16,7 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
     const carregamentoInicial = useRef(true);
     const [checked, setChecked] = useState(false);
     const [chatbotON, setChatbotON] = useState(true);
+    const [showManagerAuth, setShowManagerAuth] = useState(false);
 
     const toggleNotificationBar = () => {
         setIsNotifBarOpened(!isNotifBarOpened)
@@ -100,15 +102,15 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
 
     function toggleChatbot(bool) {
         console.log('entrou na funcao togglechatbot')
-    try {
-      window.api?.toggleChatbot({
-        turn: bool
-      })
-      console.log('enviou pro IPC')
-    } catch (e) {
-      console.error("Erro ao ligar/desligar chatbot: ", e)
+        try {
+            window.api?.toggleChatbot({
+                turn: bool
+            })
+            console.log('enviou pro IPC')
+        } catch (e) {
+            console.error("Erro ao ligar/desligar chatbot: ", e)
+        }
     }
-  }
 
     return (
         <div>
@@ -157,6 +159,7 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
                             </NavLink>
                         </li>
                         <li>
+                            <button onClick={() => setShowManagerAuth(true)}>Relatórios</button>
                             <NavLink to="/relatorios">
                                 <LayoutDashboard size={20} style={{ marginRight: '10px' }} />
                                 <span>Dashboard</span>
@@ -194,7 +197,7 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
                         </li>
                         <li onClick={() => { setChatbotON(!chatbotON); console.log('chatbotON: ', chatbotON); toggleChatbot(chatbotON); }} id="bot_btn_sidebar">
                             <Bot size={20} style={{ marginRight: '10px' }} />
-                            <span>Bot {chatbotON ? 'ON': 'OFF'}</span>
+                            <span>Bot {chatbotON ? 'ON' : 'OFF'}</span>
                         </li>
                         <li>
                             <Link to="/login" onClick={() => setChatbotON(false)}>
@@ -205,6 +208,12 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
                     </ul>
                 </nav>
             </aside>
+
+            {showManagerAuth && <ManagerAuth
+                method={"report"}
+                closeModal={() => setShowManagerAuth(false)}
+                isNotifBarOpened={isNotifBarOpened}
+            />}
         </div>
     )
 }

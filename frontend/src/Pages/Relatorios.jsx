@@ -6,6 +6,7 @@ import axios from "axios";
 import bell_sound from "/assets/bell.mp3"
 import { Toaster } from "react-hot-toast";
 import { toast } from "react-toastify";
+import ManagerAuth from "../shared/ManagerAuth";
 
 import { PiggyBank, ShoppingBasket, Lock, Award, CreditCard, DollarSign, Trophy, Star } from 'lucide-react';
 
@@ -63,7 +64,6 @@ export default function Relatorios() {
   useEffect(() => {
     if (autorizado && relatorio.total_vendas === undefined) {
       aplicarFiltroRapido(7);
-      console.log(filtroSelecionado)
     }
     senhaInputRef.current?.focus();
   }, [autorizado]);

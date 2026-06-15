@@ -1,4 +1,3 @@
-//libs
 import axios from "axios";
 import Swal from "sweetalert2";
 import React, { useEffect, useState, useRef } from "react";
@@ -7,16 +6,15 @@ import { Link, useLocation, useNavigate, useOutletContext } from "react-router-d
 import withReactContent from "sweetalert2-react-content";
 import 'react-toastify/dist/ReactToastify.css';
 
-//interns
 import "@/Style/Pedidos.css";
 
-//assets
 import expandir_img from "/assets/folder.webp";
 import recolher_img from "/assets/open-folder.webp";
 import none_result from "/assets/nenhum-resultado-encontrado.png";
 import impressora_icon from "/assets/printer_.png"
 import warning_icon from "/assets/warning.webp"
 import bell_sound from "/assets/bell.mp3"
+import ManagerAuth from "../shared/ManagerAuth";
 
 const MySwal = withReactContent(Swal);
 
@@ -63,6 +61,13 @@ const Pedidos = () => {
   const [novosIDs, setNovosIDs] = useState([]);
   const [id_selectedOrder, setId_selectedOrder] = useState()
   const [novospedidos_localstorage, set_novospedidos_localstorage] = useState([]);
+  const [showManagerAuth, setShowManagerAuth] = useState(false);
+  const [managerAuthMethod, setManagerAuthMethod] = useState("");
+  function setManagerAuthMethodAndShow(method) {
+    setManagerAuthMethod(method);
+    setShowManagerAuth(true);
+  }
+
 
   const [secao_pedido_filtro, setSecao_pedido_filtro] = useState("Todos")
   const [contagem_pedidos_secao, setContagem_pedidos_secao] = useState(0)
@@ -311,7 +316,7 @@ const Pedidos = () => {
     const mes = String(data.getMonth() + 1).padStart(2, "0");
     const ano = data.getFullYear();
     const horaUTC = String(data.getHours()).padStart(2, "0");
-    const horaLocal = horaUTC -3;
+    const horaLocal = horaUTC - 3;
     const minuto = String(data.getMinutes()).padStart(2, "0");
     return `${dia}/${mes}/${ano} ${horaLocal}:${minuto}`;
   };
@@ -407,38 +412,39 @@ const Pedidos = () => {
     })
   }, [id_selectedOrder])
 
-  async function confirmAuthPass(pass, method) {
-    try {
-      const res = await axios.post(`https://back-cantinho-das-pizzas.onrender.com/auth/confirmPass/${pass}`, { withCredentials: true })
-      if (res.status === 200 && method === "change") {
-        setChangeOpened(true)
-        setAuthOpened(false)
-      }
-      else if (res.status === 200 && method === "delete") {
-        setAuthOpenedDelete(false)
-        handleDeletePedido(id_selectedOrder)
-      }
-    }
-    catch (error) {
-      if (error.response) {
+  // async function confirmAuthPass(pass, method) {
+  //   try {
+  //     const res = await axios.post(`https://back-cantinho-das-pizzas.onrender.com/auth/confirmPass/${pass}`, { withCredentials: true })
+  //     if (res.status === 200 && method === "change") {
+  //       setChangeOpened(true)
+  //       setAuthOpened(false)
+  //     }
+  //     else if (res.status === 200 && method === "delete") {
+  //       setAuthOpenedDelete(false)
+  //       handleDeletePedido(id_selectedOrder)
+  //     }
+  //   }
+  //   catch (error) {
+  //     if (error.response) {
 
-        if (error.response.status === 404) {
-          console.log("rota não encontrada")
-        }
+  //       if (error.response.status === 404) {
+  //         console.log("rota não encontrada")
+  //       }
 
-        else if (error.response.status === 401) {
-          toast.error("Senha incorreta", { autoClose: 4000 })
-          console.log("unauthorizated")
-        }
-      }
-    }
-  }
+  //       else if (error.response.status === 401) {
+  //         toast.error("Senha incorreta", { autoClose: 4000 })
+  //         console.log("unauthorizated")
+  //       }
+  //     }
+  //   }
+  // }
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && authOpened) {
-      confirmAuthPass(authPass)
-    }
-  }
+
+  // const handleKeyDown = (e) => {
+  //   if (e.key === "Enter" && authOpened) {
+  //     confirmAuthPass(authPass)
+  //   }
+  // }
 
   useEffect(() => {
     if (authOpened === false || authOpenedDelete === false) {
@@ -454,6 +460,7 @@ const Pedidos = () => {
         produto: item.produto,
         sabor: item.sabor,
         quantidade: item.quantidade,
+        preco: item.preco,
         obs: item.observacao
       })))
     }
@@ -494,7 +501,7 @@ const Pedidos = () => {
         <div style={{ opacity: changeOpened || authOpened ? "100" : "0", pointerEvents: changeOpened || authOpened ? "auto" : "none" }} className="change_filter" onClick={() => changeOpened ? setChangeOpened(prev => !prev) : setAuthOpened(prev => !prev)} ></div>
         <div style={{ opacity: deleteOpened || authOpenedDelete ? "100" : "0", pointerEvents: deleteOpened || authOpenedDelete ? "auto" : "none" }} className="change_filter" onClick={() => deleteOpened ? setDeleteOpened(prev => !prev) : setAuthOpenedDelete(prev => !prev)} ></div>
 
-        <div className={`auth_tela_pedidos ${isNotifBarOpened ? 'whenNotifBarOpened' : 'whenNotifBar_NOT_Opened'}`} style={{ opacity: authOpened ? "100" : "0", pointerEvents: authOpened ? "auto" : "none" }}>
+        {/* <div className={`auth_tela_pedidos ${isNotifBarOpened ? 'whenNotifBarOpened' : 'whenNotifBar_NOT_Opened'}`} style={{ opacity: authOpened ? "100" : "0", pointerEvents: authOpened ? "auto" : "none" }}>
           <img src={warning_icon} style={{ width: "50px" }} />
           <h1 id="title_auth_tela_pedidos">Ação restrita à gerência</h1>
           <input placeholder="Digite a senha" type="password" value={authPass} onChange={(e) => setAuthPass(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} autoFocus className="input_auth_tela_pedidos" />
@@ -506,7 +513,7 @@ const Pedidos = () => {
           <h1 id="title_auth_tela_pedidos">Ação restrita à gerência</h1>
           <input placeholder="Digite a senha" type="password" value={authPass} onChange={(e) => setAuthPass(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} autoFocus className="input_auth_tela_pedidos" />
           <button id="btn_confirm_auth_pass" onClick={() => confirmAuthPass(authPass, "delete")}>Entrar</button>
-        </div>
+        </div> */}
 
         <div style={{ opacity: changeOpened ? "100" : "0", pointerEvents: changeOpened ? "auto" : "none" }} className="change_order_card">
           <h1>Alterar pedido {id_selectedOrder}</h1>
@@ -783,8 +790,8 @@ const Pedidos = () => {
 
                       <button className="editBtn_h" onClick={(e) => {
                         e.stopPropagation()
-                        setAuthOpened(prev => !prev)
                         setId_selectedOrder(pedido.id_pedido)
+                        setManagerAuthMethodAndShow("change")
                       }}>
                         <svg width="1em" height="1em" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet">
                           <path
@@ -793,13 +800,13 @@ const Pedidos = () => {
                         </svg>
                       </button>
 
+
                       <button
                         className="delete-button-pedido"
-                        style={{}}
                         onClick={(e) => {
                           e.stopPropagation()
-                          setAuthOpenedDelete(prev => !prev)
                           setId_selectedOrder(pedido.id_pedido)
+                          setManagerAuthMethodAndShow("delete")
                         }
                         }
                       >
@@ -910,6 +917,14 @@ const Pedidos = () => {
                 ))
 
             )}
+
+            {showManagerAuth && <ManagerAuth
+              method={managerAuthMethod}
+              closeModal={() => setShowManagerAuth(false)}
+              openChange={() => setChangeOpened(true)}
+              handleDeletePedido={() => handleDeletePedido(id_selectedOrder)}
+              isNotifBarOpened={isNotifBarOpened}
+            />}
           </div>
           {/* fim de lista-pedidos */}
 

@@ -18,93 +18,17 @@
   min-height: 100vh;
 }
 
-/* .relatorios{
-  width: 100vw;
-} */
-
-.header-relatorios-input,
-.header-relatorios h1 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.header-relatorios-input h1 {
-  font-size: 45px;
-  user-select: none;
-  color: #000000;
-  padding-top: 170px;
-}
-
 .header-relatorios h1 {
   font-size: 45px;
   user-select: none;
   color: #424242;
   padding-top: 30px;
   margin-bottom: 20px;
+  text-align: center;
 }
 
 .page-relatorios h2 {
   user-select: none;
-}
-
-.centralizar_gerencia {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-#title_locked_dashboard {
-  font-size: 40px;
-  color: #6f6f6f;
-}
-
-.senha-gerencia {
-  text-align: center;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.senha-gerencia p {
-  margin-bottom: 10px;
-  color: black;
-  font-size: 16px;
-}
-
-.input_senha_gerencia {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-}
-
-.input_senha_gerencia input {
-  padding: 10px;
-  font-size: 16px;
-  border: #afafaf solid 3px;
-  border-bottom: #afafaf solid 9px;
-  border-radius: 4px;
-  font-family: 'MinhaFonte3';
-  text-align: center;
-}
-
-.input_senha_gerencia input:focus {
-  outline: none;
-}
-
-.input_senha_gerencia button {
-  padding: 15px 20px;
-  font-size: 16px;
-  background: #ff9270;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease-in-out;
-}
-
-.input_senha_gerencia button:hover {
-  filter: brightness(1.1);
 }
 
 .relatorios-container {
