@@ -98,7 +98,7 @@ const Pedidos = () => {
   }, [id_filter, dataInicio, dataFim, nomeCliente, secao_pedido_filtro]);
 
   useEffect(() => {
-    fetch("https://back-cantinho-das-pizzas.onrender.com/order/getAll", {
+    fetch("https://back-cantinho-das-pizzas.onrender.com/order/", {
       credentials: "include"
     })
       .then(res => {
@@ -170,7 +170,7 @@ const Pedidos = () => {
   }, [location.state]);
 
   const fetchPedidos = () => {
-    fetch(`https://back-cantinho-das-pizzas.onrender.com/order/getAll`, {
+    fetch(`https://back-cantinho-das-pizzas.onrender.com/order/`, {
       credentials: "include"
     })
       .then(res => {
@@ -228,7 +228,7 @@ const Pedidos = () => {
     if (dataFim) params.append("fim", dataFim);
     if (nomeCliente) params.append("cliente", nomeCliente);
 
-    fetch(`https://back-cantinho-das-pizzas.onrender.com/order/getAll?${params.toString()}`, {
+    fetch(`https://back-cantinho-das-pizzas.onrender.com/order?${params.toString()}`, {
       credentials: "include"
     })
       .then((res) => {
