@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "test": "npx jest --detectOpenHandles",
-    "local": "tsx watch src/index.ts"
+    "local": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
