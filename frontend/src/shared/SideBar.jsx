@@ -1,6 +1,6 @@
 import '../Style/SideBar.css'
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,12 +11,13 @@ import ManagerAuth from '../shared/ManagerAuth';
 import { LayoutDashboard, ShoppingBag, Pizza, Truck, UserCheck, Bell, LogOut, Bug, Trash2, Bot } from 'lucide-react';
 
 export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
-    const navigate = useNavigate()
     const [notificacoes, setNotificacoes] = useState([]);
     const carregamentoInicial = useRef(true);
     const [checked, setChecked] = useState(false);
     const [chatbotON, setChatbotON] = useState(true);
     const [showManagerAuth, setShowManagerAuth] = useState(false);
+    const location = useLocation();
+    const isDashboardActive = location.pathname === "/relatorios";
 
     const toggleNotificationBar = () => {
         setIsNotifBarOpened(!isNotifBarOpened)
@@ -158,12 +159,9 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
                                 <span>Pedidos</span>
                             </NavLink>
                         </li>
-                        <li>
-                            <button onClick={() => setShowManagerAuth(true)}>Relatórios</button>
-                            <NavLink to="/relatorios">
-                                <LayoutDashboard size={20} style={{ marginRight: '10px' }} />
-                                <span>Dashboard</span>
-                            </NavLink>
+                        <li id='dashboard_btn_sidebar' onClick={() => setShowManagerAuth(true)} className={isDashboardActive ? 'active' : ''}>
+                            <LayoutDashboard size={20} style={{ marginRight: '10px' }} />
+                            <span>Dashboard</span>
                         </li>
 
                         <li>
@@ -172,7 +170,6 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
                                 <span>Cardápio</span>
                             </NavLink>
                         </li>
-                        {/* externos */}
                         <li>
                             <Link to="/">
                                 <Truck size={20} style={{ marginRight: '10px' }} />
@@ -195,7 +192,7 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
                             <Bell size={20} style={{ marginRight: '10px' }} />
                             <span>Alertas</span>
                         </li>
-                        <li onClick={() => { setChatbotON(!chatbotON); console.log('chatbotON: ', chatbotON); toggleChatbot(chatbotON); }} id="bot_btn_sidebar">
+                        <li onClick={() => { setChatbotON(!chatbotON); toggleChatbot(chatbotON); }} id="bot_btn_sidebar">
                             <Bot size={20} style={{ marginRight: '10px' }} />
                             <span>Bot {chatbotON ? 'ON' : 'OFF'}</span>
                         </li>
@@ -213,6 +210,7 @@ export default function SideBar({ isNotifBarOpened, setIsNotifBarOpened }) {
                 method={"report"}
                 closeModal={() => setShowManagerAuth(false)}
                 isNotifBarOpened={isNotifBarOpened}
+                sendCode={(code) => { }}
             />}
         </div>
     )

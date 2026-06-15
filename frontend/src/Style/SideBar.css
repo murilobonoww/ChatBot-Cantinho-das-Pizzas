@@ -61,25 +61,11 @@
     height: 30px;
 }
 
-#notification_btn_sidebar {
-    cursor: pointer;
-    color: #565053;
-    padding-left: 30px;
-    padding: 15px 35px 15px 20px;
-    width: 120px;
-    display: flex;
-    border-radius: 10px;
-}
-
-#notification_btn_sidebar:hover {
-    background-color: #f3f4f6;
-}
-
 #notification_msg{
     width: 220px;
 }
 
-#bot_btn_sidebar {
+#bot_btn_sidebar, #dashboard_btn_sidebar, #notification_btn_sidebar {
     cursor: pointer;
     color: #565053;
     padding-left: 30px;
@@ -89,6 +75,11 @@
     border-radius: 10px;
 }
 
-#bot_btn_sidebar:hover {
+#bot_btn_sidebar:hover, #dashboard_btn_sidebar:hover, #notification_btn_sidebar:hover {
     background-color: #f3f4f6;
+}
+
+#dashboard_btn_sidebar.active {
+    color: white;
+    background: linear-gradient(90deg, rgba(254, 179, 78, 1) 20%, rgba(253, 73, 72, 1) 100%);
 }

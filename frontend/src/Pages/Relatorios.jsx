@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { data, Link } from "react-router-dom";
+import { data, Link, useLocation } from "react-router-dom";
 import "@/Style/Relatorios.css";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import axios from "axios";
-import bell_sound from "/assets/bell.mp3"
+import bell_sound from "../assets/sounds/bell.mp3";
 import { Toaster } from "react-hot-toast";
 import { toast } from "react-toastify";
 import ManagerAuth from "../shared/ManagerAuth";
@@ -14,14 +14,14 @@ export default function Relatorios() {
   const [relatorio, setRelatorio] = useState({});
   const [inicio, setInicio] = useState("");
   const [fim, setFim] = useState("");
-  const [senha, setSenha] = useState("");
-  const [autorizado, setAutorizado] = useState(false);
+
+  const { state } = useLocation();
+  const [managerCode, setManagerCode] = useState(state?.code || "");
   const [filtroSelecionado, setFiltroSelecionado] = useState(null);
   const carregamentoInicial = useRef(true);
   const last_time_data = useRef([]);
   const [toggle_customized_period_window, setToggle_customized_period_window] = useState(false);
-  const senhaInputRef = useRef(null);
-
+  
   const playSound = () => {
     const audio = new Audio(bell_sound)
     audio.volume = 0.7
@@ -62,11 +62,10 @@ export default function Relatorios() {
   }, [])
 
   useEffect(() => {
-    if (autorizado && relatorio.total_vendas === undefined) {
+    if (relatorio.total_vendas === undefined) {
       aplicarFiltroRapido(7);
     }
-    senhaInputRef.current?.focus();
-  }, [autorizado]);
+  }, []);
 
   const pagamentosData = [
     { name: "Pix", value: relatorio.pagamentos?.pix || 0 },
@@ -83,20 +82,17 @@ export default function Relatorios() {
 
     fetch(`https://back-cantinho-das-pizzas.onrender.com/order/generate-relatorio?${params.toString()}`, {
       headers: {
-        Authorization: `Bearer ${senha}`
+        Authorization: `Bearer ${managerCode}`
       },
       credentials: "include"
     })
       .then(async res => {
         if (!res.ok) {
-          setAutorizado(false);
-          setSenha("");
-          toast.error("Senha incorreta");
+          toast.error("Erro ao buscar relatórios");
           return;
         }
         const data = await res.json();
         setRelatorio(data);
-        setAutorizado(true);
       })
       .catch(err => {
         console.error("Erro ao buscar relatórios:", err);
@@ -132,35 +128,10 @@ export default function Relatorios() {
   };
 
   return (
-    <div className={`page-relatorios ${!autorizado ? "locked" : ""}`}>
+    <div className={`page-relatorios`}>
       <Toaster />
 
       <div className="relatorios">
-        {!autorizado && (
-          <div>
-            <div className="header-relatorios-input">
-              <Lock size={150} strokeWidth={3} id="lock_icon_dashboard" />
-            </div>
-            <div className="centralizar_gerencia">
-              <h1 id="title_locked_dashboard">Digite a senha da gerência</h1>
-              <div className="senha-gerencia">
-                <div className="input_senha_gerencia">
-                  <input
-                    type="password"
-                    value={senha}
-                    onChange={(e) => setSenha(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && buscarRelatorio()}
-                    placeholder="Senha"
-                    ref={senhaInputRef}
-                  />
-                  <button onClick={() => buscarRelatorio()}>Acessar dashboard</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {autorizado && (
           <div className="relatorios_panel">
             <div className="header-relatorios">
               <h1 id="title_relatorios1">Dashboard</h1>
@@ -338,7 +309,6 @@ export default function Relatorios() {
 
             </div>
           </div>
-        )}
       </div>
     </div>
   );
