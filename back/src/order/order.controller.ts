@@ -4,8 +4,8 @@ import * as service from './order.service';
 import { Request, Response } from 'express';
 
 export async function finalize(req: Request, res: Response) {
-    const { orderID, itemID } = await service.processOrder(req.body);
-    return res.status(201).json({ id: orderID, itemId: itemID });
+    const finalMessage = await service.processOrder(req.body);
+    return res.status(201).json({ message: finalMessage });
 }
 
 export async function getAll(req: Request, res: Response) {

@@ -5,9 +5,8 @@ import { sql } from "./order.repository";
 import db from "../db";
 
 export async function processOrder(order: IOrder) {
-  const { orderID, itemID } = await helper.processOrder(order);
-  return { orderID, itemID };
-  // return helper.generateFinalMessage(orderID, order);
+  const finalMessage = await helper.processOrder(order);
+  return finalMessage;
 }
 
 export async function getAll(filters: IFilters) {

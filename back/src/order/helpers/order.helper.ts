@@ -1,6 +1,5 @@
 import { IFilters, IOrder } from "../IOrder";
 import { IItem } from "../IOrder";
-
 const axios = require("axios");
 const OpenAI = require("openai");
 import * as repository from '../order.repository';
@@ -9,21 +8,81 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
 
-export async function processOrder(order: IOrder): Promise<{ orderID: number, itemID: number }> {
+export async function processOrder(order: IOrder): Promise<string>{
+    const tax = await calculateTax(order);
+    order.taxa_entrega = tax;
+    const total_price = await getProductPrice(order);
+    order.preco_total = Number((total_price + tax).toFixed(2));
+    const { orderID } = await insertOrder(order);
+    return generateFinalMessage(orderID, order);
+}
+
+export function generateFinalMessage(orderId: number, order: IOrder): string {
+    const delivery = order.endereco_entrega !== null;
+    const change = order.alteracao == 1;
+    const title = `*#️⃣ Pedido Nº ${orderId}*`;
+    let items = '';
+
+    for (const item of order.itens) {
+        switch (item.produto) {
+            case 'Pizza':
+                items += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco!.toFixed(2).replace(".", ",")} (${item.observacao})\n`;
+                break;
+            case 'Esfiha':
+                items += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco!.toFixed(2).replace(".", ",")}\n`;
+                break;
+            default:
+                items += `${item.quantidade} x ${item.sabor} - R$${item.preco!.toFixed(2).replace(".", ",")}\n`;
+                break;
+        }
+    }
+
+    const client = `*👤 ${order.nome_cliente}*`;
+    const phone = `*📞 ${order.telefone_cliente}*`;
+    const payment_method = `• 💳 Forma de pagamento: ${order.forma_pagamento}`;
+    const address = `• 📍 Endereço: ${order.endereco_entrega}`;
+    const tax = `• 🚚 Taxa de entrega: R$${order.taxa_entrega!.toFixed(2).replace('.', ',')}`;
+    const total_price = `• Total: R$${order.preco_total!.toFixed(2).replace('.', ',')}`;
+    const advice = "*O pagamento será feito na entrega.*";
+    const thanks = "Obrigado pelo seu pedido! Em breve estaremos aí... 🍕🏍️";
+
+    const parts = [
+        ...(change ? ['(*Alteração de pedido*)'] : []),
+        title,
+        client,
+        phone,
+        ...(!delivery ? ['*📍 Retirar na loja*'] : []),
+        '',
+        '━━━━━━━━━━━━━━━━━━━━━━',
+        '🛒 *ITENS DO PEDIDO*',
+        '━━━━━━━━━━━━━━━━━━━━━━',
+        '',
+        items.trimEnd(),
+        '',
+        '━━━━━━━━━━━━━━━━━━━━━━',
+        '💰 *RESUMO DO PEDIDO*',
+        '━━━━━━━━━━━━━━━━━━━━━━',
+        '',
+        payment_method,
+        ...(delivery ? [address, tax] : []),
+        total_price,
+        '',
+        advice,
+        '',
+        thanks,
+    ];
+
+    return parts.join('\n');
+}
+
+async function calculateTax(order: IOrder){
     const address = order.endereco_entrega;
     const isDelivery = order.delivery == 1;
-
     const distance = await validateDistance(address);
 
     let tax: number = 0;
     if (isDelivery) tax = calculateDeliveryFee(distance) ?? 0;
-
-    order.taxa_entrega = tax;
-
-    const preco_total = await getProductPrice(order);
-    order.preco_total = Number((preco_total + tax).toFixed(2));
-
-    return await insertOrder(order);
+    return tax;
 }
 
 function calculateDeliveryFee(distance: number | null): number | null {
@@ -90,7 +149,7 @@ async function validateDistance(address: string | null): Promise<number | null> 
     return distanceKM;
 }
 
-async function insertOrder(order: IOrder): Promise<{ orderID: number, itemID: number }> {
+async function insertOrder(order: IOrder): Promise<{ orderID: number }> {
     const order_id = await repository.insertOrder(order);
     const resolvedItems = [];
 
@@ -101,7 +160,7 @@ async function insertOrder(order: IOrder): Promise<{ orderID: number, itemID: nu
         if (flavor === 'NAO_ENCONTRADO') throw new Error(`sabor não encontrado no cardápio: ${item.sabor}`)
     }
     const itemsID = await repository.insertItems(order_id, resolvedItems);
-    return { orderID: order_id, itemID: itemsID[0] };
+    return { orderID: order_id};
     // const { latitude, longitude } = order;
     // sendToFoody(pedido, pedido_id, latitude, longitude); // ← envia para a Foody de forma assíncrona
 }
@@ -439,44 +498,6 @@ export function orderValues(order: IOrder): any[] {
 //             error?.response?.data || error.message
 //         );
 //     }
-// }
-
-// export function generateFinalMessage(orderId: number, order: IOrder): string {
-//     const isEntrega = order.endereco_entrega !== null;
-//     const isAlteracao = order.alteracao == 1;
-//     const title = `🍕 Pedido *${orderId}*`;
-//     let itens = '';
-
-//     for (const item of order.itens) {
-//         switch (item.produto) {
-//             case 'Pizza':
-//                 itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco!.toFixed(2).replace(".", ",")} (${item.observacao})\n`;
-//                 break;
-//             case 'Esfiha':
-//                 itens += `${item.quantidade} x ${item.produto} de ${item.sabor} - R$${item.preco!.toFixed(2).replace(".", ",")}\n`;
-//                 break;
-//             default:
-//                 itens += `${item.quantidade} x ${item.sabor} - R$${item.preco!.toFixed(2).replace(".", ",")}\n`;
-//                 break;
-//         }
-//     }
-
-//     const forma_pagamento = `• 💳 Forma de pagamento: ${order.forma_pagamento}`;
-//     const endereco = `• 📍 Endereço: ${order.endereco_entrega}`;
-//     const taxa = `• 🚚 Taxa de entrega: R$${order.taxa_entrega!.toFixed(2).replace('.', ',')}`;
-//     const preco_total = `• Total: R$${order.preco_total!.toFixed(2).replace('.', ',')}`;
-//     const aviso = "*O pagamento será feito na entrega.*";
-//     const agradecimento = "Obrigado pelo seu pedido! Em breve estaremos aí... 🍕🏍️";
-
-//     return `
-//         ${isAlteracao && '(*Alteração de pedido*)\n'}
-//         ${title}\n
-//         ${itens}\n
-//         ${forma_pagamento}\n
-//         ${isEntrega && `${endereco}\n${taxa}\n`}
-//         ${preco_total}\n
-//         ${aviso}\n
-//         ${agradecimento}`;
 // }
 
 // export async function getFoodyOrder(uid: string) {
